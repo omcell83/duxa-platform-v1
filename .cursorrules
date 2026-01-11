@@ -1,0 +1,26 @@
+# DUXA PLATFORM - SECURITY & CODING MANIFESTO
+
+You are creating a high-security, offline-first restaurant SaaS called "Duxa".
+Prioritize STABILITY and SECURITY over speed.
+
+## 1. SECURITY RULES (NON-NEGOTIABLE)
+- **RLS Awareness:** Every database query MUST respect Supabase Row Level Security.
+- **Tenant Isolation:** Always filter queries by `tenant_id`. Never allow cross-tenant data leaks.
+- **Input Validation:** Use `zod` to validate ALL user inputs on both client and server.
+- **No Secrets in Code:** Never hardcode API keys. Use `process.env`.
+- **SQL Injection:** Use parameterized queries via Drizzle ORM or Supabase SDK.
+
+## 2. ARCHITECTURE (HYBRID)
+- **Web App (Next.js):** Runs on Cloud (Coolify). Uses Supabase directly.
+- **Kiosk App (Electron):** Runs Offline. Uses local SQLite encrypted with SQLCipher.
+- **Sync Engine:** Kiosk syncs to Supabase when online.
+
+## 3. ERROR HANDLING & SELF-HEALING
+- Wrap critical async operations in try/catch blocks.
+- If an API fails, the UI must show a user-friendly "Offline" or "Error" state, never crash (White Screen of Death).
+- Use React Error Boundaries for component isolation.
+
+## 4. TECH STACK
+- Next.js 14+ (App Router), TypeScript (Strict), Tailwind, Shadcn UI.
+- State: Zustand (Client), TanStack Query (Server State).
+- DB: Supabase (Cloud), SQLite (Local).
