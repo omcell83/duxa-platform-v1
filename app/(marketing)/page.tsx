@@ -349,58 +349,111 @@ export default function ConstructionPage() {
           </form>
         </div>
 
-        {/* BAYRAK & FOOTER GRUBU */}
-        <div className="relative flex flex-col items-center gap-4">
-          {/* Bayrak Menüsü - Eski "İyi" Konumlandırma Mantığıyla */}
-          <div className="relative flex items-center justify-center" style={{ width: '60px', height: '60px' }}>
-            <motion.div className="relative z-[60]">
-               <motion.div onClick={() => setIsLangMenuOpen(!isLangMenuOpen)} className="cursor-pointer relative group">
-                  <Flag countryCode={lang} size={40} className="drop-shadow-2xl hover:scale-110 transition-transform" />
-                  <motion.div
-                    className="absolute border border-[#EF7F1A] rounded-full pointer-events-none"
-                    style={{ width: 'calc(100% + 8px)', height: 'calc(100% + 8px)', top: '-4px', left: '-4px' }}
-                    animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.6, 0.3] }}
-                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-                  />
-               </motion.div>
+      {/* --- DİL SEÇİMİ - BAYRAKLAR (FORM ALTINDA) --- */}
+      <div className="mt-12 flex items-center justify-center">
+        <div className="relative flex items-center justify-center" style={{ width: '200px', height: '200px' }}>
+          {/* Aktif Bayrak - Merkez */}
+          <motion.div
+            className="relative"
+            style={{ zIndex: 51 }}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4 }}
+          >
+            <motion.div
+              onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
+              className="cursor-pointer relative"
+            >
+              <Flag countryCode={lang} size={56} className="md:w-14 md:h-14" />
+              {/* Aktif Bayrak Etrafında Halka */}
+              <motion.div
+                className="absolute border-2 border-[#EF7F1A] rounded-full"
+                style={{ 
+                  width: 'calc(100% + 16px)', 
+                  height: 'calc(100% + 16px)', 
+                  top: '-8px', 
+                  left: '-8px',
+                }}
+                animate={{ 
+                  scale: [1, 1.1, 1],
+                  opacity: [0.6, 1, 0.6]
+                }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              />
             </motion.div>
+          </motion.div>
 
-            {/* Diğer Bayraklar */}
-            <AnimatePresence>
-              {isLangMenuOpen && (
-                <>
-                  {langKeys.filter((key) => key !== lang).map((key, index) => {
-                    const totalOtherFlags = langKeys.length;
-                    const pos = getFlagPosition(index, totalOtherFlags, 70); // Yarıçap
+          {/* Diğer Bayraklar - Daire Şeklinde Açılır */}
+          <AnimatePresence>
+            {isLangMenuOpen && (
+              <>
+                {langKeys
+                  .filter((key) => key !== lang)
+                  .map((key, index) => {
+                    const totalOtherFlags = langKeys.length - 1;
+                    const pos = getFlagPosition(index, totalOtherFlags, 80);
+                    // Calculate angle for clockwise/counter-clockwise animation
                     const angle = (index * 360) / totalOtherFlags;
                     const isClockwise = angle >= 180;
+                    
                     return (
                       <motion.div
                         key={key}
                         className="absolute"
-                        style={{ 
-                          left: '50%', top: '50%', 
-                          marginLeft: '-16px', marginTop: '-16px', // 32px Flag için offset
-                          zIndex: 55 
+                        style={{
+                          left: '50%',
+                          top: '50%',
+                          marginLeft: '-24px', // Bayrak boyutu 48px olduğu için yarısı
+                          marginTop: '-24px',  // Bayrak boyutu 48px olduğu için yarısı
+                          transformOrigin: 'center center',
+                          zIndex: 50,
                         }}
-                        initial={{ x: 0, y: 0, opacity: 0, scale: 0, rotate: isClockwise ? -180 : 180 }}
-                        animate={{ x: pos.x, y: pos.y, opacity: 1, scale: 1, rotate: 0 }}
-                        exit={{ x: 0, y: 0, opacity: 0, scale: 0, rotate: isClockwise ? 180 : -180 }}
-                        transition={{ duration: 0.4, delay: index * 0.02, type: "spring" }}
+                        initial={{ 
+                          x: 0,
+                          y: 0,
+                          opacity: 0, 
+                          scale: 0,
+                          rotate: isClockwise ? -180 : 180,
+                        }}
+                        animate={{ 
+                          x: pos.x,
+                          y: pos.y,
+                          opacity: 1, 
+                          scale: 1,
+                          rotate: 0,
+                        }}
+                        exit={{ 
+                          x: 0,
+                          y: 0,
+                          opacity: 0, 
+                          scale: 0,
+                          rotate: isClockwise ? 180 : -180,
+                        }}
+                        transition={{ 
+                          duration: 0.5,
+                          delay: index * 0.03,
+                          type: "spring",
+                          ease: "easeOut"
+                        }}
                       >
                         <Flag 
                           countryCode={key} 
-                          size={32} 
-                          onClick={() => { setLang(key); setIsLangMenuOpen(false); setMsgIndex(0); }}
-                          className="cursor-pointer hover:scale-125 transition-transform drop-shadow-xl"
+                          size={48}
+                          onClick={() => {
+                            setLang(key);
+                            setIsLangMenuOpen(false);
+                            setMsgIndex(0);
+                          }}
+                          className="md:w-12 md:h-12"
                         />
                       </motion.div>
                     );
                   })}
-                </>
-              )}
-            </AnimatePresence>
-          </div>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>  
 
           <p className="text-zinc-600 text-[9px] md:text-[10px] font-mono uppercase tracking-widest text-center px-4">
             &copy; 2026 DUXA.PRO
@@ -422,3 +475,4 @@ export default function ConstructionPage() {
     </div>
   );
 }
+
