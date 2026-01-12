@@ -148,7 +148,7 @@ export async function joinWaitlist(formData: FormData) {
     const template = emailTemplates[language] || emailTemplates.en;
     
     // Müşteriye mail
-    await resend.emails.send({
+    const customerEmailResult = await resend.emails.send({
       from: "Duxa Platform <noreply@duxa.pro>",
       to: email,
       replyTo: "info@duxa.pro",
@@ -156,24 +156,39 @@ export async function joinWaitlist(formData: FormData) {
       html: template.html(email),
     });
     
-    console.log("✅ Müşteriye mail gönderildi");
-
-    // Admin bildirimi
-    await resend.emails.send({
-      from: "Duxa System <noreply@duxa.pro>",
-      to: "info@duxa.pro",
-      subject: `🔔 Yeni Kayıt (${language.toUpperCase()})`,
-      html: `<p>Yeni kayıt: <strong>${email}</strong><br>Dil: <strong>${language}</strong></p>`,
-    });
+    if (customerEmailResult.error) {
+      console.error("Müşteri Mail Hatası:", customerEmailResult.error);
+      // Mail gönderilemedi ama DB kaydı başarılı - kullanıcıyı bilgilendir
+      return { success: true, message: "Kayıt başarılı! (Mail gönderiminde sorun olabilir, lütfen tekrar deneyin.)" };
+    }
     
-    console.log("✅ Admin'e bildirim gönderildi");
+    console.log("✅ Müşteriye mail gönderildi, ID:", customerEmailResult.data?.id);
+
+    // Admin bildirimi (hata olsa bile devam et)
+    try {
+      const adminEmailResult = await resend.emails.send({
+        from: "Duxa System <noreply@duxa.pro>",
+        to: "info@duxa.pro",
+        subject: `🔔 Yeni Kayıt (${language.toUpperCase()})`,
+        html: `<p>Yeni kayıt: <strong>${email}</strong><br>Dil: <strong>${language}</strong></p>`,
+      });
+      
+      if (adminEmailResult.error) {
+        console.error("Admin Mail Hatası (kritik değil):", adminEmailResult.error);
+      } else {
+        console.log("✅ Admin'e bildirim gönderildi, ID:", adminEmailResult.data?.id);
+      }
+    } catch (adminError: any) {
+      console.error("Admin Mail Exception (kritik değil):", adminError);
+      // Admin mail'i gönderilemedi ama müşteri mail'i gönderildi - yine de başarılı say
+    }
 
     return { success: true, message: "Kayıt başarılı! Mail kutunuzu kontrol edin." };
 
   } catch (error: any) {
-    console.error("Mail Gönderim Hatası:", error);
-    // Veritabanı kaydı başarılı ama mail gönderilemedi - bu durumda hata döndürmüyoruz
-    // Çünkü kullanıcı zaten kayıt olmuş
+    console.error("Mail Gönderim Hatası (Exception):", error);
+    console.error("Error details:", JSON.stringify(error, null, 2));
+    // Exception fırlatıldı ama DB kaydı başarılı - kullanıcıyı bilgilendir
     return { success: true, message: "Kayıt başarılı! (Mail gönderiminde sorun olabilir, lütfen tekrar deneyin.)" };
   }
 }

@@ -528,6 +528,19 @@ export default function ConstructionPage() {
             const { joinWaitlist } = await import("../actions");
             const result = await joinWaitlist(formData);
             
+            if (!result) {
+              // Result undefined - muhtemelen network timeout veya connection hatası
+              console.error("joinWaitlist returned undefined");
+              setDialogType("error");
+              setDialogMessage(t.errorMessage);
+              setDialogOpen(true);
+              if(btn) {
+                btn.disabled = false;
+                btn.textContent = originalText;
+              }
+              return;
+            }
+            
             if (result.success) {
               if(btn) btn.textContent = "✓";
               setDialogType("success");
@@ -550,6 +563,9 @@ export default function ConstructionPage() {
               }
             }
           } catch (error) {
+            console.error("Form submit error:", error);
+            // Network timeout veya bağlantı hatası - mail gönderilmiş olabilir
+            // Kullanıcıyı bilgilendir
             setDialogType("error");
             setDialogMessage(t.errorMessage);
             setDialogOpen(true);
