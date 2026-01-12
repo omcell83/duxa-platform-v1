@@ -445,7 +445,43 @@ export default function ConstructionPage() {
           </AnimatePresence>
         </div>
       </div>
-
+{/* --- BEKLEME LİSTESİ FORMU (YENİ) --- */}
+        <div className="mt-8 w-full max-w-sm relative z-20">
+            <form action={async (formData) => {
+                // Basit bir istemci tarafı geri bildirimi için
+                const btn = document.getElementById('submitBtn') as HTMLButtonElement;
+                if(btn) btn.disabled = true;
+                if(btn) btn.innerText = "Kayıt Yapılıyor...";
+                
+                const { joinWaitlist } = await import("../actions"); // Dinamik import
+                const result = await joinWaitlist(formData);
+                
+                if (result.success) {
+                    alert(t.name === "Türkçe" ? "Kaydınız alındı! Mailinizi kontrol edin." : "Success! Check your email.");
+                    if(btn) btn.innerText = "✓";
+                } else {
+                    alert("Error: " + result.message);
+                    if(btn) btn.disabled = false;
+                    if(btn) btn.innerText = "Join / Katıl";
+                }
+            }} 
+            className="flex gap-2">
+                <input 
+                    type="email" 
+                    name="email" 
+                    placeholder="E-mail..." 
+                    required
+                    className="flex-1 bg-zinc-900/80 border border-zinc-700 rounded-lg px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-[#EF7F1A] transition-colors"
+                />
+                <button 
+                    id="submitBtn"
+                    type="submit" 
+                    className="bg-[#EF7F1A] hover:bg-[#d66e12] text-black font-bold px-6 py-3 rounded-lg transition-colors"
+                >
+                    🚀
+                </button>
+            </form>
+        </div>
       {/* --- FOOTER --- */}
       <div className="absolute bottom-6 w-full text-center px-4 z-40">
         <p className="text-zinc-600 text-xs font-mono uppercase tracking-widest">
