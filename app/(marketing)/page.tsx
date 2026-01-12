@@ -10,21 +10,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
-// Country flag imports
-import US from 'country-flag-icons/react/3x2/US';
-import TR from 'country-flag-icons/react/3x2/TR';
-import DE from 'country-flag-icons/react/3x2/DE';
-import FR from 'country-flag-icons/react/3x2/FR';
-import LU from 'country-flag-icons/react/3x2/LU';
-import ME from 'country-flag-icons/react/3x2/ME';
-import PT from 'country-flag-icons/react/3x2/PT';
-import NL from 'country-flag-icons/react/3x2/NL';
-import RU from 'country-flag-icons/react/3x2/RU';
+import { FlagIcon } from "@/components/flags";
 
 // --- DİL VE ÇEVİRİ AYARLARI ---
 type LangData = {
-  flagComponent: React.ComponentType<any>;
   name: string;
   title: string;
   subtitle: string;
@@ -40,7 +29,7 @@ type LangData = {
 
 const translations: Record<string, LangData> = {
   en: { 
-    flagComponent: US, name: "English", 
+    name: "English", 
     title: "System Upgrade in Progress", 
     subtitle: "Building the future of restaurant automation.",
     messages: ["Initializing core modules...", "Encrypting database connections...", "Syncing AI Engine (Gemini)...", "Activating security protocols...", "Compiling Kiosk interfaces...", "Optimizing hardware drivers...", "Deploying cloud infrastructure..."],
@@ -52,7 +41,7 @@ const translations: Record<string, LangData> = {
     errorMessage: "An error occurred. Please try again."
   },
   tr: { 
-    flagComponent: TR, name: "Türkçe", 
+    name: "Türkçe", 
     title: "Sistem Yapılandırması Sürüyor", 
     subtitle: "Restoran otomasyonunun geleceğini inşa ediyoruz.",
     messages: ["Çekirdek modüller başlatılıyor...", "Veritabanı bağlantıları şifreleniyor...", "Yapay Zeka (Gemini) senkronize ediliyor...", "Güvenlik protokolleri devreye alınıyor...", "Kiosk arayüzleri derleniyor...", "Donanım sürücüleri optimize ediliyor...", "Bulut altyapısı dağıtılıyor..."],
@@ -64,7 +53,7 @@ const translations: Record<string, LangData> = {
     errorMessage: "Bir hata oluştu. Lütfen tekrar deneyin."
   },
   de: { 
-    flagComponent: DE, name: "Deutsch", 
+    name: "Deutsch", 
     title: "Systemaktualisierung läuft", 
     subtitle: "Wir bauen die Zukunft der Restaurantautomatisierung.",
     messages: ["Kernmodule werden initialisiert...", "Datenbankverbindungen verschlüsseln...", "KI-Engine wird synchronisiert...", "Sicherheitsprotokolle aktivieren...", "Kiosk-Schnittstellen kompilieren...", "Hardware-Treiber optimieren...", "Cloud-Infrastruktur bereitstellen..."],
@@ -76,7 +65,7 @@ const translations: Record<string, LangData> = {
     errorMessage: "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
   },
   fr: { 
-    flagComponent: FR, name: "Français", 
+    name: "Français", 
     title: "Mise à niveau du système", 
     subtitle: "Nous construisons l'avenir de l'automatisation.",
     messages: ["Initialisation des modules principaux...", "Chiffrement des connexions...", "Synchronisation de l'IA...", "Activation des protocoles de sécurité...", "Compilation des interfaces Kiosk...", "Optimisation des pilotes matériels...", "Déploiement de l'infrastructure cloud..."],
@@ -87,11 +76,11 @@ const translations: Record<string, LangData> = {
     successMessage: "Succès! Vérifiez votre e-mail.",
     errorMessage: "Une erreur s'est produite. Veuillez réessayer."
   },
-  lb: { flagComponent: LU, name: "Lëtzebuergesch", title: "Systemaktualiséierung amgaang", subtitle: "Mir bauen d'Zukunft vun der Restaurantautomatioun.", messages: ["Kärmoduler initialiséieren...", "Datebankverbindunge verschlésselen...", "AI Engine synchroniséieren...", "Sécherheetsprotokoller aktivéieren...", "Kiosk Interfaces kompiléieren...", "Hardware Treiber optiméieren...", "Cloud Infrastruktur deployéieren..."], durations: [5, 4.5, 5.5, 4, 6, 5, 5.5], subscribeText: "Abonnéieren", emailPlaceholder: "Är E-Mail Adress...", signingUp: "Wird agemellt...", successMessage: "Succès! Kontrolléiert Är E-Mail.", errorMessage: "E Fehler ass geschitt. Probéiert w.e.g. nach emol." },
-  me: { flagComponent: ME, name: "Crnogorski", title: "Nadogradnja sistema u toku", subtitle: "Gradimo budućnost automatizacije restorana.", messages: ["Inicijalizacija osnovnih modula...", "Šifriranje veza baze podataka...", "Sinhronizacija AI motora...", "Aktiviranje sigurnosnih protokola...", "Kompajliranje interfejsa kioska...", "Optimizacija hardverskih drajvera...", "Primena cloud infrastrukture..."], durations: [5, 4.5, 5.5, 4, 6, 5, 5.5], subscribeText: "Pretplatite se", emailPlaceholder: "Vaša e-pošta...", signingUp: "Prijavljivanje...", successMessage: "Uspeh! Proverite svoju e-poštu.", errorMessage: "Došlo je do greške. Molimo pokušajte ponovo." },
-  pt: { flagComponent: PT, name: "Português", title: "Atualização do sistema", subtitle: "Construindo o futuro da automação.", messages: ["Inicializando módulos principais...", "Criptografando conexões...", "Sincronizando Motor de IA...", "Ativando protocolos de segurança...", "Compilando interfaces de quiosque...", "Otimizando drivers de hardware...", "Implantando infraestrutura cloud..."], durations: [5, 4.5, 5.5, 4, 6, 5, 5.5], subscribeText: "Inscrever-se", emailPlaceholder: "Seu endereço de e-mail...", signingUp: "Inscrevendo...", successMessage: "Sucesso! Verifique seu e-mail.", errorMessage: "Ocorreu um erro. Por favor, tente novamente." },
-  nl: { flagComponent: NL, name: "Nederlands", title: "Systeemupgrade bezig", subtitle: "Bouwen aan de toekomst van restaurantautomatisering.", messages: ["Kernmodules initialiseren...", "Databaseverbindingen versleutelen...", "AI Engine synchroniseren...", "Beveiligingsprotocollen activeren...", "Kiosk-interfaces compileren...", "Hardware drivers optimaliseren...", "Cloud infrastructuur implementeren..."], durations: [5, 4.5, 5.5, 4, 6, 5, 5.5], subscribeText: "Abonneren", emailPlaceholder: "Uw e-mailadres...", signingUp: "Aanmelden...", successMessage: "Succes! Controleer uw e-mail.", errorMessage: "Er is een fout opgetreden. Probeer het opnieuw." },
-  ru: { flagComponent: RU, name: "Русский", title: "Обновление системы", subtitle: "Мы строим будущее автоматизации ресторанов.", messages: ["Инициализация основных модулей...", "Шифрование соединений...", "Синхронизация ИИ...", "Активация протоколов безопасности...", "Компиляция интерфейсов киоска...", "Оптимизация драйверов оборудования...", "Развертывание облачной инфраструктуры..."], durations: [5, 4.5, 5.5, 4, 6, 5, 5.5], subscribeText: "Подписаться", emailPlaceholder: "Ваш адрес электронной почты...", signingUp: "Регистрация...", successMessage: "Успех! Проверьте свою электронную почту.", errorMessage: "Произошла ошибка. Пожалуйста, попробуйте снова." },
+  lb: { name: "Lëtzebuergesch", title: "Systemaktualiséierung amgaang", subtitle: "Mir bauen d'Zukunft vun der Restaurantautomatioun.", messages: ["Kärmoduler initialiséieren...", "Datebankverbindunge verschlésselen...", "AI Engine synchroniséieren...", "Sécherheetsprotokoller aktivéieren...", "Kiosk Interfaces kompiléieren...", "Hardware Treiber optiméieren...", "Cloud Infrastruktur deployéieren..."], durations: [5, 4.5, 5.5, 4, 6, 5, 5.5], subscribeText: "Abonnéieren", emailPlaceholder: "Är E-Mail Adress...", signingUp: "Wird agemellt...", successMessage: "Succès! Kontrolléiert Är E-Mail.", errorMessage: "E Fehler ass geschitt. Probéiert w.e.g. nach emol." },
+  me: { name: "Crnogorski", title: "Nadogradnja sistema u toku", subtitle: "Gradimo budućnost automatizacije restorana.", messages: ["Inicijalizacija osnovnih modula...", "Šifriranje veza baze podataka...", "Sinhronizacija AI motora...", "Aktiviranje sigurnosnih protokola...", "Kompajliranje interfejsa kioska...", "Optimizacija hardverskih drajvera...", "Primena cloud infrastrukture..."], durations: [5, 4.5, 5.5, 4, 6, 5, 5.5], subscribeText: "Pretplatite se", emailPlaceholder: "Vaša e-pošta...", signingUp: "Prijavljivanje...", successMessage: "Uspeh! Proverite svoju e-poštu.", errorMessage: "Došlo je do greške. Molimo pokušajte ponovo." },
+  pt: { name: "Português", title: "Atualização do sistema", subtitle: "Construindo o futuro da automação.", messages: ["Inicializando módulos principais...", "Criptografando conexões...", "Sincronizando Motor de IA...", "Ativando protocolos de segurança...", "Compilando interfaces de quiosque...", "Otimizando drivers de hardware...", "Implantando infraestrutura cloud..."], durations: [5, 4.5, 5.5, 4, 6, 5, 5.5], subscribeText: "Inscrever-se", emailPlaceholder: "Seu endereço de e-mail...", signingUp: "Inscrevendo...", successMessage: "Sucesso! Verifique seu e-mail.", errorMessage: "Ocorreu um erro. Por favor, tente novamente." },
+  nl: { name: "Nederlands", title: "Systeemupgrade bezig", subtitle: "Bouwen aan de toekomst van restaurantautomatisering.", messages: ["Kernmodules initialiseren...", "Databaseverbindingen versleutelen...", "AI Engine synchroniseren...", "Beveiligingsprotocollen activeren...", "Kiosk-interfaces compileren...", "Hardware drivers optimaliseren...", "Cloud infrastructuur implementeren..."], durations: [5, 4.5, 5.5, 4, 6, 5, 5.5], subscribeText: "Abonneren", emailPlaceholder: "Uw e-mailadres...", signingUp: "Aanmelden...", successMessage: "Succes! Controleer uw e-mail.", errorMessage: "Er is een fout opgetreden. Probeer het opnieuw." },
+  ru: { name: "Русский", title: "Обновление системы", subtitle: "Мы строим будущее автоматизации ресторанов.", messages: ["Инициализация основных модулей...", "Шифрование соединений...", "Синхронизация ИИ...", "Активация протоколов безопасности...", "Компиляция интерфейсов киоска...", "Оптимизация драйверов оборудования...", "Развертывание облачной инфраструктуры..."], durations: [5, 4.5, 5.5, 4, 6, 5, 5.5], subscribeText: "Подписаться", emailPlaceholder: "Ваш адрес электронной почты...", signingUp: "Регистрация...", successMessage: "Успех! Проверьте свою электронную почту.", errorMessage: "Произошла ошибка. Пожалуйста, попробуйте снова." },
 };
 
 // Bayrak pozisyonları (daire şeklinde)
@@ -519,8 +508,8 @@ export default function ConstructionPage() {
         </DialogContent>
       </Dialog>
       
-      {/* --- DİL SEÇİMİ - BAYRAKLAR (EN ALTA, ORTADA) --- */}
-      <div className="absolute bottom-28 md:bottom-24 left-1/2 -translate-x-1/2 z-50">
+      {/* --- DİL SEÇİMİ - BAYRAKLAR (FOOTER ÜSTÜNDE) --- */}
+      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-50">
         <div className="relative flex items-center justify-center">
           {/* Aktif Bayrak - Merkez */}
           <motion.button
@@ -528,19 +517,9 @@ export default function ConstructionPage() {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4 }}
-            className="relative z-10 cursor-pointer inline-flex items-center justify-center w-12 h-12 md:w-14 md:h-14 overflow-hidden rounded-full"
+            className="relative z-10 cursor-pointer w-12 h-12 md:w-14 md:h-14"
           >
-            {(() => {
-              const FlagComponent = t.flagComponent;
-              return (
-                <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center">
-                  <FlagComponent 
-                    className="w-full h-full"
-                    style={{ clipPath: 'circle(50% at 50% 50%)' }}
-                  />
-                </div>
-              );
-            })()}
+            <FlagIcon langCode={lang} size="100%" circular={true} />
             {/* Aktif Bayrak Etrafında Halka - Mobil: Yuvarlak, Masaüstü: Oval */}
             <motion.div
               className="absolute border-2 border-[#EF7F1A] lang-ring-oval"
@@ -549,7 +528,7 @@ export default function ConstructionPage() {
                 height: 'calc(100% + 16px)', 
                 top: '-8px', 
                 left: '-8px',
-                borderRadius: '9999px', // Mobil: yuvarlak (default)
+                borderRadius: '9999px',
               }}
               animate={{ 
                 scale: [1, 1.15, 1],
@@ -607,34 +586,22 @@ export default function ConstructionPage() {
                           setIsLangMenuOpen(false);
                           setMsgIndex(0);
                         }}
-                        className="absolute cursor-pointer hover:scale-110 transition-transform z-20 inline-flex items-center justify-center w-10 h-10 md:w-12 md:h-12 overflow-hidden rounded-full"
+                        className="absolute cursor-pointer hover:scale-110 transition-transform z-20 relative w-10 h-10 md:w-12 md:h-12"
                       >
-                        <span className="relative inline-block w-full h-full rounded-full overflow-hidden">
-                          {(() => {
-                            const FlagComponent = translations[key].flagComponent;
-                            return (
-                              <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center">
-                                <FlagComponent 
-                                  className="w-full h-full"
-                                  style={{ clipPath: 'circle(50% at 50% 50%)' }}
-                                />
-                              </div>
-                            );
-                          })()}
-                          {/* Diğer Bayraklar Etrafında Oval Halka - Mobil: Yuvarlak, Masaüstü: Oval */}
-                          <motion.div
-                            className="absolute border-2 border-[#EF7F1A] lang-ring-oval"
-                            style={{ 
-                              width: 'calc(100% + 12px)', 
-                              height: 'calc(100% + 12px)', 
-                              top: '-6px', 
-                              left: '-6px',
-                              borderRadius: '9999px', // Mobil: yuvarlak (default)
-                            }}
-                            initial={{ opacity: 0.4 }}
-                            whileHover={{ opacity: 1, scale: 1.1 }}
-                          />
-                        </span>
+                        <FlagIcon langCode={key} size="100%" circular={true} />
+                        {/* Diğer Bayraklar Etrafında Oval Halka - Mobil: Yuvarlak, Masaüstü: Oval */}
+                        <motion.div
+                          className="absolute border-2 border-[#EF7F1A] lang-ring-oval"
+                          style={{ 
+                            width: 'calc(100% + 12px)', 
+                            height: 'calc(100% + 12px)', 
+                            top: '-6px', 
+                            left: '-6px',
+                            borderRadius: '9999px',
+                          }}
+                          initial={{ opacity: 0.4 }}
+                          whileHover={{ opacity: 1, scale: 1.1 }}
+                        />
                       </motion.button>
                     );
                   })}
