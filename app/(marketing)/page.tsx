@@ -517,7 +517,8 @@ export default function ConstructionPage() {
       <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-40 w-full max-w-sm px-4">
         <form onSubmit={async (e) => {
           e.preventDefault();
-          const formData = new FormData(e.currentTarget);
+          const formElement = e.currentTarget; // Form referansını önce al
+          const formData = new FormData(formElement);
           formData.append("language", lang); // Mevcut dil'i formData'ya ekle
           const btn = document.getElementById('submitBtn') as HTMLButtonElement;
           if(btn) btn.disabled = true;
@@ -546,7 +547,12 @@ export default function ConstructionPage() {
               setDialogType("success");
               setDialogMessage(result.message || t.successMessage);
               setDialogOpen(true);
-              (e.currentTarget as HTMLFormElement).reset();
+              
+              // Form'u reset et (formElement referansı ile)
+              if (formElement) {
+                formElement.reset();
+              }
+              
               setTimeout(() => {
                 if(btn) {
                   btn.disabled = false;
