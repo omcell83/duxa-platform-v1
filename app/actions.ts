@@ -16,7 +16,7 @@ export async function joinWaitlist(formData: FormData) {
     await resend.emails.send({
       from: "Duxa System <noreply@duxa.pro>",
       to: "info@duxa.pro", // Cloudflare üzerinden senin Gmail'ine düşecek
-      reply_to: email, // Yanıtla dersen müşteriye gider
+      replyto: email, // Yanıtla dersen müşteriye gider
       subject: "🔔 Yeni Bekleme Listesi Kaydı",
       html: `<p>Yeni bir potansiyel müşteri kayıt oldu:</p><p><strong>Email:</strong> ${email}</p>`,
     });
@@ -25,7 +25,7 @@ export async function joinWaitlist(formData: FormData) {
     await resend.emails.send({
       from: "Duxa Platform <noreply@duxa.pro>",
       to: email,
-      reply_to: "info@duxa.pro", // Müşteri yanıtla derse sana gelir
+      replyto: "info@duxa.pro", // Müşteri yanıtla derse sana gelir
       subject: "Duxa Platform'a Hoşgeldiniz 🚀",
       html: `
         <div style="font-family: sans-serif; color: #333;">
