@@ -408,7 +408,7 @@ export default function ConstructionPage() {
       </div>
 
       {/* --- BEKLEME LİSTESİ FORMU --- */}
-      <div className="absolute bottom-32 left-1/2 -translate-x-1/2 z-40 w-full max-w-sm px-4">
+      <div className="z-10 w-full max-w-sm px-4 mb-10">
         <form onSubmit={async (e) => {
           e.preventDefault();
           const formElement = e.currentTarget; // Form referansını önce al
@@ -507,20 +507,19 @@ export default function ConstructionPage() {
         </DialogContent>
       </Dialog>
 
+      {/* --- BOŞLUK (SPACER) --- */}
+      <div className="h-12"></div>
+
       {/* --- DİL SEÇİMİ - BAYRAKLAR (FORM ALTINDA) --- */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50">
+      <div className="mt-12 flex items-center justify-center">
         <div className="relative flex items-center justify-center" style={{ width: '200px', height: '200px' }}>
           {/* Aktif Bayrak - Merkez */}
           <motion.div
-            className="absolute z-10"
+            className="relative"
+            style={{ zIndex: 51 }}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4 }}
-            style={{
-              left: '50%',
-              top: '50%',
-              transform: 'translate(-50%, -50%)',
-            }}
           >
             <motion.div
               onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
@@ -549,13 +548,6 @@ export default function ConstructionPage() {
           <AnimatePresence>
             {isLangMenuOpen && (
               <>
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  onClick={() => setIsLangMenuOpen(false)}
-                  className="fixed inset-0 z-30 bg-black/20 backdrop-blur-sm"
-                />
                 {langKeys
                   .filter((key) => key !== lang)
                   .map((key, index) => {
@@ -568,11 +560,12 @@ export default function ConstructionPage() {
                     return (
                       <motion.div
                         key={key}
-                        className="absolute z-20"
+                        className="absolute"
                         style={{
                           left: '50%',
                           top: '50%',
                           transformOrigin: 'center center',
+                          zIndex: 50,
                         }}
                         initial={{ 
                           x: 0,
@@ -621,7 +614,7 @@ export default function ConstructionPage() {
       </div>  
 
       {/* --- FOOTER --- */}
-      <div className="absolute bottom-6 w-full text-center px-4 z-40">
+      <div className="mt-auto w-full text-center px-4 py-6">
         <p className="text-zinc-600 text-xs font-mono uppercase tracking-widest">
           &copy; 2026 DUXA.PRO &bull; KOTOR / MONTENEGRO &bull; SECURE CLOUD SYSTEM
         </p>
