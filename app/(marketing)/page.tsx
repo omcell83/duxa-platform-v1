@@ -419,7 +419,7 @@ export default function ConstructionPage() {
       </div>
 
       {/* --- DİL SEÇİMİ - BAYRAKLAR (EN ALTA, ORTADA) --- */}
-      <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-50">
+      <div className="absolute bottom-28 md:bottom-24 left-1/2 -translate-x-1/2 z-50">
         <div className="relative flex items-center justify-center">
           {/* Aktif Bayrak - Merkez */}
           <motion.button
@@ -427,15 +427,17 @@ export default function ConstructionPage() {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4 }}
-            className="relative z-10 cursor-pointer inline-flex items-center justify-center w-12 h-12 md:w-14 md:h-14"
+            className="relative z-10 cursor-pointer inline-flex items-center justify-center w-12 h-12 md:w-14 md:h-14 overflow-hidden rounded-full"
           >
             {(() => {
               const FlagComponent = t.flagComponent;
               return (
-                <FlagComponent 
-                  className="w-full h-full rounded-full object-cover"
-                  style={{ borderRadius: '50%' }}
-                />
+                <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center">
+                  <FlagComponent 
+                    className="w-full h-full"
+                    style={{ clipPath: 'circle(50% at 50% 50%)' }}
+                  />
+                </div>
               );
             })()}
             {/* Aktif Bayrak Etrafında Halka - Mobil: Yuvarlak, Masaüstü: Oval */}
@@ -504,16 +506,18 @@ export default function ConstructionPage() {
                           setIsLangMenuOpen(false);
                           setMsgIndex(0);
                         }}
-                        className="absolute cursor-pointer hover:scale-110 transition-transform z-20 inline-flex items-center justify-center w-10 h-10 md:w-12 md:h-12"
+                        className="absolute cursor-pointer hover:scale-110 transition-transform z-20 inline-flex items-center justify-center w-10 h-10 md:w-12 md:h-12 overflow-hidden rounded-full"
                       >
-                        <span className="relative inline-block w-full h-full">
+                        <span className="relative inline-block w-full h-full rounded-full overflow-hidden">
                           {(() => {
                             const FlagComponent = translations[key].flagComponent;
                             return (
-                              <FlagComponent 
-                                className="w-full h-full rounded-full object-cover"
-                                style={{ borderRadius: '50%' }}
-                              />
+                              <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center">
+                                <FlagComponent 
+                                  className="w-full h-full"
+                                  style={{ clipPath: 'circle(50% at 50% 50%)' }}
+                                />
+                              </div>
                             );
                           })()}
                           {/* Diğer Bayraklar Etrafında Oval Halka - Mobil: Yuvarlak, Masaüstü: Oval */}
