@@ -28,18 +28,37 @@ export async function joinWaitlist(formData: FormData) {
     const supabase = createClient(supabaseUrl, supabaseKey);
     console.log("Supabase'e bağlanılıyor...");
     console.log("SUPABASE_URL (ilk 5 karakter):", supabaseUrl.substring(0, 5));
+    console.log("Email:", email);
     
-    const { error: dbError } = await supabase
+    // Upsert işlemi
+    const { data, error: dbError } = await supabase
       .from("newsletter_subscribers")
-      .upsert({ email: email, is_active: true }, { onConflict: "email" });
+      .upsert({ email: email, is_active: true }, { onConflict: "email" })
+      .select();
 
     if (dbError) {
-      console.error("Veritabanı Hatası:", dbError.message);
-      console.error("Hata Kodu:", dbError.code);
-      console.error("Hata Detayı:", dbError.details);
-      console.error("Hata Hint:", dbError.hint);
-      return { success: false, message: "Sistem hatası: Veritabanına erişilemedi." };
+      console.error("=== VERİTABANI HATASI ===");
+      console.error("Hata Mesajı:", dbError.message);
+      console.error("Hata Kodu:", dbError.code || "N/A");
+      console.error("Hata Detayı:", dbError.details || "N/A");
+      console.error("Hata Hint:", dbError.hint || "N/A");
+      
+      // RLS hatası kontrolü
+      if (dbError.message?.includes("new row violates row-level security") || 
+          dbError.message?.includes("RLS") ||
+          dbError.code === "42501") {
+        console.error("SORUN: RLS (Row Level Security) politikası eksik veya yanlış!");
+        console.error("ÇÖZÜM: SUPABASE_RLS_COMPLETE.sql dosyasındaki SQL komutlarını Supabase SQL Editor'da çalıştırın.");
+        return { 
+          success: false, 
+          message: "RLS Politikası Hatası: Lütfen Supabase SQL Editor'da RLS politikalarını kontrol edin." 
+        };
+      }
+      
+      return { success: false, message: `Sistem hatası: ${dbError.message}` };
     }
+    
+    console.log("✅ Veritabanı işlemi başarılı:", data);
 
     // --- 2. MAİL GÖNDERİMİ ---
     await resend.emails.send({
