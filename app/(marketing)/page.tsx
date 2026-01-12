@@ -508,7 +508,7 @@ export default function ConstructionPage() {
       </Dialog>
 
       {/* --- BOŞLUK (SPACER) --- */}
-      <div className="h-12"></div>
+      <div className="h-3"></div>
 
       {/* --- DİL SEÇİMİ - BAYRAKLAR (FORM ALTINDA) --- */}
       <div className="mt-12 flex items-center justify-center">
@@ -564,6 +564,8 @@ export default function ConstructionPage() {
                         style={{
                           left: '50%',
                           top: '50%',
+                          marginLeft: '-24px', // Bayrak boyutu 48px olduğu için yarısı
+                          marginTop: '-24px',  // Bayrak boyutu 48px olduğu için yarısı
                           transformOrigin: 'center center',
                           zIndex: 50,
                         }}
@@ -591,6 +593,7 @@ export default function ConstructionPage() {
                         transition={{ 
                           duration: 0.5,
                           delay: index * 0.03,
+                          type: "spring",
                           ease: "easeOut"
                         }}
                       >
