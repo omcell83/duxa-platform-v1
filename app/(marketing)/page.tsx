@@ -3,6 +3,13 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Code, Cpu, Database, Shield } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 // --- DİL VE ÇEVİRİ AYARLARI ---
 type LangData = {
@@ -12,6 +19,11 @@ type LangData = {
   subtitle: string;
   messages: string[];
   durations: number[]; // Her mesaj için süre (saniye)
+  subscribeText: string; // Abone ol butonu metni
+  emailPlaceholder: string;
+  signingUp: string;
+  successMessage: string;
+  errorMessage: string;
 };
 
 const translations: Record<string, LangData> = {
@@ -20,34 +32,54 @@ const translations: Record<string, LangData> = {
     title: "System Upgrade in Progress", 
     subtitle: "Building the future of restaurant automation.",
     messages: ["Initializing core modules...", "Encrypting database connections...", "Syncing AI Engine (Gemini)...", "Activating security protocols...", "Compiling Kiosk interfaces...", "Optimizing hardware drivers...", "Deploying cloud infrastructure..."],
-    durations: [5, 4.5, 5.5, 4, 6, 5, 5.5]
+    durations: [5, 4.5, 5.5, 4, 6, 5, 5.5],
+    subscribeText: "Subscribe",
+    emailPlaceholder: "Your email address...",
+    signingUp: "Signing up...",
+    successMessage: "Success! Check your email.",
+    errorMessage: "An error occurred. Please try again."
   },
   tr: { 
     flag: "🇹🇷", name: "Türkçe", 
     title: "Sistem Yapılandırması Sürüyor", 
     subtitle: "Restoran otomasyonunun geleceğini inşa ediyoruz.",
     messages: ["Çekirdek modüller başlatılıyor...", "Veritabanı bağlantıları şifreleniyor...", "Yapay Zeka (Gemini) senkronize ediliyor...", "Güvenlik protokolleri devreye alınıyor...", "Kiosk arayüzleri derleniyor...", "Donanım sürücüleri optimize ediliyor...", "Bulut altyapısı dağıtılıyor..."],
-    durations: [5, 4.5, 5.5, 4, 6, 5, 5.5]
+    durations: [5, 4.5, 5.5, 4, 6, 5, 5.5],
+    subscribeText: "Abone Ol",
+    emailPlaceholder: "E-posta adresiniz...",
+    signingUp: "Kayıt Yapılıyor...",
+    successMessage: "Kaydınız alındı! Mailinizi kontrol edin.",
+    errorMessage: "Bir hata oluştu. Lütfen tekrar deneyin."
   },
   de: { 
     flag: "🇩🇪", name: "Deutsch", 
     title: "Systemaktualisierung läuft", 
     subtitle: "Wir bauen die Zukunft der Restaurantautomatisierung.",
     messages: ["Kernmodule werden initialisiert...", "Datenbankverbindungen verschlüsseln...", "KI-Engine wird synchronisiert...", "Sicherheitsprotokolle aktivieren...", "Kiosk-Schnittstellen kompilieren...", "Hardware-Treiber optimieren...", "Cloud-Infrastruktur bereitstellen..."],
-    durations: [5, 4.5, 5.5, 4, 6, 5, 5.5]
+    durations: [5, 4.5, 5.5, 4, 6, 5, 5.5],
+    subscribeText: "Abonnieren",
+    emailPlaceholder: "Ihre E-Mail-Adresse...",
+    signingUp: "Wird angemeldet...",
+    successMessage: "Erfolg! Überprüfen Sie Ihre E-Mail.",
+    errorMessage: "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
   },
   fr: { 
     flag: "🇫🇷", name: "Français", 
     title: "Mise à niveau du système", 
     subtitle: "Nous construisons l'avenir de l'automatisation.",
     messages: ["Initialisation des modules principaux...", "Chiffrement des connexions...", "Synchronisation de l'IA...", "Activation des protocoles de sécurité...", "Compilation des interfaces Kiosk...", "Optimisation des pilotes matériels...", "Déploiement de l'infrastructure cloud..."],
-    durations: [5, 4.5, 5.5, 4, 6, 5, 5.5]
+    durations: [5, 4.5, 5.5, 4, 6, 5, 5.5],
+    subscribeText: "S'abonner",
+    emailPlaceholder: "Votre adresse e-mail...",
+    signingUp: "Inscription en cours...",
+    successMessage: "Succès! Vérifiez votre e-mail.",
+    errorMessage: "Une erreur s'est produite. Veuillez réessayer."
   },
-  lb: { flag: "🇱🇺", name: "Lëtzebuergesch", title: "Systemaktualiséierung amgaang", subtitle: "Mir bauen d'Zukunft vun der Restaurantautomatioun.", messages: ["Kärmoduler initialiséieren...", "Datebankverbindunge verschlésselen...", "AI Engine synchroniséieren...", "Sécherheetsprotokoller aktivéieren...", "Kiosk Interfaces kompiléieren...", "Hardware Treiber optiméieren...", "Cloud Infrastruktur deployéieren..."], durations: [5, 4.5, 5.5, 4, 6, 5, 5.5] },
-  me: { flag: "🇲🇪", name: "Crnogorski", title: "Nadogradnja sistema u toku", subtitle: "Gradimo budućnost automatizacije restorana.", messages: ["Inicijalizacija osnovnih modula...", "Šifriranje veza baze podataka...", "Sinhronizacija AI motora...", "Aktiviranje sigurnosnih protokola...", "Kompajliranje interfejsa kioska...", "Optimizacija hardverskih drajvera...", "Primena cloud infrastrukture..."], durations: [5, 4.5, 5.5, 4, 6, 5, 5.5] },
-  pt: { flag: "🇵🇹", name: "Português", title: "Atualização do sistema", subtitle: "Construindo o futuro da automação.", messages: ["Inicializando módulos principais...", "Criptografando conexões...", "Sincronizando Motor de IA...", "Ativando protocolos de segurança...", "Compilando interfaces de quiosque...", "Otimizando drivers de hardware...", "Implantando infraestrutura cloud..."], durations: [5, 4.5, 5.5, 4, 6, 5, 5.5] },
-  nl: { flag: "🇳🇱", name: "Nederlands", title: "Systeemupgrade bezig", subtitle: "Bouwen aan de toekomst van restaurantautomatisering.", messages: ["Kernmodules initialiseren...", "Databaseverbindingen versleutelen...", "AI Engine synchroniseren...", "Beveiligingsprotocollen activeren...", "Kiosk-interfaces compileren...", "Hardware drivers optimaliseren...", "Cloud infrastructuur implementeren..."], durations: [5, 4.5, 5.5, 4, 6, 5, 5.5] },
-  ru: { flag: "🇷🇺", name: "Русский", title: "Обновление системы", subtitle: "Мы строим будущее автоматизации ресторанов.", messages: ["Инициализация основных модулей...", "Шифрование соединений...", "Синхронизация ИИ...", "Активация протоколов безопасности...", "Компиляция интерфейсов киоска...", "Оптимизация драйверов оборудования...", "Развертывание облачной инфраструктуры..."], durations: [5, 4.5, 5.5, 4, 6, 5, 5.5] },
+  lb: { flag: "🇱🇺", name: "Lëtzebuergesch", title: "Systemaktualiséierung amgaang", subtitle: "Mir bauen d'Zukunft vun der Restaurantautomatioun.", messages: ["Kärmoduler initialiséieren...", "Datebankverbindunge verschlésselen...", "AI Engine synchroniséieren...", "Sécherheetsprotokoller aktivéieren...", "Kiosk Interfaces kompiléieren...", "Hardware Treiber optiméieren...", "Cloud Infrastruktur deployéieren..."], durations: [5, 4.5, 5.5, 4, 6, 5, 5.5], subscribeText: "Abonnéieren", emailPlaceholder: "Är E-Mail Adress...", signingUp: "Wird agemellt...", successMessage: "Succès! Kontrolléiert Är E-Mail.", errorMessage: "E Fehler ass geschitt. Probéiert w.e.g. nach emol." },
+  me: { flag: "🇲🇪", name: "Crnogorski", title: "Nadogradnja sistema u toku", subtitle: "Gradimo budućnost automatizacije restorana.", messages: ["Inicijalizacija osnovnih modula...", "Šifriranje veza baze podataka...", "Sinhronizacija AI motora...", "Aktiviranje sigurnosnih protokola...", "Kompajliranje interfejsa kioska...", "Optimizacija hardverskih drajvera...", "Primena cloud infrastrukture..."], durations: [5, 4.5, 5.5, 4, 6, 5, 5.5], subscribeText: "Pretplatite se", emailPlaceholder: "Vaša e-pošta...", signingUp: "Prijavljivanje...", successMessage: "Uspeh! Proverite svoju e-poštu.", errorMessage: "Došlo je do greške. Molimo pokušajte ponovo." },
+  pt: { flag: "🇵🇹", name: "Português", title: "Atualização do sistema", subtitle: "Construindo o futuro da automação.", messages: ["Inicializando módulos principais...", "Criptografando conexões...", "Sincronizando Motor de IA...", "Ativando protocolos de segurança...", "Compilando interfaces de quiosque...", "Otimizando drivers de hardware...", "Implantando infraestrutura cloud..."], durations: [5, 4.5, 5.5, 4, 6, 5, 5.5], subscribeText: "Inscrever-se", emailPlaceholder: "Seu endereço de e-mail...", signingUp: "Inscrevendo...", successMessage: "Sucesso! Verifique seu e-mail.", errorMessage: "Ocorreu um erro. Por favor, tente novamente." },
+  nl: { flag: "🇳🇱", name: "Nederlands", title: "Systeemupgrade bezig", subtitle: "Bouwen aan de toekomst van restaurantautomatisering.", messages: ["Kernmodules initialiseren...", "Databaseverbindingen versleutelen...", "AI Engine synchroniseren...", "Beveiligingsprotocollen activeren...", "Kiosk-interfaces compileren...", "Hardware drivers optimaliseren...", "Cloud infrastructuur implementeren..."], durations: [5, 4.5, 5.5, 4, 6, 5, 5.5], subscribeText: "Abonneren", emailPlaceholder: "Uw e-mailadres...", signingUp: "Aanmelden...", successMessage: "Succes! Controleer uw e-mail.", errorMessage: "Er is een fout opgetreden. Probeer het opnieuw." },
+  ru: { flag: "🇷🇺", name: "Русский", title: "Обновление системы", subtitle: "Мы строим будущее автоматизации ресторанов.", messages: ["Инициализация основных модулей...", "Шифрование соединений...", "Синхронизация ИИ...", "Активация протоколов безопасности...", "Компиляция интерфейсов киоска...", "Оптимизация драйверов оборудования...", "Развертывание облачной инфраструктуры..."], durations: [5, 4.5, 5.5, 4, 6, 5, 5.5], subscribeText: "Подписаться", emailPlaceholder: "Ваш адрес электронной почты...", signingUp: "Регистрация...", successMessage: "Успех! Проверьте свою электронную почту.", errorMessage: "Произошла ошибка. Пожалуйста, попробуйте снова." },
 };
 
 // Bayrak pozisyonları (daire şeklinde)
@@ -372,7 +404,7 @@ export default function ConstructionPage() {
       </div>
 
       {/* --- DİL SEÇİMİ - BAYRAKLAR (EN ALTA, ORTADA) --- */}
-      <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-50">
+      <div className="absolute bottom-28 left-1/2 -translate-x-1/2 z-50">
         <div className="relative flex items-center justify-center">
           {/* Aktif Bayrak - Merkez */}
           <motion.button
@@ -479,22 +511,25 @@ export default function ConstructionPage() {
       </div>
 
       {/* --- DİL SEÇİMİ ALTI - BEKLEME LİSTESİ FORMU --- */}
-      <div className="absolute bottom-32 left-1/2 -translate-x-1/2 z-40 w-full max-w-sm px-4">
+      <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-40 w-full max-w-sm px-4">
         <form onSubmit={async (e) => {
           e.preventDefault();
           const formData = new FormData(e.currentTarget);
+          formData.append("language", lang); // Mevcut dil'i formData'ya ekle
           const btn = document.getElementById('submitBtn') as HTMLButtonElement;
           if(btn) btn.disabled = true;
-          const originalText = btn?.textContent || "🚀";
-          if(btn) btn.textContent = t.name === "Türkçe" ? "Kayıt Yapılıyor..." : "Signing up...";
+          const originalText = btn?.textContent || t.subscribeText;
+          if(btn) btn.textContent = t.signingUp;
           
           try {
-            const { joinWaitlist } = await import("../actions"); // Dinamik import
+            const { joinWaitlist } = await import("../actions");
             const result = await joinWaitlist(formData);
             
             if (result.success) {
               if(btn) btn.textContent = "✓";
-              alert(t.name === "Türkçe" ? "Kaydınız alındı! Mailinizi kontrol edin." : "Success! Check your email.");
+              setDialogType("success");
+              setDialogMessage(result.message || t.successMessage);
+              setDialogOpen(true);
               (e.currentTarget as HTMLFormElement).reset();
               setTimeout(() => {
                 if(btn) {
@@ -503,14 +538,18 @@ export default function ConstructionPage() {
                 }
               }, 2000);
             } else {
-              alert("Error: " + result.message);
+              setDialogType("error");
+              setDialogMessage(result.message || t.errorMessage);
+              setDialogOpen(true);
               if(btn) {
                 btn.disabled = false;
                 btn.textContent = originalText;
               }
             }
           } catch (error) {
-            alert(t.name === "Türkçe" ? "Bir hata oluştu. Lütfen tekrar deneyin." : "An error occurred. Please try again.");
+            setDialogType("error");
+            setDialogMessage(t.errorMessage);
+            setDialogOpen(true);
             if(btn) {
               btn.disabled = false;
               btn.textContent = originalText;
@@ -521,19 +560,33 @@ export default function ConstructionPage() {
           <input 
             type="email" 
             name="email" 
-            placeholder={t.name === "Türkçe" ? "E-posta adresiniz..." : "Your email address..."} 
+            placeholder={t.emailPlaceholder} 
             required
             className="flex-1 bg-zinc-900/90 backdrop-blur-md border border-zinc-700/50 rounded-full px-5 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-[#EF7F1A] transition-colors shadow-lg"
           />
           <button 
             id="submitBtn"
             type="submit" 
-            className="bg-[#EF7F1A] hover:bg-[#d66e12] text-black font-bold px-6 py-3 rounded-full transition-colors shadow-lg hover:shadow-[#EF7F1A]/50"
+            className="bg-[#EF7F1A] hover:bg-[#d66e12] text-black font-bold px-6 py-3 rounded-full transition-colors shadow-lg hover:shadow-[#EF7F1A]/50 whitespace-nowrap"
           >
-            🚀
+            {t.subscribeText}
           </button>
         </form>
       </div>
+
+      {/* --- MODAL DİALOG --- */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="bg-zinc-900 border-zinc-700 text-white">
+          <DialogHeader>
+            <DialogTitle className={dialogType === "success" ? "text-[#EF7F1A]" : "text-red-500"}>
+              {dialogType === "success" ? "✅ " + (t.name === "Türkçe" ? "Başarılı" : "Success") : "❌ " + (t.name === "Türkçe" ? "Hata" : "Error")}
+            </DialogTitle>
+            <DialogDescription className="text-gray-300 pt-2">
+              {dialogMessage}
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
         
       {/* --- FOOTER --- */}
       <div className="absolute bottom-6 w-full text-center px-4 z-40">
