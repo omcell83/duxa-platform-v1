@@ -407,9 +407,8 @@ export default function ConstructionPage() {
 
       </div>
 
-
-      {/* --- DİL SEÇİMİ ALTI - BEKLEME LİSTESİ FORMU --- */}
-      <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-40 w-full max-w-sm px-4">
+      {/* --- BEKLEME LİSTESİ FORMU --- */}
+      <div className="absolute bottom-32 left-1/2 -translate-x-1/2 z-40 w-full max-w-sm px-4">
         <form onSubmit={async (e) => {
           e.preventDefault();
           const formElement = e.currentTarget; // Form referansını önce al
@@ -507,9 +506,9 @@ export default function ConstructionPage() {
           </DialogHeader>
         </DialogContent>
       </Dialog>
-      
-      {/* --- DİL SEÇİMİ - BAYRAKLAR (FOOTER ÜSTÜNDE) --- */}
-      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-50">
+
+      {/* --- DİL SEÇİMİ - BAYRAKLAR (FORM ALTINDA) --- */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50">
         <div className="relative flex items-center justify-center" style={{ width: '200px', height: '200px' }}>
           {/* Aktif Bayrak - Merkez */}
           <motion.div
@@ -555,7 +554,7 @@ export default function ConstructionPage() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   onClick={() => setIsLangMenuOpen(false)}
-                  className="fixed inset-0 -z-10 bg-black/20 backdrop-blur-sm"
+                  className="fixed inset-0 z-30 bg-black/20 backdrop-blur-sm"
                 />
                 {langKeys
                   .filter((key) => key !== lang)
