@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { FlagIcon } from "@/components/flags";
+import { Flag } from "@/components/Flag";
 
 // --- DİL VE ÇEVİRİ AYARLARI ---
 type LangData = {
@@ -510,33 +510,41 @@ export default function ConstructionPage() {
       
       {/* --- DİL SEÇİMİ - BAYRAKLAR (FOOTER ÜSTÜNDE) --- */}
       <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-50">
-        <div className="relative flex items-center justify-center">
+        <div className="relative flex items-center justify-center" style={{ width: '200px', height: '200px' }}>
           {/* Aktif Bayrak - Merkez */}
-          <motion.button
-            onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
+          <motion.div
+            className="absolute z-10"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4 }}
-            className="relative z-10 cursor-pointer"
+            style={{
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+            }}
           >
-            <FlagIcon langCode={lang} size={48} animate={true} delay={0} className="md:w-14" />
-            {/* Aktif Bayrak Etrafında Halka */}
             <motion.div
-              className="absolute border-2 border-[#EF7F1A]"
-              style={{ 
-                width: 'calc(100% + 16px)', 
-                height: 'calc(100% + 16px)', 
-                top: '-8px', 
-                left: '-8px',
-                borderRadius: '8px',
-              }}
-              animate={{ 
-                scale: [1, 1.1, 1],
-                opacity: [0.6, 1, 0.6]
-              }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            />
-          </motion.button>
+              onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
+              className="cursor-pointer relative"
+            >
+              <Flag countryCode={lang} size={56} className="md:w-14 md:h-14" />
+              {/* Aktif Bayrak Etrafında Halka */}
+              <motion.div
+                className="absolute border-2 border-[#EF7F1A] rounded-full"
+                style={{ 
+                  width: 'calc(100% + 16px)', 
+                  height: 'calc(100% + 16px)', 
+                  top: '-8px', 
+                  left: '-8px',
+                }}
+                animate={{ 
+                  scale: [1, 1.1, 1],
+                  opacity: [0.6, 1, 0.6]
+                }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              />
+            </motion.div>
+          </motion.div>
 
           {/* Diğer Bayraklar - Daire Şeklinde Açılır */}
           <AnimatePresence>
@@ -553,56 +561,58 @@ export default function ConstructionPage() {
                   .filter((key) => key !== lang)
                   .map((key, index) => {
                     const totalOtherFlags = langKeys.length - 1;
-                    const pos = getFlagPosition(index, totalOtherFlags, 70);
+                    const pos = getFlagPosition(index, totalOtherFlags, 80);
+                    // Calculate angle for clockwise/counter-clockwise animation
+                    const angle = (index * 360) / totalOtherFlags;
+                    const isClockwise = angle >= 180;
+                    
                     return (
-                      <motion.button
+                      <motion.div
                         key={key}
+                        className="absolute z-20"
+                        style={{
+                          left: '50%',
+                          top: '50%',
+                          transformOrigin: 'center center',
+                        }}
                         initial={{ 
-                          x: 0, 
-                          y: 0, 
+                          x: 0,
+                          y: 0,
                           opacity: 0, 
-                          scale: 0 
+                          scale: 0,
+                          rotate: isClockwise ? -180 : 180,
                         }}
                         animate={{ 
-                          x: pos.x, 
-                          y: pos.y, 
+                          x: pos.x,
+                          y: pos.y,
                           opacity: 1, 
-                          scale: 1 
+                          scale: 1,
+                          rotate: 0,
                         }}
                         exit={{ 
-                          x: 0, 
-                          y: 0, 
+                          x: 0,
+                          y: 0,
                           opacity: 0, 
-                          scale: 0 
+                          scale: 0,
+                          rotate: isClockwise ? 180 : -180,
                         }}
                         transition={{ 
-                          duration: 0.4, 
-                          delay: index * 0.05,
+                          duration: 0.5,
+                          delay: index * 0.03,
                           ease: "easeOut"
                         }}
-                        whileHover={{ scale: 1.2 }}
-                        onClick={() => {
-                          setLang(key);
-                          setIsLangMenuOpen(false);
-                          setMsgIndex(0);
-                        }}
-                        className="absolute cursor-pointer hover:scale-110 transition-transform z-20 relative"
                       >
-                        <FlagIcon langCode={key} size={40} animate={true} delay={index * 0.1} className="md:w-12" />
-                        {/* Diğer Bayraklar Etrafında Halka */}
-                        <motion.div
-                          className="absolute border-2 border-[#EF7F1A]"
-                          style={{ 
-                            width: 'calc(100% + 12px)', 
-                            height: 'calc(100% + 12px)', 
-                            top: '-6px', 
-                            left: '-6px',
-                            borderRadius: '6px',
+                        <Flag 
+                          countryCode={key} 
+                          size={48}
+                          onClick={() => {
+                            setLang(key);
+                            setIsLangMenuOpen(false);
+                            setMsgIndex(0);
                           }}
-                          initial={{ opacity: 0.4 }}
-                          whileHover={{ opacity: 1, scale: 1.1 }}
+                          className="md:w-12 md:h-12"
                         />
-                      </motion.button>
+                      </motion.div>
                     );
                   })}
               </>
