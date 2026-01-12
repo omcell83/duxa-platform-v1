@@ -102,19 +102,14 @@ export default function ConstructionPage() {
   const [dialogType, setDialogType] = useState<"success" | "error">("success");
   const langKeys = Object.keys(translations);
 
-  // Dil Algılama
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const browserLang = navigator.language.split("-")[0];
-      if (translations[browserLang]) {
-        setLang(browserLang);
-      } else {
-        setLang("en");
-      }
+      if (translations[browserLang]) setLang(browserLang);
+      else setLang("en");
     }
   }, []);
 
-  // Mesaj Döngüsü
   useEffect(() => {
     const t = translations[lang];
     if (!t || !t.messages[msgIndex]) return;
@@ -143,8 +138,8 @@ export default function ConstructionPage() {
   const t = translations[lang];
 
   return (
-    // ANA CONTAINER: min-h-screen ve flex-col ile dikey yerleşim
-    <div className="relative flex min-h-screen flex-col items-center overflow-hidden bg-black text-white font-sans selection:bg-[#EF7F1A] selection:text-white py-6 md:py-10">
+    // ANA CONTAINER: h-screen (Sabit yükseklik) ve overflow-hidden (Kaydırma yok)
+    <div className="relative h-screen flex flex-col items-center bg-black text-white font-sans selection:bg-[#EF7F1A] selection:text-white overflow-hidden">
       
       {/* --- CSS STYLES --- */}
       <style jsx global>{`
@@ -158,7 +153,7 @@ export default function ConstructionPage() {
         }
       `}</style>
 
-      {/* --- ARKA PLAN (Sabit) --- */}
+      {/* --- ARKA PLAN (SABİT) --- */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         {/* Network Ağı */}
         <svg className="absolute inset-0 w-full h-full opacity-20" style={{ mixBlendMode: 'screen' }}>
@@ -190,19 +185,15 @@ export default function ConstructionPage() {
           ))}
         </svg>
 
-        {/* Grid Ağı */}
+        {/* Grid ve Blobs */}
         <div className="absolute inset-0 opacity-25 bg-[linear-gradient(to_right,#05594C_1px,transparent_1px),linear-gradient(to_bottom,#05594C_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_30%,transparent_100%)]" />
-        
-        {/* Hareketli Blobs */}
         {[
           { pos: { top: '25%', left: '25%' }, size: 500, color: '#05594C', duration: 20, delay: 0 },
           { pos: { bottom: '25%', right: '25%' }, size: 450, color: '#EF7F1A', duration: 25, delay: 2 },
         ].map((blob, i) => (
           <motion.div
             key={i}
-            animate={{ 
-              x: [0, 50, -50, 0], y: [0, -50, 50, 0], opacity: [0.2, 0.4, 0.2], scale: [1, 1.1, 1]
-            }}
+            animate={{ x: [0, 50, -50, 0], y: [0, -50, 50, 0], opacity: [0.2, 0.4, 0.2], scale: [1, 1.1, 1] }}
             transition={{ duration: blob.duration, repeat: Infinity, ease: "easeInOut", delay: blob.delay }}
             className="absolute rounded-full blur-[160px]"
             style={{ ...blob.pos, width: `${blob.size}px`, height: `${blob.size}px`, backgroundColor: blob.color }}
@@ -218,14 +209,13 @@ export default function ConstructionPage() {
         </div>
       </div>
 
-      {/* --- ÜST BÖLÜM: Logo, Başlık, Mesaj, Form --- */}
-      {/* Bu bölüm "flex-1" ile büyüyerek ekranın ortasına odaklanır */}
-      <div className="z-10 flex flex-1 flex-col items-center justify-center w-full max-w-5xl px-4 gap-8 md:gap-12">
+      {/* --- ORTA BÖLÜM: (FLEX-1 ile ekranın ortasına odaklanır) --- */}
+      <div className="z-10 flex flex-1 flex-col items-center justify-center w-full max-w-6xl px-4 gap-8">
         
-        {/* LOGO & BAŞLIKLAR GRUBU */}
+        {/* LOGO & BAŞLIKLAR */}
         <div className="text-center flex flex-col items-center">
             <motion.h1 
-              className="text-6xl md:text-9xl font-black tracking-tighter relative mb-4 md:mb-8 text-transparent bg-clip-text bg-gradient-to-r from-[#05594C] via-white to-[#EF7F1A] animate-gradient-x"
+              className="text-7xl md:text-9xl font-black tracking-tighter relative mb-6 text-transparent bg-clip-text bg-gradient-to-r from-[#05594C] via-white to-[#EF7F1A] animate-gradient-x"
               animate={{ 
                 scale: [1, 1.05, 1],
                 filter: ["drop-shadow(0 0 10px rgba(5,89,76,0.3))", "drop-shadow(0 0 30px rgba(5,89,76,0.8))", "drop-shadow(0 0 10px rgba(5,89,76,0.3))"]
@@ -239,7 +229,7 @@ export default function ConstructionPage() {
               key={lang}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-2xl md:text-5xl font-bold mb-2 md:mb-4 pb-2 text-transparent bg-clip-text animate-gradient-x bg-gradient-to-r from-[#05594C] via-white to-[#EF7F1A] text-center"
+              className="text-3xl md:text-5xl font-bold mb-2 pb-2 text-transparent bg-clip-text animate-gradient-x bg-gradient-to-r from-[#05594C] via-white to-[#EF7F1A] text-center"
             >
               {t.title}
             </motion.h2>
@@ -248,14 +238,14 @@ export default function ConstructionPage() {
               key={lang + "sub"}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-gray-400 text-sm md:text-2xl font-light text-center max-w-2xl"
+              className="text-gray-400 text-lg md:text-2xl font-light text-center max-w-3xl"
             >
               {t.subtitle}
             </motion.p>
         </div>
 
-        {/* MESAJ BAR & İKONLAR GRUBU */}
-        <div className="w-full max-w-2xl flex flex-col items-center gap-6">
+        {/* MESAJ BAR & İKONLAR */}
+        <div className="w-full max-w-2xl flex flex-col items-center gap-4">
           <div className="relative w-full">
             <div className="relative bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-full shadow-xl overflow-hidden">
               <motion.div 
@@ -283,11 +273,12 @@ export default function ConstructionPage() {
               </div>
             </div>
           </div>
-
+          
+          {/* Yazılım/Donanım Badge */}
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="flex items-center justify-center gap-6 md:gap-8"
+            className="flex items-center justify-center gap-8"
           >
             <div className="flex items-center gap-2 text-gray-500 hover:text-[#05594C] transition-colors">
               <Code className="w-4 h-4 md:w-5 md:h-5" />
@@ -300,9 +291,13 @@ export default function ConstructionPage() {
             </div>
           </motion.div>
         </div>
+      </div>
 
-        {/* FORM GRUBU */}
-        <div className="w-full max-w-md">
+      {/* --- ALT BÖLÜM: FORM ve BAYRAKLAR (Daha kompakt) --- */}
+      <div className="z-20 w-full flex flex-col items-center justify-center pb-6 md:pb-10 gap-6">
+        
+        {/* FORM (Küçültülmüş ve Compact) */}
+        <div className="w-full max-w-sm px-4">
            <form onSubmit={async (e) => {
             e.preventDefault();
             const formElement = e.currentTarget;
@@ -316,13 +311,11 @@ export default function ConstructionPage() {
             try {
               const { joinWaitlist } = await import("../actions");
               const result = await joinWaitlist(formData);
-              
               if (!result) throw new Error("No response");
               
               setDialogType(result.success ? "success" : "error");
               setDialogMessage(result.message || (result.success ? t.successMessage : t.errorMessage));
               setDialogOpen(true);
-              
               if (result.success) {
                 if(btn) btn.textContent = "✓";
                 if (formElement) formElement.reset();
@@ -337,86 +330,82 @@ export default function ConstructionPage() {
               if(btn) { btn.disabled = false; btn.textContent = originalText; }
             }
           }} 
-          className="flex flex-col sm:flex-row gap-3"
+          className="flex flex-col sm:flex-row gap-2 scale-90 md:scale-100 origin-bottom"
           >
             <input 
               type="email" 
               name="email" 
               placeholder={t.emailPlaceholder} 
               required
-              className="flex-1 bg-zinc-900/90 backdrop-blur-md border border-zinc-700/50 rounded-full px-5 py-3 text-sm md:text-base text-white placeholder-zinc-500 focus:outline-none focus:border-[#EF7F1A] transition-colors shadow-lg"
+              className="flex-1 bg-zinc-900/90 backdrop-blur-md border border-zinc-700/50 rounded-full px-4 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-[#EF7F1A] transition-colors shadow-lg"
             />
             <button 
               id="submitBtn"
               type="submit" 
-              className="bg-[#EF7F1A] hover:bg-[#d66e12] text-black font-bold px-6 py-3 rounded-full transition-colors shadow-lg hover:shadow-[#EF7F1A]/50 text-sm md:text-base whitespace-nowrap"
+              className="bg-[#EF7F1A] hover:bg-[#d66e12] text-black font-bold px-6 py-2 rounded-full transition-colors shadow-lg hover:shadow-[#EF7F1A]/50 text-sm whitespace-nowrap"
             >
               {t.subscribeText}
             </button>
           </form>
         </div>
 
-      </div>
+        {/* BAYRAK & FOOTER GRUBU */}
+        <div className="relative flex flex-col items-center gap-4">
+          {/* Bayrak Menüsü - Eski "İyi" Konumlandırma Mantığıyla */}
+          <div className="relative flex items-center justify-center" style={{ width: '60px', height: '60px' }}>
+            <motion.div className="relative z-[60]">
+               <motion.div onClick={() => setIsLangMenuOpen(!isLangMenuOpen)} className="cursor-pointer relative group">
+                  <Flag countryCode={lang} size={40} className="drop-shadow-2xl hover:scale-110 transition-transform" />
+                  <motion.div
+                    className="absolute border border-[#EF7F1A] rounded-full pointer-events-none"
+                    style={{ width: 'calc(100% + 8px)', height: 'calc(100% + 8px)', top: '-4px', left: '-4px' }}
+                    animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.6, 0.3] }}
+                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                  />
+               </motion.div>
+            </motion.div>
 
-      {/* --- ALT BÖLÜM: Bayraklar & Footer --- */}
-      {/* Bu bölüm ekranın altında, formdan belirgin bir boşlukla ayrılır */}
-      <div className="z-10 flex flex-col items-center justify-end gap-6 md:gap-8 mt-12 md:mt-16 w-full">
-        
-        {/* BAYRAK MENÜSÜ */}
-        <div className="relative flex items-center justify-center" style={{ width: '160px', height: '160px' }}>
-          {/* Aktif Bayrak */}
-          <motion.div className="relative z-[60]">
-             <motion.div onClick={() => setIsLangMenuOpen(!isLangMenuOpen)} className="cursor-pointer relative group">
-                <Flag countryCode={lang} size={56} className="w-12 h-12 md:w-14 md:h-14 drop-shadow-2xl" />
-                {/* Halka Efekti */}
-                <motion.div
-                  className="absolute border-2 border-[#EF7F1A] rounded-full pointer-events-none"
-                  style={{ width: 'calc(100% + 12px)', height: 'calc(100% + 12px)', top: '-6px', left: '-6px' }}
-                  animate={{ scale: [1, 1.15, 1], opacity: [0.4, 0.8, 0.4] }}
-                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-                />
-             </motion.div>
-          </motion.div>
+            {/* Diğer Bayraklar */}
+            <AnimatePresence>
+              {isLangMenuOpen && (
+                <>
+                  {langKeys.filter((key) => key !== lang).map((key, index) => {
+                    const totalOtherFlags = langKeys.length;
+                    const pos = getFlagPosition(index, totalOtherFlags, 70); // Yarıçap
+                    const angle = (index * 360) / totalOtherFlags;
+                    const isClockwise = angle >= 180;
+                    return (
+                      <motion.div
+                        key={key}
+                        className="absolute"
+                        style={{ 
+                          left: '50%', top: '50%', 
+                          marginLeft: '-16px', marginTop: '-16px', // 32px Flag için offset
+                          zIndex: 55 
+                        }}
+                        initial={{ x: 0, y: 0, opacity: 0, scale: 0, rotate: isClockwise ? -180 : 180 }}
+                        animate={{ x: pos.x, y: pos.y, opacity: 1, scale: 1, rotate: 0 }}
+                        exit={{ x: 0, y: 0, opacity: 0, scale: 0, rotate: isClockwise ? 180 : -180 }}
+                        transition={{ duration: 0.4, delay: index * 0.02, type: "spring" }}
+                      >
+                        <Flag 
+                          countryCode={key} 
+                          size={32} 
+                          onClick={() => { setLang(key); setIsLangMenuOpen(false); setMsgIndex(0); }}
+                          className="cursor-pointer hover:scale-125 transition-transform drop-shadow-xl"
+                        />
+                      </motion.div>
+                    );
+                  })}
+                </>
+              )}
+            </AnimatePresence>
+          </div>
 
-          {/* Diğer Bayraklar (Açılır Menü) */}
-          <AnimatePresence>
-            {isLangMenuOpen && (
-              <>
-                {langKeys.filter((key) => key !== lang).map((key, index) => {
-                  const totalOtherFlags = langKeys.length;
-                  const pos = getFlagPosition(index, totalOtherFlags, 80); // Yarıçap
-                  return (
-                    <motion.div
-                      key={key}
-                      className="absolute"
-                      style={{ 
-                        left: '50%', top: '50%', 
-                        marginLeft: '-24px', marginTop: '-24px', // 48px/2 = Merkezleme
-                        zIndex: 55 
-                      }}
-                      initial={{ x: 0, y: 0, opacity: 0, scale: 0 }}
-                      animate={{ x: pos.x, y: pos.y, opacity: 1, scale: 1 }}
-                      exit={{ x: 0, y: 0, opacity: 0, scale: 0 }}
-                      transition={{ duration: 0.4, delay: index * 0.02, type: "spring" }}
-                    >
-                      <Flag 
-                        countryCode={key} 
-                        size={48} 
-                        onClick={() => { setLang(key); setIsLangMenuOpen(false); setMsgIndex(0); }}
-                        className="cursor-pointer hover:scale-110 transition-transform drop-shadow-xl"
-                      />
-                    </motion.div>
-                  );
-                })}
-              </>
-            )}
-          </AnimatePresence>
+          <p className="text-zinc-600 text-[9px] md:text-[10px] font-mono uppercase tracking-widest text-center px-4">
+            &copy; 2026 DUXA.PRO
+          </p>
         </div>
-
-        {/* FOOTER METNİ */}
-        <p className="text-zinc-600 text-[10px] md:text-xs font-mono uppercase tracking-widest text-center px-4">
-          &copy; 2026 DUXA.PRO &bull; KOTOR / MONTENEGRO &bull; SECURE CLOUD SYSTEM
-        </p>
       </div>
 
       {/* --- MODAL --- */}
@@ -430,7 +419,6 @@ export default function ConstructionPage() {
           </DialogHeader>
         </DialogContent>
       </Dialog>
-
     </div>
   );
 }
