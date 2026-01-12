@@ -418,6 +418,107 @@ export default function ConstructionPage() {
 
       </div>
 
+
+      {/* --- DİL SEÇİMİ ALTI - BEKLEME LİSTESİ FORMU --- */}
+      <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-40 w-full max-w-sm px-4">
+        <form onSubmit={async (e) => {
+          e.preventDefault();
+          const formElement = e.currentTarget; // Form referansını önce al
+          const formData = new FormData(formElement);
+          formData.append("language", lang); // Mevcut dil'i formData'ya ekle
+          const btn = document.getElementById('submitBtn') as HTMLButtonElement;
+          if(btn) btn.disabled = true;
+          const originalText = btn?.textContent || t.subscribeText;
+          if(btn) btn.textContent = t.signingUp;
+          
+          try {
+            const { joinWaitlist } = await import("../actions");
+            const result = await joinWaitlist(formData);
+            
+            if (!result) {
+              // Result undefined - muhtemelen network timeout veya connection hatası
+              console.error("joinWaitlist returned undefined");
+              setDialogType("error");
+              setDialogMessage(t.errorMessage);
+              setDialogOpen(true);
+              if(btn) {
+                btn.disabled = false;
+                btn.textContent = originalText;
+              }
+              return;
+            }
+            
+            if (result.success) {
+              if(btn) btn.textContent = "✓";
+              setDialogType("success");
+              setDialogMessage(result.message || t.successMessage);
+              setDialogOpen(true);
+              
+              // Form'u reset et (formElement referansı ile)
+              if (formElement) {
+                formElement.reset();
+              }
+              
+              setTimeout(() => {
+                if(btn) {
+                  btn.disabled = false;
+                  btn.textContent = originalText;
+                }
+              }, 2000);
+            } else {
+              setDialogType("error");
+              setDialogMessage(result.message || t.errorMessage);
+              setDialogOpen(true);
+              if(btn) {
+                btn.disabled = false;
+                btn.textContent = originalText;
+              }
+            }
+          } catch (error) {
+            console.error("Form submit error:", error);
+            // Network timeout veya bağlantı hatası - mail gönderilmiş olabilir
+            // Kullanıcıyı bilgilendir
+            setDialogType("error");
+            setDialogMessage(t.errorMessage);
+            setDialogOpen(true);
+            if(btn) {
+              btn.disabled = false;
+              btn.textContent = originalText;
+            }
+          }
+        }} 
+        className="flex gap-2">
+          <input 
+            type="email" 
+            name="email" 
+            placeholder={t.emailPlaceholder} 
+            required
+            className="flex-1 bg-zinc-900/90 backdrop-blur-md border border-zinc-700/50 rounded-full px-5 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-[#EF7F1A] transition-colors shadow-lg"
+          />
+          <button 
+            id="submitBtn"
+            type="submit" 
+            className="bg-[#EF7F1A] hover:bg-[#d66e12] text-black font-bold px-6 py-3 rounded-full transition-colors shadow-lg hover:shadow-[#EF7F1A]/50 whitespace-nowrap"
+          >
+            {t.subscribeText}
+          </button>
+        </form>
+      </div>
+
+      {/* --- MODAL DİALOG --- */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="bg-zinc-900 border-zinc-700 text-white">
+          <DialogHeader>
+            <DialogTitle className={dialogType === "success" ? "text-[#EF7F1A]" : "text-red-500"}>
+              {dialogType === "success" ? "✅ " + (t.name === "Türkçe" ? "Başarılı" : "Success") : "❌ " + (t.name === "Türkçe" ? "Hata" : "Error")}
+            </DialogTitle>
+            <DialogDescription className="text-gray-300 pt-2">
+              {dialogMessage}
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+      
       {/* --- DİL SEÇİMİ - BAYRAKLAR (EN ALTA, ORTADA) --- */}
       <div className="absolute bottom-28 md:bottom-24 left-1/2 -translate-x-1/2 z-50">
         <div className="relative flex items-center justify-center">
@@ -541,108 +642,8 @@ export default function ConstructionPage() {
             )}
           </AnimatePresence>
         </div>
-      </div>
+      </div>  
 
-      {/* --- DİL SEÇİMİ ALTI - BEKLEME LİSTESİ FORMU --- */}
-      <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-40 w-full max-w-sm px-4">
-        <form onSubmit={async (e) => {
-          e.preventDefault();
-          const formElement = e.currentTarget; // Form referansını önce al
-          const formData = new FormData(formElement);
-          formData.append("language", lang); // Mevcut dil'i formData'ya ekle
-          const btn = document.getElementById('submitBtn') as HTMLButtonElement;
-          if(btn) btn.disabled = true;
-          const originalText = btn?.textContent || t.subscribeText;
-          if(btn) btn.textContent = t.signingUp;
-          
-          try {
-            const { joinWaitlist } = await import("../actions");
-            const result = await joinWaitlist(formData);
-            
-            if (!result) {
-              // Result undefined - muhtemelen network timeout veya connection hatası
-              console.error("joinWaitlist returned undefined");
-              setDialogType("error");
-              setDialogMessage(t.errorMessage);
-              setDialogOpen(true);
-              if(btn) {
-                btn.disabled = false;
-                btn.textContent = originalText;
-              }
-              return;
-            }
-            
-            if (result.success) {
-              if(btn) btn.textContent = "✓";
-              setDialogType("success");
-              setDialogMessage(result.message || t.successMessage);
-              setDialogOpen(true);
-              
-              // Form'u reset et (formElement referansı ile)
-              if (formElement) {
-                formElement.reset();
-              }
-              
-              setTimeout(() => {
-                if(btn) {
-                  btn.disabled = false;
-                  btn.textContent = originalText;
-                }
-              }, 2000);
-            } else {
-              setDialogType("error");
-              setDialogMessage(result.message || t.errorMessage);
-              setDialogOpen(true);
-              if(btn) {
-                btn.disabled = false;
-                btn.textContent = originalText;
-              }
-            }
-          } catch (error) {
-            console.error("Form submit error:", error);
-            // Network timeout veya bağlantı hatası - mail gönderilmiş olabilir
-            // Kullanıcıyı bilgilendir
-            setDialogType("error");
-            setDialogMessage(t.errorMessage);
-            setDialogOpen(true);
-            if(btn) {
-              btn.disabled = false;
-              btn.textContent = originalText;
-            }
-          }
-        }} 
-        className="flex gap-2">
-          <input 
-            type="email" 
-            name="email" 
-            placeholder={t.emailPlaceholder} 
-            required
-            className="flex-1 bg-zinc-900/90 backdrop-blur-md border border-zinc-700/50 rounded-full px-5 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-[#EF7F1A] transition-colors shadow-lg"
-          />
-          <button 
-            id="submitBtn"
-            type="submit" 
-            className="bg-[#EF7F1A] hover:bg-[#d66e12] text-black font-bold px-6 py-3 rounded-full transition-colors shadow-lg hover:shadow-[#EF7F1A]/50 whitespace-nowrap"
-          >
-            {t.subscribeText}
-          </button>
-        </form>
-      </div>
-
-      {/* --- MODAL DİALOG --- */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="bg-zinc-900 border-zinc-700 text-white">
-          <DialogHeader>
-            <DialogTitle className={dialogType === "success" ? "text-[#EF7F1A]" : "text-red-500"}>
-              {dialogType === "success" ? "✅ " + (t.name === "Türkçe" ? "Başarılı" : "Success") : "❌ " + (t.name === "Türkçe" ? "Hata" : "Error")}
-            </DialogTitle>
-            <DialogDescription className="text-gray-300 pt-2">
-              {dialogMessage}
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
-        
       {/* --- FOOTER --- */}
       <div className="absolute bottom-6 w-full text-center px-4 z-40">
         <p className="text-zinc-600 text-xs font-mono uppercase tracking-widest">
