@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Code, Cpu, Database, Shield } from "lucide-react";
 import {
@@ -12,21 +12,21 @@ import {
 } from "@/components/ui/dialog";
 import { Flag } from "@/components/Flag";
 
-// --- DİL VE ÇEVİRİ AYARLARI ---
+// --- TİP TANIMLAMALARI ---
 type LangData = {
   name: string;
   title: string;
   subtitle: string;
   messages: string[];
-  durations: number[]; // Her mesaj için süre (saniye)
-  subscribeText: string; // Abone ol butonu metni
+  durations: number[];
+  subscribeText: string;
   emailPlaceholder: string;
   signingUp: string;
   successMessage: string;
   errorMessage: string;
 };
 
-
+// --- ÇEVİRİLER ---
 const translations: Record<string, LangData> = {
   en: { 
     name: "English", 
@@ -84,7 +84,7 @@ const translations: Record<string, LangData> = {
 };
 
 // Bayrak pozisyonları (daire şeklinde)
-const getFlagPosition = (index: number, total: number, radius: number = 60) => {
+const getFlagPosition = (index: number, total: number, radius: number = 75) => {
   const angle = (index * 2 * Math.PI) / total - Math.PI / 2; // -90° başlangıç
   return {
     x: Math.cos(angle) * radius,
@@ -101,37 +101,34 @@ export default function ConstructionPage() {
   const [dialogMessage, setDialogMessage] = useState("");
   const [dialogType, setDialogType] = useState<"success" | "error">("success");
   const langKeys = Object.keys(translations);
-  const currentLangIndex = langKeys.indexOf(lang);
 
-  // Dil Algılama - Tarayıcı diline göre otomatik, desteklenmiyorsa İngilizce
+  // Dil Algılama
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const browserLang = navigator.language.split("-")[0];
       if (translations[browserLang]) {
         setLang(browserLang);
       } else {
-        setLang("en"); // Desteklenmiyorsa İngilizce
+        setLang("en");
       }
     }
   }, []);
 
-  // Mesaj Döngüsü - Her mesajın kendi süresi var
+  // Mesaj Döngüsü
   useEffect(() => {
     const t = translations[lang];
     if (!t || !t.messages[msgIndex]) return;
 
-    const duration = t.durations[msgIndex] * 1000; // saniyeyi milisaniyeye çevir
+    const duration = t.durations[msgIndex] * 1000;
     setProgress(0);
 
-    // Progress bar animasyonu
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) return 100;
-        return prev + (100 / (duration / 50)); // Her 50ms'de bir güncelle
+        return prev + (100 / (duration / 50));
       });
     }, 50);
 
-    // Mesaj değişimi
     const messageTimeout = setTimeout(() => {
       setMsgIndex((prev) => (prev + 1) % t.messages.length);
       setProgress(0);
@@ -146,7 +143,8 @@ export default function ConstructionPage() {
   const t = translations[lang];
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-black text-white font-sans selection:bg-[#EF7F1A] selection:text-white">
+    // ANA CONTAINER: min-h-screen ve flex-col ile dikey yerleşim
+    <div className="relative flex min-h-screen flex-col items-center overflow-hidden bg-black text-white font-sans selection:bg-[#EF7F1A] selection:text-white py-6 md:py-10">
       
       {/* --- CSS STYLES --- */}
       <style jsx global>{`
@@ -158,17 +156,11 @@ export default function ConstructionPage() {
           background-size: 200% auto;
           animation: gradient-x 4s linear infinite;
         }
-        @media (min-width: 768px) {
-          .lang-ring-oval {
-            width: calc(100% + 18px) !important;
-            height: calc(100% + 14px) !important;
-          }
-        }
       `}</style>
 
-      {/* --- NETWORK AĞI VE ARKA PLAN --- */}
-      <div className="absolute inset-0 z-0 overflow-hidden">
-        {/* Network Ağı - Bağlantı Çizgileri */}
+      {/* --- ARKA PLAN (Sabit) --- */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        {/* Network Ağı */}
         <svg className="absolute inset-0 w-full h-full opacity-20" style={{ mixBlendMode: 'screen' }}>
           <defs>
             <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -177,47 +169,20 @@ export default function ConstructionPage() {
               <stop offset="100%" stopColor="#05594C" stopOpacity="0.3" />
             </linearGradient>
           </defs>
-          {/* Network Nodes ve Connections */}
           {[
-            { x: 10, y: 20 },
-            { x: 30, y: 15 },
-            { x: 50, y: 25 },
-            { x: 70, y: 18 },
-            { x: 90, y: 22 },
-            { x: 15, y: 50 },
-            { x: 35, y: 55 },
-            { x: 55, y: 48 },
-            { x: 75, y: 52 },
-            { x: 85, y: 45 },
-            { x: 20, y: 80 },
-            { x: 40, y: 75 },
-            { x: 60, y: 82 },
-            { x: 80, y: 78 },
+            { x: 10, y: 20 }, { x: 30, y: 15 }, { x: 50, y: 25 }, { x: 70, y: 18 }, { x: 90, y: 22 },
+            { x: 15, y: 50 }, { x: 35, y: 55 }, { x: 55, y: 48 }, { x: 75, y: 52 }, { x: 85, y: 45 },
+            { x: 20, y: 80 }, { x: 40, y: 75 }, { x: 60, y: 82 }, { x: 80, y: 78 },
           ].map((node, i) => (
             <g key={i}>
               <circle cx={`${node.x}%`} cy={`${node.y}%`} r="3" fill="#05594C" opacity="0.4">
                 <animate attributeName="opacity" values="0.2;0.6;0.2" dur="3s" repeatCount="indefinite" begin={`${i * 0.2}s`} />
               </circle>
-              {/* Bağlantı çizgileri */}
-              {[
-                { x: 30, y: 15 },
-                { x: 50, y: 25 },
-                { x: 35, y: 55 },
-                { x: 55, y: 48 },
-              ].slice(0, 2).map((target, j) => {
+              {[ { x: 30, y: 15 }, { x: 50, y: 25 }, { x: 35, y: 55 }, { x: 55, y: 48 } ].slice(0, 2).map((target, j) => {
                 if (i < 5) return null;
                 return (
-                  <line
-                    key={j}
-                    x1={`${node.x}%`}
-                    y1={`${node.y}%`}
-                    x2={`${target.x}%`}
-                    y2={`${target.y}%`}
-                    stroke="url(#lineGradient)"
-                    strokeWidth="1"
-                    opacity="0.2"
-                  >
-                    <animate attributeName="opacity" values="0.1;0.3;0.1" dur="4s" repeatCount="indefinite" begin={`${(i + j) * 0.3}s`} />
+                  <line key={j} x1={`${node.x}%`} y1={`${node.y}%`} x2={`${target.x}%`} y2={`${target.y}%`} stroke="url(#lineGradient)" strokeWidth="1" opacity="0.2">
+                     <animate attributeName="opacity" values="0.1;0.3;0.1" dur="4s" repeatCount="indefinite" begin={`${(i + j) * 0.3}s`} />
                   </line>
                 );
               })}
@@ -225,159 +190,92 @@ export default function ConstructionPage() {
           ))}
         </svg>
 
-        {/* Grid Ağı - Devre Şeması Görünümü */}
+        {/* Grid Ağı */}
         <div className="absolute inset-0 opacity-25 bg-[linear-gradient(to_right,#05594C_1px,transparent_1px),linear-gradient(to_bottom,#05594C_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_30%,transparent_100%)]" />
         
-        {/* Daha Fazla Kod Parçacıkları */}
-        {[
-          { text: `function init() {\n  return true;\n}`, pos: { top: '15%', left: '8%' }, delay: 0, color: '#05594C' },
-          { text: `async loadData() {\n  await sync();\n}`, pos: { top: '25%', right: '12%' }, delay: 1, color: '#EF7F1A' },
-          { text: `<Component>\n  <Data />\n</Component>`, pos: { bottom: '28%', left: '15%' }, delay: 2, color: '#05594C' },
-          { text: `const api = {\n  fetch: async () => {}\n}`, pos: { top: '60%', right: '18%' }, delay: 1.5, color: '#EF7F1A' },
-          { text: `export default\n  class Engine`, pos: { bottom: '45%', left: '10%' }, delay: 0.5, color: '#05594C' },
-        ].map((code, i) => (
-          <motion.div
-            key={i}
-            animate={{ 
-              y: [0, -25, 0], 
-              opacity: [0.15, 0.35, 0.15], 
-              rotate: [0, i % 2 === 0 ? 2 : -1.5, 0] 
-            }}
-            transition={{ 
-              duration: 8 + i * 2, 
-              repeat: Infinity, 
-              ease: "easeInOut", 
-              delay: code.delay 
-            }}
-            className="absolute font-mono text-xs opacity-30"
-            style={{ ...code.pos, color: code.color }}
-          >
-            <pre className="whitespace-pre-wrap">{code.text}</pre>
-          </motion.div>
-        ))}
-
-        {/* Hareketli Gradient Blobs - Daha Fazla */}
+        {/* Hareketli Blobs */}
         {[
           { pos: { top: '25%', left: '25%' }, size: 500, color: '#05594C', duration: 20, delay: 0 },
           { pos: { bottom: '25%', right: '25%' }, size: 450, color: '#EF7F1A', duration: 25, delay: 2 },
-          { pos: { top: '50%', left: '50%' }, size: 400, color: '#05594C', duration: 18, delay: 1 },
-          { pos: { top: '75%', left: '33%' }, size: 350, color: '#EF7F1A', duration: 22, delay: 1.5 },
-          { pos: { bottom: '33%', right: '33%' }, size: 380, color: '#05594C', duration: 19, delay: 0.8 },
         ].map((blob, i) => (
           <motion.div
             key={i}
             animate={{ 
-              x: [0, 120 + i * 30, -60 - i * 15, 0], 
-              y: [0, -70 + i * 20, 45 - i * 10, 0], 
-              opacity: [0.2, 0.4, 0.3, 0.2],
-              scale: [1, 1.15 + i * 0.05, 0.92 - i * 0.02, 1]
+              x: [0, 50, -50, 0], y: [0, -50, 50, 0], opacity: [0.2, 0.4, 0.2], scale: [1, 1.1, 1]
             }}
-            transition={{ 
-              duration: blob.duration, 
-              repeat: Infinity, 
-              ease: "easeInOut", 
-              delay: blob.delay 
-            }}
+            transition={{ duration: blob.duration, repeat: Infinity, ease: "easeInOut", delay: blob.delay }}
             className="absolute rounded-full blur-[160px]"
-            style={{
-              ...blob.pos,
-              width: `${blob.size}px`,
-              height: `${blob.size}px`,
-              backgroundColor: blob.color,
-            }}
+            style={{ ...blob.pos, width: `${blob.size}px`, height: `${blob.size}px`, backgroundColor: blob.color }}
           />
         ))}
 
-        {/* Teknoloji İkonları - Daha Fazla */}
+        {/* İkonlar */}
         <div className="absolute inset-0 opacity-10">
           <Code className="absolute top-32 left-32 w-16 h-16 text-[#05594C]" />
           <Cpu className="absolute top-64 right-40 w-14 h-14 text-[#EF7F1A]" />
           <Database className="absolute bottom-48 left-40 w-16 h-16 text-[#05594C]" />
           <Shield className="absolute bottom-32 right-48 w-14 h-14 text-[#EF7F1A]" />
-          <Code className="absolute top-1/2 left-1/4 w-12 h-12 text-[#05594C]" />
-          <Cpu className="absolute bottom-1/4 left-2/3 w-12 h-12 text-[#EF7F1A]" />
         </div>
       </div>
 
-      {/* --- ANA İÇERİK --- */}
-      <div className="z-10 flex flex-col items-center text-center px-4 w-full max-w-5xl">
+      {/* --- ÜST BÖLÜM: Logo, Başlık, Mesaj, Form --- */}
+      {/* Bu bölüm "flex-1" ile büyüyerek ekranın ortasına odaklanır */}
+      <div className="z-10 flex flex-1 flex-col items-center justify-center w-full max-w-5xl px-4 gap-8 md:gap-12">
         
-        {/* LOGO (Akıcı Kalp Atışı Efekti - Renk Geçişli) */}
-        <motion.h1 
-          className="text-7xl md:text-9xl font-black tracking-tighter relative mb-8 text-transparent bg-clip-text bg-gradient-to-r from-[#05594C] via-white to-[#EF7F1A] animate-gradient-x"
-          animate={{ 
-            scale: [1, 1.06, 1],
-            filter: [
-              "drop-shadow(0 0 10px rgba(5,89,76,0.3))",
-              "drop-shadow(0 0 35px rgba(5,89,76,0.9))",
-              "drop-shadow(0 0 10px rgba(5,89,76,0.3))"
-            ]
-          }}
-          transition={{ 
-            duration: 1.2, 
-            repeat: Infinity, 
-            ease: "easeInOut"
-          }}
-        >
-          DUXA
-        </motion.h1>
+        {/* LOGO & BAŞLIKLAR GRUBU */}
+        <div className="text-center flex flex-col items-center">
+            <motion.h1 
+              className="text-6xl md:text-9xl font-black tracking-tighter relative mb-4 md:mb-8 text-transparent bg-clip-text bg-gradient-to-r from-[#05594C] via-white to-[#EF7F1A] animate-gradient-x"
+              animate={{ 
+                scale: [1, 1.05, 1],
+                filter: ["drop-shadow(0 0 10px rgba(5,89,76,0.3))", "drop-shadow(0 0 30px rgba(5,89,76,0.8))", "drop-shadow(0 0 10px rgba(5,89,76,0.3))"]
+              }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+            >
+              DUXA
+            </motion.h1>
 
-        {/* Hareketli Renk Geçişli Başlık */}
-        <motion.h2
-          key={lang}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-3xl md:text-5xl font-bold mb-4 pb-2 text-transparent bg-clip-text animate-gradient-x bg-gradient-to-r from-[#05594C] via-white to-[#EF7F1A]"
-        >
-          {t.title}
-        </motion.h2>
+            <motion.h2
+              key={lang}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-2xl md:text-5xl font-bold mb-2 md:mb-4 pb-2 text-transparent bg-clip-text animate-gradient-x bg-gradient-to-r from-[#05594C] via-white to-[#EF7F1A] text-center"
+            >
+              {t.title}
+            </motion.h2>
 
-        <motion.p
-          key={lang + "sub"}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="text-gray-400 text-lg md:text-2xl mb-12 font-light"
-        >
-          {t.subtitle}
-        </motion.p>
+            <motion.p
+              key={lang + "sub"}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-gray-400 text-sm md:text-2xl font-light text-center max-w-2xl"
+            >
+              {t.subtitle}
+            </motion.p>
+        </div>
 
-        {/* --- GOOGLE ARAMA ÇUBUĞU GİBİ MESAJ KUTUSU --- */}
-        <div className="w-full max-w-2xl space-y-6">
-          
-          {/* Google Arama Çubuğu Tasarımında Mesaj Kutusu */}
-          <div className="relative w-full max-w-xl mx-auto">
-            <div className="relative bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-full shadow-xl hover:shadow-[0_0_30px_rgba(5,89,76,0.3)] transition-shadow duration-300 overflow-hidden">
-              {/* Progress Bar (Tüm Çerçeveyi Kaplanan) */}
+        {/* MESAJ BAR & İKONLAR GRUBU */}
+        <div className="w-full max-w-2xl flex flex-col items-center gap-6">
+          <div className="relative w-full">
+            <div className="relative bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-full shadow-xl overflow-hidden">
               <motion.div 
                 className="absolute inset-0 bg-gradient-to-r from-[#05594C]/30 via-[#EF7F1A]/40 to-[#05594C]/30"
                 style={{ width: `${progress}%` }}
                 transition={{ duration: 0.1, ease: "linear" }}
               />
-              
-              {/* Mesaj İçeriği */}
-              <div className="relative px-6 py-4 flex items-center gap-4">
+              <div className="relative px-4 py-3 md:px-6 md:py-4 flex items-center gap-4">
                 <motion.span 
                   className="w-2 h-2 rounded-full bg-[#EF7F1A] flex-shrink-0 z-10"
-                  animate={{ 
-                    scale: [1, 1.2, 1],
-                    opacity: [0.6, 1, 0.6]
-                  }}
+                  animate={{ scale: [1, 1.2, 1], opacity: [0.6, 1, 0.6] }}
                   transition={{ duration: 1.2, repeat: Infinity }}
                 />
-                
                 <AnimatePresence mode="wait">
                   <motion.span
                     key={lang + msgIndex}
                     initial={{ opacity: 0, x: 10 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -10 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                    className="flex-1 font-mono text-sm md:text-base tracking-wide z-10 text-white drop-shadow-[0_0_8px_rgba(0,0,0,0.8)]"
-                    style={{ 
-                      textShadow: '0 0 10px rgba(0,0,0,0.9), 0 0 5px rgba(0,0,0,0.8), 0 1px 2px rgba(0,0,0,1)'
-                    }}
+                    className="flex-1 font-mono text-xs md:text-base tracking-wide z-10 text-white truncate"
                   >
                     {t.messages[msgIndex]}
                   </motion.span>
@@ -386,243 +284,152 @@ export default function ConstructionPage() {
             </div>
           </div>
 
-          {/* Teknoloji Vurgusu - Yazılım & Donanım */}
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="flex items-center justify-center gap-6 md:gap-8 pt-2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex items-center justify-center gap-6 md:gap-8"
           >
             <div className="flex items-center gap-2 text-gray-500 hover:text-[#05594C] transition-colors">
-              <Code className="w-5 h-5" />
-              <span className="text-xs uppercase tracking-wider font-semibold">Software</span>
+              <Code className="w-4 h-4 md:w-5 md:h-5" />
+              <span className="text-[10px] md:text-xs uppercase tracking-wider font-semibold">Software</span>
             </div>
-            <div className="w-px h-6 bg-zinc-700" />
+            <div className="w-px h-4 md:h-6 bg-zinc-700" />
             <div className="flex items-center gap-2 text-gray-500 hover:text-[#EF7F1A] transition-colors">
-              <Cpu className="w-5 h-5" />
-              <span className="text-xs uppercase tracking-wider font-semibold">Hardware</span>
+              <Cpu className="w-4 h-4 md:w-5 md:h-5" />
+              <span className="text-[10px] md:text-xs uppercase tracking-wider font-semibold">Hardware</span>
             </div>
           </motion.div>
         </div>
 
-      </div>
-
-      {/* --- BEKLEME LİSTESİ FORMU --- */}
-      <div className="z-10 w-full max-w-sm px-4 mb-10">
-        <form onSubmit={async (e) => {
-          e.preventDefault();
-          const formElement = e.currentTarget; // Form referansını önce al
-          const formData = new FormData(formElement);
-          formData.append("language", lang); // Mevcut dil'i formData'ya ekle
-          const btn = document.getElementById('submitBtn') as HTMLButtonElement;
-          if(btn) btn.disabled = true;
-          const originalText = btn?.textContent || t.subscribeText;
-          if(btn) btn.textContent = t.signingUp;
-          
-          try {
-            const { joinWaitlist } = await import("../actions");
-            const result = await joinWaitlist(formData);
+        {/* FORM GRUBU */}
+        <div className="w-full max-w-md">
+           <form onSubmit={async (e) => {
+            e.preventDefault();
+            const formElement = e.currentTarget;
+            const formData = new FormData(formElement);
+            formData.append("language", lang);
+            const btn = document.getElementById('submitBtn') as HTMLButtonElement;
+            if(btn) btn.disabled = true;
+            const originalText = btn?.textContent || t.subscribeText;
+            if(btn) btn.textContent = t.signingUp;
             
-            if (!result) {
-              // Result undefined - muhtemelen network timeout veya connection hatası
-              console.error("joinWaitlist returned undefined");
+            try {
+              const { joinWaitlist } = await import("../actions");
+              const result = await joinWaitlist(formData);
+              
+              if (!result) throw new Error("No response");
+              
+              setDialogType(result.success ? "success" : "error");
+              setDialogMessage(result.message || (result.success ? t.successMessage : t.errorMessage));
+              setDialogOpen(true);
+              
+              if (result.success) {
+                if(btn) btn.textContent = "✓";
+                if (formElement) formElement.reset();
+                setTimeout(() => { if(btn) { btn.disabled = false; btn.textContent = originalText; } }, 2000);
+              } else {
+                 if(btn) { btn.disabled = false; btn.textContent = originalText; }
+              }
+            } catch (error) {
               setDialogType("error");
               setDialogMessage(t.errorMessage);
               setDialogOpen(true);
-              if(btn) {
-                btn.disabled = false;
-                btn.textContent = originalText;
-              }
-              return;
+              if(btn) { btn.disabled = false; btn.textContent = originalText; }
             }
-            
-            if (result.success) {
-              if(btn) btn.textContent = "✓";
-              setDialogType("success");
-              setDialogMessage(result.message || t.successMessage);
-              setDialogOpen(true);
-              
-              // Form'u reset et (formElement referansı ile)
-              if (formElement) {
-                formElement.reset();
-              }
-              
-              setTimeout(() => {
-                if(btn) {
-                  btn.disabled = false;
-                  btn.textContent = originalText;
-                }
-              }, 2000);
-            } else {
-              setDialogType("error");
-              setDialogMessage(result.message || t.errorMessage);
-              setDialogOpen(true);
-              if(btn) {
-                btn.disabled = false;
-                btn.textContent = originalText;
-              }
-            }
-          } catch (error) {
-            console.error("Form submit error:", error);
-            // Network timeout veya bağlantı hatası - mail gönderilmiş olabilir
-            // Kullanıcıyı bilgilendir
-            setDialogType("error");
-            setDialogMessage(t.errorMessage);
-            setDialogOpen(true);
-            if(btn) {
-              btn.disabled = false;
-              btn.textContent = originalText;
-            }
-          }
-        }} 
-        className="flex gap-2">
-          <input 
-            type="email" 
-            name="email" 
-            placeholder={t.emailPlaceholder} 
-            required
-            className="flex-1 bg-zinc-900/90 backdrop-blur-md border border-zinc-700/50 rounded-full px-5 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-[#EF7F1A] transition-colors shadow-lg"
-          />
-          <button 
-            id="submitBtn"
-            type="submit" 
-            className="bg-[#EF7F1A] hover:bg-[#d66e12] text-black font-bold px-6 py-3 rounded-full transition-colors shadow-lg hover:shadow-[#EF7F1A]/50 whitespace-nowrap"
+          }} 
+          className="flex flex-col sm:flex-row gap-3"
           >
-            {t.subscribeText}
-          </button>
-        </form>
+            <input 
+              type="email" 
+              name="email" 
+              placeholder={t.emailPlaceholder} 
+              required
+              className="flex-1 bg-zinc-900/90 backdrop-blur-md border border-zinc-700/50 rounded-full px-5 py-3 text-sm md:text-base text-white placeholder-zinc-500 focus:outline-none focus:border-[#EF7F1A] transition-colors shadow-lg"
+            />
+            <button 
+              id="submitBtn"
+              type="submit" 
+              className="bg-[#EF7F1A] hover:bg-[#d66e12] text-black font-bold px-6 py-3 rounded-full transition-colors shadow-lg hover:shadow-[#EF7F1A]/50 text-sm md:text-base whitespace-nowrap"
+            >
+              {t.subscribeText}
+            </button>
+          </form>
+        </div>
+
       </div>
 
-      {/* --- MODAL DİALOG --- */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="bg-zinc-900 border-zinc-700 text-white">
-          <DialogHeader>
-            <DialogTitle className={dialogType === "success" ? "text-[#EF7F1A]" : "text-red-500"}>
-              {dialogType === "success" ? "✅ " + (t.name === "Türkçe" ? "Başarılı" : "Success") : "❌ " + (t.name === "Türkçe" ? "Hata" : "Error")}
-            </DialogTitle>
-            <DialogDescription className="text-gray-300 pt-2">
-              {dialogMessage}
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
-
-      {/* --- BOŞLUK (SPACER) --- */}
-      <div className="h-3"></div>
-
-      {/* --- DİL SEÇİMİ - BAYRAKLAR (FORM ALTINDA) --- */}
-      <div className="mt-12 flex items-center justify-center">
-        <div className="relative flex items-center justify-center" style={{ width: '200px', height: '200px' }}>
-          {/* Aktif Bayrak - Merkez */}
-          <motion.div
-            className="relative"
-            style={{ zIndex: 51 }}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4 }}
-          >
-            <motion.div
-              onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
-              className="cursor-pointer relative"
-            >
-              <Flag countryCode={lang} size={56} className="md:w-14 md:h-14" />
-              {/* Aktif Bayrak Etrafında Halka */}
-              <motion.div
-                className="absolute border-2 border-[#EF7F1A] rounded-full"
-                style={{ 
-                  width: 'calc(100% + 16px)', 
-                  height: 'calc(100% + 16px)', 
-                  top: '-8px', 
-                  left: '-8px',
-                }}
-                animate={{ 
-                  scale: [1, 1.1, 1],
-                  opacity: [0.6, 1, 0.6]
-                }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              />
-            </motion.div>
+      {/* --- ALT BÖLÜM: Bayraklar & Footer --- */}
+      {/* Bu bölüm ekranın altında, formdan belirgin bir boşlukla ayrılır */}
+      <div className="z-10 flex flex-col items-center justify-end gap-6 md:gap-8 mt-12 md:mt-16 w-full">
+        
+        {/* BAYRAK MENÜSÜ */}
+        <div className="relative flex items-center justify-center" style={{ width: '160px', height: '160px' }}>
+          {/* Aktif Bayrak */}
+          <motion.div className="relative z-[60]">
+             <motion.div onClick={() => setIsLangMenuOpen(!isLangMenuOpen)} className="cursor-pointer relative group">
+                <Flag countryCode={lang} size={56} className="w-12 h-12 md:w-14 md:h-14 drop-shadow-2xl" />
+                {/* Halka Efekti */}
+                <motion.div
+                  className="absolute border-2 border-[#EF7F1A] rounded-full pointer-events-none"
+                  style={{ width: 'calc(100% + 12px)', height: 'calc(100% + 12px)', top: '-6px', left: '-6px' }}
+                  animate={{ scale: [1, 1.15, 1], opacity: [0.4, 0.8, 0.4] }}
+                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                />
+             </motion.div>
           </motion.div>
 
-          {/* Diğer Bayraklar - Daire Şeklinde Açılır */}
+          {/* Diğer Bayraklar (Açılır Menü) */}
           <AnimatePresence>
             {isLangMenuOpen && (
               <>
-                {langKeys
-                  .filter((key) => key !== lang)
-                  .map((key, index) => {
-                    const totalOtherFlags = langKeys.length - 1;
-                    const pos = getFlagPosition(index, totalOtherFlags, 80);
-                    // Calculate angle for clockwise/counter-clockwise animation
-                    const angle = (index * 360) / totalOtherFlags;
-                    const isClockwise = angle >= 180;
-                    
-                    return (
-                      <motion.div
-                        key={key}
-                        className="absolute"
-                        style={{
-                          left: '50%',
-                          top: '50%',
-                          marginLeft: '-24px', // Bayrak boyutu 48px olduğu için yarısı
-                          marginTop: '-24px',  // Bayrak boyutu 48px olduğu için yarısı
-                          transformOrigin: 'center center',
-                          zIndex: 50,
-                        }}
-                        initial={{ 
-                          x: 0,
-                          y: 0,
-                          opacity: 0, 
-                          scale: 0,
-                          rotate: isClockwise ? -180 : 180,
-                        }}
-                        animate={{ 
-                          x: pos.x,
-                          y: pos.y,
-                          opacity: 1, 
-                          scale: 1,
-                          rotate: 0,
-                        }}
-                        exit={{ 
-                          x: 0,
-                          y: 0,
-                          opacity: 0, 
-                          scale: 0,
-                          rotate: isClockwise ? 180 : -180,
-                        }}
-                        transition={{ 
-                          duration: 0.5,
-                          delay: index * 0.03,
-                          type: "spring",
-                          ease: "easeOut"
-                        }}
-                      >
-                        <Flag 
-                          countryCode={key} 
-                          size={48}
-                          onClick={() => {
-                            setLang(key);
-                            setIsLangMenuOpen(false);
-                            setMsgIndex(0);
-                          }}
-                          className="md:w-12 md:h-12"
-                        />
-                      </motion.div>
-                    );
-                  })}
+                {langKeys.filter((key) => key !== lang).map((key, index) => {
+                  const totalOtherFlags = langKeys.length;
+                  const pos = getFlagPosition(index, totalOtherFlags, 80); // Yarıçap
+                  return (
+                    <motion.div
+                      key={key}
+                      className="absolute"
+                      style={{ 
+                        left: '50%', top: '50%', 
+                        marginLeft: '-24px', marginTop: '-24px', // 48px/2 = Merkezleme
+                        zIndex: 55 
+                      }}
+                      initial={{ x: 0, y: 0, opacity: 0, scale: 0 }}
+                      animate={{ x: pos.x, y: pos.y, opacity: 1, scale: 1 }}
+                      exit={{ x: 0, y: 0, opacity: 0, scale: 0 }}
+                      transition={{ duration: 0.4, delay: index * 0.02, type: "spring" }}
+                    >
+                      <Flag 
+                        countryCode={key} 
+                        size={48} 
+                        onClick={() => { setLang(key); setIsLangMenuOpen(false); setMsgIndex(0); }}
+                        className="cursor-pointer hover:scale-110 transition-transform drop-shadow-xl"
+                      />
+                    </motion.div>
+                  );
+                })}
               </>
             )}
           </AnimatePresence>
         </div>
-      </div>  
 
-      {/* --- FOOTER --- */}
-      <div className="mt-auto w-full text-center px-4 py-6">
-        <p className="text-zinc-600 text-xs font-mono uppercase tracking-widest">
+        {/* FOOTER METNİ */}
+        <p className="text-zinc-600 text-[10px] md:text-xs font-mono uppercase tracking-widest text-center px-4">
           &copy; 2026 DUXA.PRO &bull; KOTOR / MONTENEGRO &bull; SECURE CLOUD SYSTEM
         </p>
       </div>
 
+      {/* --- MODAL --- */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="bg-zinc-900 border-zinc-700 text-white w-[90%] md:w-full max-w-md rounded-xl">
+          <DialogHeader>
+            <DialogTitle className={dialogType === "success" ? "text-[#EF7F1A]" : "text-red-500"}>
+              {dialogType === "success" ? "✅ " + (t.name === "Türkçe" ? "Başarılı" : "Success") : "❌ " + (t.name === "Türkçe" ? "Hata" : "Error")}
+            </DialogTitle>
+            <DialogDescription className="text-gray-300 pt-2">{dialogMessage}</DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );
