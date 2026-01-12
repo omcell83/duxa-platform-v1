@@ -1,6 +1,7 @@
 "use client";
 
 import React from 'react';
+import { motion } from 'framer-motion';
 
 // Country flag imports
 import US from 'country-flag-icons/react/3x2/US';
@@ -94,65 +95,122 @@ export interface FlagIconProps {
   langCode: string;
   className?: string;
   size?: number | string;
-  circular?: boolean;
+  animate?: boolean; // Whether to animate the flag
+  delay?: number; // Animation delay in seconds
 }
 
 /**
  * FlagIcon Component
  * 
- * Displays country flags based on language codes.
- * Flags are rendered as perfect circles when circular prop is true.
+ * Displays country flags based on language codes with realistic waving animation.
+ * Flags wave in the wind with a smooth, continuous animation that creates a 
+ * natural flag-waving effect using 3D transforms.
  * 
  * @param langCode - Language code (e.g., 'tr', 'en', 'de')
  * @param className - Additional CSS classes
  * @param size - Size of the flag (number for pixels, or string like '48px', '3rem')
- * @param circular - Whether to render as a perfect circle (default: true)
+ * @param animate - Whether to animate the flag (default: true)
+ * @param delay - Animation delay in seconds for staggered effects
  * 
  * @example
  * <FlagIcon langCode="tr" size={48} />
- * <FlagIcon langCode="en" size="3rem" circular={true} />
+ * <FlagIcon langCode="en" size="3rem" animate={true} delay={0.1} />
  */
 export function FlagIcon({ 
   langCode, 
   className = '', 
   size = 48,
-  circular = true 
+  animate = true,
+  delay = 0
 }: FlagIconProps) {
   const FlagComponent = langToCountryCode[langCode];
   
   if (!FlagComponent) {
     // Fallback to US flag if language not found
     const FallbackFlag = langToCountryCode['en'];
+    const sizeStyle = typeof size === 'number' 
+      ? { 
+          width: `${size}px`, 
+          height: `${size * 0.667}px` // 3:2 aspect ratio
+        }
+      : { 
+          width: size, 
+          height: `calc(${size} * 0.667)` 
+        };
+    
     return (
-      <div 
-        className={`inline-flex items-center justify-center ${circular ? 'rounded-full overflow-hidden' : ''} ${className}`}
+      <motion.div 
+        className={`inline-block ${className}`}
         style={{ 
-          width: typeof size === 'number' ? `${size}px` : size,
-          height: typeof size === 'number' ? `${size}px` : size,
+          ...sizeStyle,
+          transformStyle: 'preserve-3d',
+          transformOrigin: 'left center',
         }}
+        animate={animate ? {
+          rotateY: [0, 12, -12, 8, -8, 4, -4, 0],
+          rotateZ: [0, 2, -2, 1, -1, 0.5, -0.5, 0],
+        } : {}}
+        transition={animate ? {
+          duration: 3.5,
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: delay,
+        } : {}}
       >
-        <FallbackFlag 
-          className="w-full h-full"
-          style={circular ? { clipPath: 'circle(50% at 50% 50%)' } : {}}
-        />
-      </div>
+        <div 
+          style={{
+            width: '100%',
+            height: '100%',
+            overflow: 'hidden',
+            borderRadius: '4px',
+          }}
+        >
+          <FallbackFlag className="w-full h-full" />
+        </div>
+      </motion.div>
     );
   }
 
   const sizeStyle = typeof size === 'number' 
-    ? { width: `${size}px`, height: `${size}px` }
-    : { width: size, height: size };
+    ? { 
+        width: `${size}px`, 
+        height: `${size * 0.667}px` // 3:2 aspect ratio
+      }
+    : { 
+        width: size, 
+        height: `calc(${size} * 0.667)` 
+      };
 
   return (
-    <div 
-      className={`inline-flex items-center justify-center ${circular ? 'rounded-full overflow-hidden' : ''} ${className}`}
-      style={sizeStyle}
+    <motion.div 
+      className={`inline-block ${className}`}
+      style={{ 
+        ...sizeStyle,
+        transformStyle: 'preserve-3d',
+        transformOrigin: 'left center',
+      }}
+      animate={animate ? {
+        rotateY: [0, 12, -12, 8, -8, 4, -4, 0],
+        rotateZ: [0, 2, -2, 1, -1, 0.5, -0.5, 0],
+      } : {}}
+      transition={animate ? {
+        duration: 3.5,
+        repeat: Infinity,
+        ease: "easeInOut",
+        delay: delay,
+      } : {}}
     >
-      <FlagComponent 
-        className="w-full h-full"
-        style={circular ? { clipPath: 'circle(50% at 50% 50%)' } : {}}
-      />
-    </div>
+      <div 
+        style={{
+          width: '100%',
+          height: '100%',
+          overflow: 'hidden',
+          borderRadius: '4px',
+        }}
+      >
+        <FlagComponent className="w-full h-full" />
+      </div>
+    </motion.div>
   );
 }
 

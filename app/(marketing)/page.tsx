@@ -409,7 +409,7 @@ export default function ConstructionPage() {
 
 
       {/* --- DİL SEÇİMİ ALTI - BEKLEME LİSTESİ FORMU --- */}
-      <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-40 w-full max-w-sm px-4">
+      <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-40 w-full max-w-sm px-4">
         <form onSubmit={async (e) => {
           e.preventDefault();
           const formElement = e.currentTarget; // Form referansını önce al
@@ -517,21 +517,21 @@ export default function ConstructionPage() {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4 }}
-            className="relative z-10 cursor-pointer w-12 h-12 md:w-14 md:h-14"
+            className="relative z-10 cursor-pointer"
           >
-            <FlagIcon langCode={lang} size="100%" circular={true} />
-            {/* Aktif Bayrak Etrafında Halka - Mobil: Yuvarlak, Masaüstü: Oval */}
+            <FlagIcon langCode={lang} size={48} animate={true} delay={0} className="md:w-14" />
+            {/* Aktif Bayrak Etrafında Halka */}
             <motion.div
-              className="absolute border-2 border-[#EF7F1A] lang-ring-oval"
+              className="absolute border-2 border-[#EF7F1A]"
               style={{ 
                 width: 'calc(100% + 16px)', 
                 height: 'calc(100% + 16px)', 
                 top: '-8px', 
                 left: '-8px',
-                borderRadius: '9999px',
+                borderRadius: '8px',
               }}
               animate={{ 
-                scale: [1, 1.15, 1],
+                scale: [1, 1.1, 1],
                 opacity: [0.6, 1, 0.6]
               }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
@@ -586,18 +586,18 @@ export default function ConstructionPage() {
                           setIsLangMenuOpen(false);
                           setMsgIndex(0);
                         }}
-                        className="absolute cursor-pointer hover:scale-110 transition-transform z-20 relative w-10 h-10 md:w-12 md:h-12"
+                        className="absolute cursor-pointer hover:scale-110 transition-transform z-20 relative"
                       >
-                        <FlagIcon langCode={key} size="100%" circular={true} />
-                        {/* Diğer Bayraklar Etrafında Oval Halka - Mobil: Yuvarlak, Masaüstü: Oval */}
+                        <FlagIcon langCode={key} size={40} animate={true} delay={index * 0.1} className="md:w-12" />
+                        {/* Diğer Bayraklar Etrafında Halka */}
                         <motion.div
-                          className="absolute border-2 border-[#EF7F1A] lang-ring-oval"
+                          className="absolute border-2 border-[#EF7F1A]"
                           style={{ 
                             width: 'calc(100% + 12px)', 
                             height: 'calc(100% + 12px)', 
                             top: '-6px', 
                             left: '-6px',
-                            borderRadius: '9999px',
+                            borderRadius: '6px',
                           }}
                           initial={{ opacity: 0.4 }}
                           whileHover={{ opacity: 1, scale: 1.1 }}
