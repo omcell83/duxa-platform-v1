@@ -96,6 +96,9 @@ export default function ConstructionPage() {
   const [msgIndex, setMsgIndex] = useState(0);
   const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogMessage, setDialogMessage] = useState("");
+  const [dialogType, setDialogType] = useState<"success" | "error">("success");
   const langKeys = Object.keys(translations);
   const currentLangIndex = langKeys.indexOf(lang);
 
