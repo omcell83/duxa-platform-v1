@@ -1,7 +1,7 @@
 "use server";
 
 import { Resend } from "resend";
-import { supabase } from "@/lib/supabase"; // Az önce oluşturduğumuz güvenli dosya
+import { createClient } from '@supabase/supabase-js';
 
 // Resend Key de ortam değişkeninden geliyor
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -15,7 +15,19 @@ export async function joinWaitlist(formData: FormData) {
 
   try {
     // --- 1. SUPABASE KAYDI ---
+    // createClient'i fonksiyon içinde oluştur (build-time baking'i önlemek için)
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      console.error("Ortam değişkenleri eksik!");
+      console.log("SUPABASE_URL (ilk 5 karakter):", supabaseUrl ? supabaseUrl.substring(0, 5) : "YOK");
+      return { success: false, message: "Sistem hatası: Yapılandırma eksik." };
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
     console.log("Supabase'e bağlanılıyor...");
+    console.log("SUPABASE_URL (ilk 5 karakter):", supabaseUrl.substring(0, 5));
     
     const { error: dbError } = await supabase
       .from("newsletter_subscribers")
@@ -23,6 +35,9 @@ export async function joinWaitlist(formData: FormData) {
 
     if (dbError) {
       console.error("Veritabanı Hatası:", dbError.message);
+      console.error("Hata Kodu:", dbError.code);
+      console.error("Hata Detayı:", dbError.details);
+      console.error("Hata Hint:", dbError.hint);
       return { success: false, message: "Sistem hatası: Veritabanına erişilemedi." };
     }
 

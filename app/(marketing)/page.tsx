@@ -380,9 +380,10 @@ export default function ConstructionPage() {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4 }}
-            className="relative text-4xl z-10 cursor-pointer"
+            className="relative text-4xl md:text-5xl z-10 cursor-pointer inline-flex items-center justify-center"
+            style={{ fontFamily: 'system-ui, -apple-system, "Segoe UI", "Noto Color Emoji", "Apple Color Emoji", "EmojiOne Color", "Android Emoji", sans-serif' }}
           >
-            {t.flag}
+            <span className="inline-block">{t.flag}</span>
             {/* Aktif Bayrak Etrafında Halka - Mobil: Yuvarlak, Masaüstü: Oval */}
             <motion.div
               className="absolute border-2 border-[#EF7F1A] lang-ring-oval"
@@ -449,7 +450,8 @@ export default function ConstructionPage() {
                           setIsLangMenuOpen(false);
                           setMsgIndex(0);
                         }}
-                        className="absolute text-3xl cursor-pointer hover:scale-110 transition-transform z-20"
+                        className="absolute text-3xl md:text-4xl cursor-pointer hover:scale-110 transition-transform z-20 inline-flex items-center justify-center"
+                        style={{ fontFamily: 'system-ui, -apple-system, "Segoe UI", "Noto Color Emoji", "Apple Color Emoji", "EmojiOne Color", "Android Emoji", sans-serif' }}
                       >
                         <span className="relative inline-block">
                           {translations[key].flag}
