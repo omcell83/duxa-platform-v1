@@ -122,6 +122,12 @@ export default function ConstructionPage() {
           background-size: 200% auto;
           animation: gradient-x 4s linear infinite;
         }
+        @media (min-width: 768px) {
+          .lang-ring-oval {
+            width: calc(100% + 18px) !important;
+            height: calc(100% + 14px) !important;
+          }
+        }
       `}</style>
 
       {/* --- NETWORK AĞI VE ARKA PLAN --- */}
@@ -260,9 +266,9 @@ export default function ConstructionPage() {
       {/* --- ANA İÇERİK --- */}
       <div className="z-10 flex flex-col items-center text-center px-4 w-full max-w-5xl">
         
-        {/* LOGO (Akıcı Kalp Atışı Efekti) */}
+        {/* LOGO (Akıcı Kalp Atışı Efekti - Renk Geçişli) */}
         <motion.h1 
-          className="text-7xl md:text-9xl font-black tracking-tighter text-white relative mb-8"
+          className="text-7xl md:text-9xl font-black tracking-tighter relative mb-8 text-transparent bg-clip-text bg-gradient-to-r from-[#05594C] via-white to-[#EF7F1A] animate-gradient-x"
           animate={{ 
             scale: [1, 1.06, 1],
             filter: [
@@ -306,18 +312,18 @@ export default function ConstructionPage() {
           
           {/* Google Arama Çubuğu Tasarımında Mesaj Kutusu */}
           <div className="relative w-full max-w-xl mx-auto">
-            <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-full shadow-xl hover:shadow-[0_0_30px_rgba(5,89,76,0.3)] transition-shadow duration-300 overflow-hidden">
-              {/* Progress Bar (Kutu İçinde) */}
+            <div className="relative bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-full shadow-xl hover:shadow-[0_0_30px_rgba(5,89,76,0.3)] transition-shadow duration-300 overflow-hidden">
+              {/* Progress Bar (Tüm Çerçeveyi Kaplanan) */}
               <motion.div 
-                className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-[#05594C] via-[#EF7F1A] to-[#05594C]"
+                className="absolute inset-0 bg-gradient-to-r from-[#05594C]/30 via-[#EF7F1A]/40 to-[#05594C]/30"
                 style={{ width: `${progress}%` }}
                 transition={{ duration: 0.1, ease: "linear" }}
               />
               
               {/* Mesaj İçeriği */}
-              <div className="px-6 py-4 flex items-center gap-4">
+              <div className="relative px-6 py-4 flex items-center gap-4">
                 <motion.span 
-                  className="w-2 h-2 rounded-full bg-[#EF7F1A] flex-shrink-0"
+                  className="w-2 h-2 rounded-full bg-[#EF7F1A] flex-shrink-0 z-10"
                   animate={{ 
                     scale: [1, 1.2, 1],
                     opacity: [0.6, 1, 0.6]
@@ -332,7 +338,10 @@ export default function ConstructionPage() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -10 }}
                     transition={{ duration: 0.3, ease: "easeInOut" }}
-                    className="flex-1 text-gray-300 font-mono text-sm md:text-base tracking-wide"
+                    className="flex-1 font-mono text-sm md:text-base tracking-wide z-10 text-white drop-shadow-[0_0_8px_rgba(0,0,0,0.8)]"
+                    style={{ 
+                      textShadow: '0 0 10px rgba(0,0,0,0.9), 0 0 5px rgba(0,0,0,0.8), 0 1px 2px rgba(0,0,0,1)'
+                    }}
                   >
                     {t.messages[msgIndex]}
                   </motion.span>
@@ -374,10 +383,16 @@ export default function ConstructionPage() {
             className="relative text-4xl z-10 cursor-pointer"
           >
             {t.flag}
-            {/* Aktif Bayrak Etrafında Daire */}
+            {/* Aktif Bayrak Etrafında Halka - Mobil: Yuvarlak, Masaüstü: Oval */}
             <motion.div
-              className="absolute inset-0 rounded-full border-2 border-[#EF7F1A]"
-              style={{ width: 'calc(100% + 16px)', height: 'calc(100% + 16px)', top: '-8px', left: '-8px' }}
+              className="absolute border-2 border-[#EF7F1A] lang-ring-oval"
+              style={{ 
+                width: 'calc(100% + 16px)', 
+                height: 'calc(100% + 16px)', 
+                top: '-8px', 
+                left: '-8px',
+                borderRadius: '9999px', // Mobil: yuvarlak (default)
+              }}
               animate={{ 
                 scale: [1, 1.15, 1],
                 opacity: [0.6, 1, 0.6]
@@ -436,7 +451,22 @@ export default function ConstructionPage() {
                         }}
                         className="absolute text-3xl cursor-pointer hover:scale-110 transition-transform z-20"
                       >
-                        {translations[key].flag}
+                        <span className="relative inline-block">
+                          {translations[key].flag}
+                          {/* Diğer Bayraklar Etrafında Oval Halka - Mobil: Yuvarlak, Masaüstü: Oval */}
+                          <motion.div
+                            className="absolute border-2 border-[#EF7F1A] lang-ring-oval"
+                            style={{ 
+                              width: 'calc(100% + 12px)', 
+                              height: 'calc(100% + 12px)', 
+                              top: '-6px', 
+                              left: '-6px',
+                              borderRadius: '9999px', // Mobil: yuvarlak (default)
+                            }}
+                            initial={{ opacity: 0.4 }}
+                            whileHover={{ opacity: 1, scale: 1.1 }}
+                          />
+                        </span>
                       </motion.button>
                     );
                   })}
@@ -445,43 +475,64 @@ export default function ConstructionPage() {
           </AnimatePresence>
         </div>
       </div>
-{/* --- BEKLEME LİSTESİ FORMU (YENİ) --- */}
-        <div className="mt-8 w-full max-w-sm relative z-20">
-            <form action={async (formData) => {
-                // Basit bir istemci tarafı geri bildirimi için
-                const btn = document.getElementById('submitBtn') as HTMLButtonElement;
-                if(btn) btn.disabled = true;
-                if(btn) btn.innerText = "Kayıt Yapılıyor...";
-                
-                const { joinWaitlist } = await import("../actions"); // Dinamik import
-                const result = await joinWaitlist(formData);
-                
-                if (result.success) {
-                    alert(t.name === "Türkçe" ? "Kaydınız alındı! Mailinizi kontrol edin." : "Success! Check your email.");
-                    if(btn) btn.innerText = "✓";
-                } else {
-                    alert("Error: " + result.message);
-                    if(btn) btn.disabled = false;
-                    if(btn) btn.innerText = "Join / Katıl";
+
+      {/* --- DİL SEÇİMİ ALTI - BEKLEME LİSTESİ FORMU --- */}
+      <div className="absolute bottom-32 left-1/2 -translate-x-1/2 z-40 w-full max-w-sm px-4">
+        <form onSubmit={async (e) => {
+          e.preventDefault();
+          const formData = new FormData(e.currentTarget);
+          const btn = document.getElementById('submitBtn') as HTMLButtonElement;
+          if(btn) btn.disabled = true;
+          const originalText = btn?.textContent || "🚀";
+          if(btn) btn.textContent = t.name === "Türkçe" ? "Kayıt Yapılıyor..." : "Signing up...";
+          
+          try {
+            const { joinWaitlist } = await import("../actions"); // Dinamik import
+            const result = await joinWaitlist(formData);
+            
+            if (result.success) {
+              if(btn) btn.textContent = "✓";
+              alert(t.name === "Türkçe" ? "Kaydınız alındı! Mailinizi kontrol edin." : "Success! Check your email.");
+              (e.currentTarget as HTMLFormElement).reset();
+              setTimeout(() => {
+                if(btn) {
+                  btn.disabled = false;
+                  btn.textContent = originalText;
                 }
-            }} 
-            className="flex gap-2">
-                <input 
-                    type="email" 
-                    name="email" 
-                    placeholder="E-mail..." 
-                    required
-                    className="flex-1 bg-zinc-900/80 border border-zinc-700 rounded-lg px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-[#EF7F1A] transition-colors"
-                />
-                <button 
-                    id="submitBtn"
-                    type="submit" 
-                    className="bg-[#EF7F1A] hover:bg-[#d66e12] text-black font-bold px-6 py-3 rounded-lg transition-colors"
-                >
-                    🚀
-                </button>
-            </form>
-        </div>
+              }, 2000);
+            } else {
+              alert("Error: " + result.message);
+              if(btn) {
+                btn.disabled = false;
+                btn.textContent = originalText;
+              }
+            }
+          } catch (error) {
+            alert(t.name === "Türkçe" ? "Bir hata oluştu. Lütfen tekrar deneyin." : "An error occurred. Please try again.");
+            if(btn) {
+              btn.disabled = false;
+              btn.textContent = originalText;
+            }
+          }
+        }} 
+        className="flex gap-2">
+          <input 
+            type="email" 
+            name="email" 
+            placeholder={t.name === "Türkçe" ? "E-posta adresiniz..." : "Your email address..."} 
+            required
+            className="flex-1 bg-zinc-900/90 backdrop-blur-md border border-zinc-700/50 rounded-full px-5 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-[#EF7F1A] transition-colors shadow-lg"
+          />
+          <button 
+            id="submitBtn"
+            type="submit" 
+            className="bg-[#EF7F1A] hover:bg-[#d66e12] text-black font-bold px-6 py-3 rounded-full transition-colors shadow-lg hover:shadow-[#EF7F1A]/50"
+          >
+            🚀
+          </button>
+        </form>
+      </div>
+        
       {/* --- FOOTER --- */}
       <div className="absolute bottom-6 w-full text-center px-4 z-40">
         <p className="text-zinc-600 text-xs font-mono uppercase tracking-widest">
