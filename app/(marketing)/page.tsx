@@ -24,6 +24,8 @@ type LangData = {
   signingUp: string;
   successMessage: string;
   errorMessage: string;
+  dialogTitleSuccess: string;
+  dialogTitleError: string;
 };
 
 // --- ÇEVİRİLER ---
@@ -38,7 +40,9 @@ const translations: Record<string, LangData> = {
     emailPlaceholder: "Your email address...",
     signingUp: "Signing up...",
     successMessage: "Success! Check your email.",
-    errorMessage: "An error occurred. Please try again."
+    errorMessage: "An error occurred. Please try again.",
+    dialogTitleSuccess: "Success",
+    dialogTitleError: "Error"
   },
   tr: { 
     name: "Türkçe", 
@@ -50,7 +54,9 @@ const translations: Record<string, LangData> = {
     emailPlaceholder: "E-posta adresiniz...",
     signingUp: "Kayıt Yapılıyor...",
     successMessage: "Kaydınız alındı! Mailinizi kontrol edin.",
-    errorMessage: "Bir hata oluştu. Lütfen tekrar deneyin."
+    errorMessage: "Bir hata oluştu. Lütfen tekrar deneyin.",
+    dialogTitleSuccess: "Başarılı",
+    dialogTitleError: "Hata"
   },
   de: { 
     name: "Deutsch", 
@@ -62,7 +68,9 @@ const translations: Record<string, LangData> = {
     emailPlaceholder: "Ihre E-Mail-Adresse...",
     signingUp: "Wird angemeldet...",
     successMessage: "Erfolg! Überprüfen Sie Ihre E-Mail.",
-    errorMessage: "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+    errorMessage: "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+    dialogTitleSuccess: "Erfolg",
+    dialogTitleError: "Fehler"
   },
   fr: { 
     name: "Français", 
@@ -74,13 +82,80 @@ const translations: Record<string, LangData> = {
     emailPlaceholder: "Votre adresse e-mail...",
     signingUp: "Inscription en cours...",
     successMessage: "Succès! Vérifiez votre e-mail.",
-    errorMessage: "Une erreur s'est produite. Veuillez réessayer."
+    errorMessage: "Une erreur s'est produite. Veuillez réessayer.",
+    dialogTitleSuccess: "Succès",
+    dialogTitleError: "Erreur"
   },
-  lb: { name: "Lëtzebuergesch", title: "Systemaktualiséierung amgaang", subtitle: "Mir bauen d'Zukunft vun der Restaurantautomatioun.", messages: ["Kärmoduler initialiséieren...", "Datebankverbindunge verschlésselen...", "AI Engine synchroniséieren...", "Sécherheetsprotokoller aktivéieren...", "Kiosk Interfaces kompiléieren...", "Hardware Treiber optiméieren...", "Cloud Infrastruktur deployéieren..."], durations: [5, 4.5, 5.5, 4, 6, 5, 5.5], subscribeText: "Abonnéieren", emailPlaceholder: "Är E-Mail Adress...", signingUp: "Wird agemellt...", successMessage: "Succès! Kontrolléiert Är E-Mail.", errorMessage: "E Fehler ass geschitt. Probéiert w.e.g. nach emol." },
-  me: { name: "Crnogorski", title: "Nadogradnja sistema u toku", subtitle: "Gradimo budućnost automatizacije restorana.", messages: ["Inicijalizacija osnovnih modula...", "Šifriranje veza baze podataka...", "Sinhronizacija AI motora...", "Aktiviranje sigurnosnih protokola...", "Kompajliranje interfejsa kioska...", "Optimizacija hardverskih drajvera...", "Primena cloud infrastrukture..."], durations: [5, 4.5, 5.5, 4, 6, 5, 5.5], subscribeText: "Pretplatite se", emailPlaceholder: "Vaša e-pošta...", signingUp: "Prijavljivanje...", successMessage: "Uspeh! Proverite svoju e-poštu.", errorMessage: "Došlo je do greške. Molimo pokušajte ponovo." },
-  pt: { name: "Português", title: "Atualização do sistema", subtitle: "Construindo o futuro da automação.", messages: ["Inicializando módulos principais...", "Criptografando conexões...", "Sincronizando Motor de IA...", "Ativando protocolos de segurança...", "Compilando interfaces de quiosque...", "Otimizando drivers de hardware...", "Implantando infraestrutura cloud..."], durations: [5, 4.5, 5.5, 4, 6, 5, 5.5], subscribeText: "Inscrever-se", emailPlaceholder: "Seu endereço de e-mail...", signingUp: "Inscrevendo...", successMessage: "Sucesso! Verifique seu e-mail.", errorMessage: "Ocorreu um erro. Por favor, tente novamente." },
-  nl: { name: "Nederlands", title: "Systeemupgrade bezig", subtitle: "Bouwen aan de toekomst van restaurantautomatisering.", messages: ["Kernmodules initialiseren...", "Databaseverbindingen versleutelen...", "AI Engine synchroniseren...", "Beveiligingsprotocollen activeren...", "Kiosk-interfaces compileren...", "Hardware drivers optimaliseren...", "Cloud infrastructuur implementeren..."], durations: [5, 4.5, 5.5, 4, 6, 5, 5.5], subscribeText: "Abonneren", emailPlaceholder: "Uw e-mailadres...", signingUp: "Aanmelden...", successMessage: "Succes! Controleer uw e-mail.", errorMessage: "Er is een fout opgetreden. Probeer het opnieuw." },
-  ru: { name: "Русский", title: "Обновление системы", subtitle: "Мы строим будущее автоматизации ресторанов.", messages: ["Инициализация основных модулей...", "Шифрование соединений...", "Синхронизация ИИ...", "Активация протоколов безопасности...", "Компиляция интерфейсов киоска...", "Оптимизация драйверов оборудования...", "Развертывание облачной инфраструктуры..."], durations: [5, 4.5, 5.5, 4, 6, 5, 5.5], subscribeText: "Подписаться", emailPlaceholder: "Ваш адрес электронной почты...", signingUp: "Регистрация...", successMessage: "Успех! Проверьте свою электронную почту.", errorMessage: "Произошла ошибка. Пожалуйста, попробуйте снова." },
+  lb: { 
+    name: "Lëtzebuergesch", 
+    title: "Systemaktualiséierung amgaang", 
+    subtitle: "Mir bauen d'Zukunft vun der Restaurantautomatioun.", 
+    messages: ["Kärmoduler initialiséieren...", "Datebankverbindunge verschlésselen...", "AI Engine synchroniséieren...", "Sécherheetsprotokoller aktivéieren...", "Kiosk Interfaces kompiléieren...", "Hardware Treiber optiméieren...", "Cloud Infrastruktur deployéieren..."], 
+    durations: [5, 4.5, 5.5, 4, 6, 5, 5.5], 
+    subscribeText: "Abonnéieren", 
+    emailPlaceholder: "Är E-Mail Adress...", 
+    signingUp: "Wird agemellt...", 
+    successMessage: "Succès! Kontrolléiert Är E-Mail.", 
+    errorMessage: "E Fehler ass geschitt. Probéiert w.e.g. nach emol.",
+    dialogTitleSuccess: "Succès",
+    dialogTitleError: "Fehler"
+  },
+  me: { 
+    name: "Crnogorski", 
+    title: "Nadogradnja sistema u toku", 
+    subtitle: "Gradimo budućnost automatizacije restorana.", 
+    messages: ["Inicijalizacija osnovnih modula...", "Šifriranje veza baze podataka...", "Sinhronizacija AI motora...", "Aktiviranje sigurnosnih protokola...", "Kompajliranje interfejsa kioska...", "Optimizacija hardverskih drajvera...", "Primena cloud infrastrukture..."], 
+    durations: [5, 4.5, 5.5, 4, 6, 5, 5.5], 
+    subscribeText: "Pretplatite se", 
+    emailPlaceholder: "Vaša e-pošta...", 
+    signingUp: "Prijavljivanje...", 
+    successMessage: "Uspeh! Proverite svoju e-poštu.", 
+    errorMessage: "Došlo je do greške. Molimo pokušajte ponovo.",
+    dialogTitleSuccess: "Uspeh",
+    dialogTitleError: "Greška"
+  },
+  pt: { 
+    name: "Português", 
+    title: "Atualização do sistema", 
+    subtitle: "Construindo o futuro da automação.", 
+    messages: ["Inicializando módulos principais...", "Criptografando conexões...", "Sincronizando Motor de IA...", "Ativando protocolos de segurança...", "Compilando interfaces de quiosque...", "Otimizando drivers de hardware...", "Implantando infraestrutura cloud..."], 
+    durations: [5, 4.5, 5.5, 4, 6, 5, 5.5], 
+    subscribeText: "Inscrever-se", 
+    emailPlaceholder: "Seu endereço de e-mail...", 
+    signingUp: "Inscrevendo...", 
+    successMessage: "Sucesso! Verifique seu e-mail.", 
+    errorMessage: "Ocorreu um erro. Por favor, tente novamente.",
+    dialogTitleSuccess: "Sucesso",
+    dialogTitleError: "Erro"
+  },
+  nl: { 
+    name: "Nederlands", 
+    title: "Systeemupgrade bezig", 
+    subtitle: "Bouwen aan de toekomst van restaurantautomatisering.", 
+    messages: ["Kernmodules initialiseren...", "Databaseverbindingen versleutelen...", "AI Engine synchroniseren...", "Beveiligingsprotocollen activeren...", "Kiosk-interfaces compileren...", "Hardware drivers optimaliseren...", "Cloud infrastructuur implementeren..."], 
+    durations: [5, 4.5, 5.5, 4, 6, 5, 5.5], 
+    subscribeText: "Abonneren", 
+    emailPlaceholder: "Uw e-mailadres...", 
+    signingUp: "Aanmelden...", 
+    successMessage: "Succes! Controleer uw e-mail.", 
+    errorMessage: "Er is een fout opgetreden. Probeer het opnieuw.",
+    dialogTitleSuccess: "Succes",
+    dialogTitleError: "Fout"
+  },
+  ru: { 
+    name: "Русский", 
+    title: "Обновление системы", 
+    subtitle: "Мы строим будущее автоматизации ресторанов.", 
+    messages: ["Инициализация основных модулей...", "Шифрование соединений...", "Синхронизация ИИ...", "Активация протоколов безопасности...", "Компиляция интерфейсов киоска...", "Оптимизация драйверов оборудования...", "Развертывание облачной инфраструктуры..."], 
+    durations: [5, 4.5, 5.5, 4, 6, 5, 5.5], 
+    subscribeText: "Подписаться", 
+    emailPlaceholder: "Ваш адрес электронной почты...", 
+    signingUp: "Регистрация...", 
+    successMessage: "Успех! Проверьте свою электронную почту.", 
+    errorMessage: "Произошла ошибка. Пожалуйста, попробуйте снова.",
+    dialogTitleSuccess: "Успех",
+    dialogTitleError: "Ошибка"
+  },
 };
 
 // Bayrak pozisyonları (daire şeklinde)
@@ -419,7 +494,7 @@ export default function ConstructionPage() {
         <DialogContent className="bg-zinc-900 border-zinc-700 text-white w-[90%] md:w-full max-w-md rounded-xl">
           <DialogHeader>
             <DialogTitle className={dialogType === "success" ? "text-[#EF7F1A]" : "text-red-500"}>
-              {dialogType === "success" ? "✅ " + (t.name === "Türkçe" ? "Başarılı" : "Success") : "❌ " + (t.name === "Türkçe" ? "Hata" : "Error")}
+              {dialogType === "success" ? "✅ " + t.dialogTitleSuccess : "❌ " + t.dialogTitleError}
             </DialogTitle>
             <DialogDescription className="text-gray-300 pt-2">{dialogMessage}</DialogDescription>
           </DialogHeader>
