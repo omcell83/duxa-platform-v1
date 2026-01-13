@@ -3,13 +3,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Code, Cpu, Database, Shield } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Flag } from "@/components/Flag";
 
 // --- TİP TANIMLAMALARI ---
@@ -24,8 +17,7 @@ type LangData = {
   signingUp: string;
   successMessage: string;
   errorMessage: string;
-  dialogTitleSuccess: string;
-  dialogTitleError: string;
+  footerSlogan: string;
 };
 
 // --- ÇEVİRİLER ---
@@ -41,8 +33,7 @@ const translations: Record<string, LangData> = {
     signingUp: "Signing up...",
     successMessage: "Success! Check your email.",
     errorMessage: "An error occurred. Please try again.",
-    dialogTitleSuccess: "Success",
-    dialogTitleError: "Error"
+    footerSlogan: "Next Generation Technology"
   },
   tr: { 
     name: "Türkçe", 
@@ -53,10 +44,9 @@ const translations: Record<string, LangData> = {
     subscribeText: "Abone Ol",
     emailPlaceholder: "E-posta adresiniz...",
     signingUp: "Kayıt Yapılıyor...",
-    successMessage: "Kaydınız alındı! Mailinizi kontrol edin.",
+    successMessage: "Kayıt başarılı! Mail kutunuzu kontrol edin.",
     errorMessage: "Bir hata oluştu. Lütfen tekrar deneyin.",
-    dialogTitleSuccess: "Başarılı",
-    dialogTitleError: "Hata"
+    footerSlogan: "Yeni Nesil Teknoloji"
   },
   de: { 
     name: "Deutsch", 
@@ -69,8 +59,7 @@ const translations: Record<string, LangData> = {
     signingUp: "Wird angemeldet...",
     successMessage: "Erfolg! Überprüfen Sie Ihre E-Mail.",
     errorMessage: "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
-    dialogTitleSuccess: "Erfolg",
-    dialogTitleError: "Fehler"
+    footerSlogan: "Technologie der nächsten Generation"
   },
   fr: { 
     name: "Français", 
@@ -83,8 +72,7 @@ const translations: Record<string, LangData> = {
     signingUp: "Inscription en cours...",
     successMessage: "Succès! Vérifiez votre e-mail.",
     errorMessage: "Une erreur s'est produite. Veuillez réessayer.",
-    dialogTitleSuccess: "Succès",
-    dialogTitleError: "Erreur"
+    footerSlogan: "Technologie de nouvelle génération"
   },
   lb: { 
     name: "Lëtzebuergesch", 
@@ -97,8 +85,7 @@ const translations: Record<string, LangData> = {
     signingUp: "Wird agemellt...", 
     successMessage: "Succès! Kontrolléiert Är E-Mail.", 
     errorMessage: "E Fehler ass geschitt. Probéiert w.e.g. nach emol.",
-    dialogTitleSuccess: "Succès",
-    dialogTitleError: "Fehler"
+    footerSlogan: "Technologie vun der nächster Generatioun"
   },
   me: { 
     name: "Crnogorski", 
@@ -111,8 +98,7 @@ const translations: Record<string, LangData> = {
     signingUp: "Prijavljivanje...", 
     successMessage: "Uspeh! Proverite svoju e-poštu.", 
     errorMessage: "Došlo je do greške. Molimo pokušajte ponovo.",
-    dialogTitleSuccess: "Uspeh",
-    dialogTitleError: "Greška"
+    footerSlogan: "Tehnologija nove generacije"
   },
   pt: { 
     name: "Português", 
@@ -125,8 +111,7 @@ const translations: Record<string, LangData> = {
     signingUp: "Inscrevendo...", 
     successMessage: "Sucesso! Verifique seu e-mail.", 
     errorMessage: "Ocorreu um erro. Por favor, tente novamente.",
-    dialogTitleSuccess: "Sucesso",
-    dialogTitleError: "Erro"
+    footerSlogan: "Tecnologia de Próxima Geração"
   },
   nl: { 
     name: "Nederlands", 
@@ -139,8 +124,7 @@ const translations: Record<string, LangData> = {
     signingUp: "Aanmelden...", 
     successMessage: "Succes! Controleer uw e-mail.", 
     errorMessage: "Er is een fout opgetreden. Probeer het opnieuw.",
-    dialogTitleSuccess: "Succes",
-    dialogTitleError: "Fout"
+    footerSlogan: "Technologie van de Nieuwe Generatie"
   },
   ru: { 
     name: "Русский", 
@@ -153,8 +137,7 @@ const translations: Record<string, LangData> = {
     signingUp: "Регистрация...", 
     successMessage: "Успех! Проверьте свою электронную почту.", 
     errorMessage: "Произошла ошибка. Пожалуйста, попробуйте снова.",
-    dialogTitleSuccess: "Успех",
-    dialogTitleError: "Ошибка"
+    footerSlogan: "Технологии следующего поколения"
   },
 };
 
@@ -173,9 +156,8 @@ export default function ConstructionPage() {
   const [msgIndex, setMsgIndex] = useState(0);
   const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogMessage, setDialogMessage] = useState("");
-  const [dialogType, setDialogType] = useState<"success" | "error">("success");
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastVisible, setToastVisible] = useState(false);
   const langKeys = Object.keys(translations);
 
   useEffect(() => {
@@ -212,6 +194,15 @@ export default function ConstructionPage() {
   }, [lang, msgIndex]);
 
   const t = translations[lang];
+
+  // Toast göster fonksiyonu
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setToastVisible(true);
+    setTimeout(() => {
+      setToastVisible(false);
+    }, 5000);
+  };
 
   return (
     // ANA CONTAINER: h-screen (Sabit yükseklik) ve overflow-hidden (Kaydırma yok)
@@ -389,9 +380,7 @@ export default function ConstructionPage() {
               const result = await joinWaitlist(formData);
               if (!result) throw new Error("No response");
               
-              setDialogType(result.success ? "success" : "error");
-              setDialogMessage(result.message || (result.success ? t.successMessage : t.errorMessage));
-              setDialogOpen(true);
+              showToast(result.message || (result.success ? t.successMessage : t.errorMessage));
               if (result.success) {
                 if(btn) btn.textContent = "✓";
                 if (formElement) formElement.reset();
@@ -400,9 +389,7 @@ export default function ConstructionPage() {
                  if(btn) { btn.disabled = false; btn.textContent = originalText; }
               }
             } catch (error) {
-              setDialogType("error");
-              setDialogMessage(t.errorMessage);
-              setDialogOpen(true);
+              showToast(t.errorMessage);
               if(btn) { btn.disabled = false; btn.textContent = originalText; }
             }
           }} 
@@ -483,23 +470,43 @@ export default function ConstructionPage() {
             </AnimatePresence>
           </div>
 
-          <p className="text-zinc-600 text-[9px] md:text-[10px] font-mono uppercase tracking-widest text-center px-4">
-            &copy; 2026 DUXA.PRO
-          </p>
+          {/* Footer */}
+          <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-3 text-zinc-400 text-[10px] md:text-xs font-mono uppercase tracking-wider text-center px-4">
+            <span>&copy; 2026 DUXA.PRO</span>
+            <span className="hidden md:inline">|</span>
+            <a 
+              href="mailto:info@duxa.pro" 
+              className="hover:text-[#EF7F1A] transition-colors"
+            >
+              info@duxa.pro
+            </a>
+            <span className="hidden md:inline">|</span>
+            <span>{t.footerSlogan}</span>
+          </div>
         </div>
       </div>
 
-      {/* --- MODAL --- */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="bg-zinc-900 border-zinc-700 text-white w-[90%] md:w-full max-w-md rounded-xl">
-          <DialogHeader>
-            <DialogTitle className={dialogType === "success" ? "text-[#EF7F1A]" : "text-red-500"}>
-              {dialogType === "success" ? "✅ " + t.dialogTitleSuccess : "❌ " + t.dialogTitleError}
-            </DialogTitle>
-            <DialogDescription className="text-gray-300 pt-2">{dialogMessage}</DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+      {/* --- TOAST NOTIFICATION --- */}
+      <AnimatePresence>
+        {toastVisible && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="fixed top-8 left-1/2 -translate-x-1/2 z-[100]"
+          >
+            <div className="bg-gradient-to-r from-green-600 to-green-500 text-white px-6 py-3 rounded-full shadow-lg backdrop-blur-sm border border-green-400/30">
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span className="font-semibold text-sm whitespace-nowrap">{toastMessage}</span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
