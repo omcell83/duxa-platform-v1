@@ -376,7 +376,7 @@ export default function ConstructionPage() {
             if(btn) btn.textContent = t.signingUp;
             
             try {
-              const { joinWaitlist } = await import("../actions");
+              const { joinWaitlist } = await import("../../app/actions");
               const result = await joinWaitlist(formData);
               if (!result) throw new Error("No response");
               
