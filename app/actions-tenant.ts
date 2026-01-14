@@ -81,7 +81,7 @@ export async function updateTenantGeneralInfo(
   } catch (error: any) {
     console.error("Error in updateTenantGeneralInfo:", error);
     if (error instanceof z.ZodError) {
-      return { success: false, error: error.errors[0].message };
+      return { success: false, error: error.issues[0]?.message || "Geçersiz veri formatı" };
     }
     return { success: false, error: error.message || "Bir hata oluştu" };
   }
@@ -257,7 +257,7 @@ export async function updateSubscription(
   } catch (error: any) {
     console.error("Error in updateSubscription:", error);
     if (error instanceof z.ZodError) {
-      return { success: false, error: error.errors[0].message };
+      return { success: false, error: error.issues[0]?.message || "Geçersiz veri formatı" };
     }
     return { success: false, error: error.message || "Bir hata oluştu" };
   }
@@ -328,7 +328,7 @@ export async function updateTenantSettings(
   } catch (error: any) {
     console.error("Error in updateTenantSettings:", error);
     if (error instanceof z.ZodError) {
-      return { success: false, error: error.errors[0].message };
+      return { success: false, error: error.issues[0]?.message || "Geçersiz veri formatı" };
     }
     return { success: false, error: error.message || "Bir hata oluştu" };
   }
