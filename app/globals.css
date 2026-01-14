@@ -45,42 +45,42 @@
 
 :root {
   /* Ada/Tailus Tema - Light Mode */
-  /* Background Colors (Zinc Gray Scale) */
+  /* Background Colors */
   --background: 0 0% 100%; /* white */
-  --foreground: 0 0% 10%; /* zinc.900 - Display/Title Text */
+  --foreground: 240 5.88% 10%; /* gray-900 / zinc-900 - Display/Title Text */
   
   /* Card/Surface */
   --card: 0 0% 100%; /* white */
-  --card-foreground: 0 0% 10%; /* zinc.900 */
+  --card-foreground: 240 5.88% 10%; /* gray-900 */
   
   /* Popover (Modals - Opaque) */
   --popover: 0 0% 100%; /* white */
-  --popover-foreground: 0 0% 10%; /* zinc.900 */
+  --popover-foreground: 240 5.88% 10%; /* gray-900 */
   
-  /* Primary (Blue) */
-  --primary: 221 83% 53%; /* blue.600 */
+  /* Primary (Ada teması: Siyah/Gray-900) */
+  --primary: 240 5.88% 10%; /* gray-900 - Ada teması genelde siyah buton kullanır */
   --primary-foreground: 0 0% 100%; /* white */
   
   /* Secondary (Muted Gray) */
-  --secondary: 0 0% 92%; /* zinc.100 */
-  --secondary-foreground: 0 0% 10%; /* zinc.900 */
+  --secondary: 220 14% 96%; /* gray-100 */
+  --secondary-foreground: 240 5.88% 10%; /* gray-900 */
   
   /* Muted (Soft Gray) */
-  --muted: 0 0% 92%; /* zinc.100 */
-  --muted-foreground: 0 0% 50%; /* zinc.500 - Caption Text */
+  --muted: 220 14% 96%; /* gray-100 */
+  --muted-foreground: 220 9% 46%; /* gray-500 - Caption Text */
   
   /* Accent */
-  --accent: 0 0% 92%; /* zinc.100 */
-  --accent-foreground: 0 0% 10%; /* zinc.900 */
+  --accent: 220 14% 96%; /* gray-100 */
+  --accent-foreground: 240 5.88% 10%; /* gray-900 */
   
   /* Destructive (Rose) */
   --destructive: 347 77% 50%; /* rose.600 */
   --destructive-foreground: 0 0% 100%; /* white */
   
   /* Border & Input */
-  --border: 0 0% 83%; /* zinc.200 */
-  --input: 0 0% 83%; /* zinc.200 */
-  --ring: 221 83% 53%; /* blue.600 - Primary for focus ring */
+  --border: 220 13% 91%; /* gray-200 */
+  --input: 220 13% 91%; /* gray-200 */
+  --ring: 240 5.88% 10%; /* gray-900 - Primary for focus ring */
   
   /* Border Radius (Ada/Tailus uses xl = 0.75rem) */
   --radius: 0.75rem;
@@ -88,32 +88,32 @@
 
 .dark {
   /* Ada/Tailus Tema - Dark Mode */
-  /* Background Colors (Zinc Gray Scale) */
-  --background: 0 0% 10%; /* zinc.900 */
+  /* Background Colors */
+  --background: 240 5.88% 10%; /* gray-950 / zinc-950 - Koyu arka plan */
   --foreground: 0 0% 100%; /* white - Display/Title Text */
   
   /* Card/Surface */
-  --card: 0 0% 10%; /* zinc.900 */
+  --card: 240 5.88% 10%; /* gray-900 / zinc-900 */
   --card-foreground: 0 0% 100%; /* white */
   
   /* Popover (Modals - Opaque) */
-  --popover: 0 0% 10%; /* zinc.900 */
+  --popover: 240 5.88% 10%; /* gray-900 */
   --popover-foreground: 0 0% 100%; /* white */
   
-  /* Primary (Blue) */
-  --primary: 221 83% 53%; /* blue.600 */
-  --primary-foreground: 0 0% 100%; /* white */
+  /* Primary (Ada teması: Koyu modda beyaz) */
+  --primary: 0 0% 100%; /* white - Koyu modda beyaz buton */
+  --primary-foreground: 240 5.88% 10%; /* gray-900 */
   
   /* Secondary (Dark Gray) */
-  --secondary: 0 0% 20%; /* zinc.800 */
+  --secondary: 240 5.26% 20%; /* gray-800 / zinc-800 */
   --secondary-foreground: 0 0% 100%; /* white */
   
   /* Muted (Soft Dark Gray) */
-  --muted: 0 0% 20%; /* zinc.800 */
-  --muted-foreground: 0 0% 72%; /* zinc.300 - Body Text */
+  --muted: 240 5.26% 20%; /* gray-800 */
+  --muted-foreground: 240 4.88% 72%; /* gray-300 / zinc-300 - Body Text */
   
   /* Accent */
-  --accent: 0 0% 20%; /* zinc.800 */
+  --accent: 240 5.26% 20%; /* gray-800 */
   --accent-foreground: 0 0% 100%; /* white */
   
   /* Destructive (Rose) */
@@ -121,9 +121,9 @@
   --destructive-foreground: 0 0% 100%; /* white */
   
   /* Border & Input */
-  --border: 0 0% 20%; /* zinc.800 */
-  --input: 0 0% 20%; /* zinc.800 */
-  --ring: 221 83% 53%; /* blue.600 - Primary for focus ring */
+  --border: 240 5.26% 20%; /* gray-800 */
+  --input: 240 5.26% 20%; /* gray-800 */
+  --ring: 0 0% 100%; /* white - Primary for focus ring */
 }
 
 @theme {
