@@ -300,7 +300,7 @@ export function ProductFormDialog({ open, onClose, product }: ProductFormDialogP
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
+            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md text-destructive text-sm">
               {error}
             </div>
           )}
@@ -310,7 +310,7 @@ export function ProductFormDialog({ open, onClose, product }: ProductFormDialogP
             <div className="space-y-2">
               <Label htmlFor="name">Ürün Adı *</Label>
               <Input id="name" {...register("name")} />
-              {errors.name && <p className="text-sm text-red-600">{errors.name.message}</p>}
+              {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
             </div>
 
             <div className="space-y-2">
@@ -458,7 +458,7 @@ export function ProductFormDialog({ open, onClose, product }: ProductFormDialogP
                       </Button>
                     </div>
                     {errors.image_url && (
-                      <p className="text-sm text-red-600">{errors.image_url.message}</p>
+                      <p className="text-sm text-destructive">{errors.image_url.message}</p>
                     )}
                   </div>
                 )}
@@ -506,7 +506,7 @@ export function ProductFormDialog({ open, onClose, product }: ProductFormDialogP
                 step="0.01"
                 {...register("base_price", { valueAsNumber: true })}
               />
-              {errors.base_price && <p className="text-sm text-red-600">{errors.base_price.message}</p>}
+              {errors.base_price && <p className="text-sm text-destructive">{errors.base_price.message}</p>}
             </div>
 
             <div className="space-y-2">
@@ -517,7 +517,7 @@ export function ProductFormDialog({ open, onClose, product }: ProductFormDialogP
                 step="0.01"
                 {...register("min_sales_price", { valueAsNumber: true })}
               />
-              {errors.min_sales_price && <p className="text-sm text-red-600">{errors.min_sales_price.message}</p>}
+              {errors.min_sales_price && <p className="text-sm text-destructive">{errors.min_sales_price.message}</p>}
             </div>
 
             <div className="space-y-2">
@@ -528,7 +528,7 @@ export function ProductFormDialog({ open, onClose, product }: ProductFormDialogP
                 step="0.01"
                 {...register("tax_rate", { valueAsNumber: true })}
               />
-              {errors.tax_rate && <p className="text-sm text-red-600">{errors.tax_rate.message}</p>}
+              {errors.tax_rate && <p className="text-sm text-destructive">{errors.tax_rate.message}</p>}
             </div>
           </div>
 
@@ -537,7 +537,7 @@ export function ProductFormDialog({ open, onClose, product }: ProductFormDialogP
             <div className="flex items-center justify-between p-4 border rounded-md">
               <div className="space-y-0.5">
                 <Label htmlFor="stock_track">Stok Takibi</Label>
-                <p className="text-sm text-gray-500">Stok takibi yapılsın mı?</p>
+                <p className="text-sm text-muted-foreground">Stok takibi yapılsın mı?</p>
               </div>
               <Switch
                 id="stock_track"
@@ -568,7 +568,7 @@ export function ProductFormDialog({ open, onClose, product }: ProductFormDialogP
           <div className="flex items-center justify-between p-4 border rounded-md">
             <div className="space-y-0.5">
               <Label htmlFor="is_public">Herkese Açık</Label>
-              <p className="text-sm text-gray-500">Marketing sitesinde görünsün mü?</p>
+              <p className="text-sm text-muted-foreground">Marketing sitesinde görünsün mü?</p>
             </div>
             <Switch
               id="is_public"
@@ -584,7 +584,6 @@ export function ProductFormDialog({ open, onClose, product }: ProductFormDialogP
             <Button
               type="submit"
               disabled={loading || uploadingImages}
-              className="bg-[#05594C] hover:bg-[#044a3f]"
             >
               {uploadingImages
                 ? "Resimler yükleniyor..."
