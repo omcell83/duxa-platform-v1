@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -19,6 +19,8 @@ import { Switch } from "@/components/ui/switch";
 import { CatalogProduct } from "@/lib/types";
 import { createProduct, updateProduct } from "@/app/actions-products";
 import { useRouter } from "next/navigation";
+import { uploadProductImages } from "@/lib/image-upload";
+import { Upload, X, Image as ImageIcon, Link as LinkIcon } from "lucide-react";
 
 interface ProductFormDialogProps {
   open: boolean;
@@ -29,7 +31,14 @@ interface ProductFormDialogProps {
 const productSchema = z.object({
   name: z.string().min(1, "Ürün adı gereklidir"),
   description: z.string().optional().nullable(),
-  image_url: z.string().url("Geçerli bir URL giriniz").optional().nullable().or(z.literal("")),
+  image_url: z
+    .string()
+    .optional()
+    .nullable()
+    .refine(
+      (val) => !val || val === "" || z.string().url().safeParse(val).success,
+      "Geçerli bir URL giriniz"
+    ),
   type: z.enum(["hardware", "subscription", "service", "addon"]),
   billing_cycle: z.enum(["one_time", "monthly", "yearly"]).optional().nullable(),
   base_price: z.number().min(0, "Fiyat 0'dan büyük olmalıdır"),
@@ -61,8 +70,13 @@ type ProductFormData = z.infer<typeof productSchema>;
 
 export function ProductFormDialog({ open, onClose, product }: ProductFormDialogProps) {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [showUrlInput, setShowUrlInput] = useState(false);
 
   const {
     register,
@@ -106,6 +120,12 @@ export function ProductFormDialog({ open, onClose, product }: ProductFormDialogP
         current_stock: product.current_stock || 0,
         is_public: product.is_public,
       });
+      // Set existing image URL if available
+      if (product.image_url) {
+        setImageUrls([product.image_url]);
+      } else {
+        setImageUrls([]);
+      }
     } else {
       reset({
         name: "",
@@ -120,7 +140,10 @@ export function ProductFormDialog({ open, onClose, product }: ProductFormDialogP
         current_stock: 0,
         is_public: false,
       });
+      setImageUrls([]);
     }
+    setSelectedFiles([]);
+    setShowUrlInput(false);
   }, [product, reset, open]);
 
   // Disable stock tracking for subscriptions
@@ -131,14 +154,118 @@ export function ProductFormDialog({ open, onClose, product }: ProductFormDialogP
     }
   }, [productType, setValue]);
 
+  // Handle file selection
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    
+    if (files.length === 0) return;
+
+    // Check total count (existing + new)
+    const totalCount = imageUrls.length + selectedFiles.length + files.length;
+    if (totalCount > 6) {
+      setError(`Maksimum 6 resim yüklenebilir. Şu anda ${imageUrls.length + selectedFiles.length} resim var.`);
+      return;
+    }
+
+    // Validate file types
+    const invalidFiles = files.filter(f => !f.type.startsWith('image/'));
+    if (invalidFiles.length > 0) {
+      setError('Sadece resim dosyaları yüklenebilir.');
+      return;
+    }
+
+    setSelectedFiles((prev) => [...prev, ...files]);
+    setError(null);
+  };
+
+  // Handle drag and drop
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files);
+    
+    if (files.length === 0) return;
+
+    const totalCount = imageUrls.length + selectedFiles.length + files.length;
+    if (totalCount > 6) {
+      setError(`Maksimum 6 resim yüklenebilir. Şu anda ${imageUrls.length + selectedFiles.length} resim var.`);
+      return;
+    }
+
+    const invalidFiles = files.filter(f => !f.type.startsWith('image/'));
+    if (invalidFiles.length > 0) {
+      setError('Sadece resim dosyaları yüklenebilir.');
+      return;
+    }
+
+    setSelectedFiles((prev) => [...prev, ...files]);
+    setError(null);
+  };
+
+  // Remove selected file
+  const removeSelectedFile = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Remove uploaded image URL
+  const removeImageUrl = (index: number) => {
+    setImageUrls((prev) => {
+      const newUrls = prev.filter((_, i) => i !== index);
+      setValue("image_url", newUrls[0] || "");
+      return newUrls;
+    });
+  };
+
+  // Upload images before form submission
+  const handleImageUpload = async () => {
+    if (selectedFiles.length === 0) return;
+
+    setUploadingImages(true);
+    setError(null);
+
+    try {
+      const result = await uploadProductImages(selectedFiles, product?.id);
+
+      if (result.success && result.urls) {
+        const newUrls = [...imageUrls, ...result.urls];
+        setImageUrls(newUrls);
+        // Set first image as primary
+        setValue("image_url", newUrls[0] || "");
+        setSelectedFiles([]);
+      } else {
+        setError(result.error || "Resim yükleme başarısız");
+        setUploadingImages(false);
+        return false;
+      }
+    } catch (err: any) {
+      setError(err?.message || "Resim yükleme sırasında bir hata oluştu");
+      setUploadingImages(false);
+      return false;
+    }
+
+    setUploadingImages(false);
+    return true;
+  };
+
   const onSubmit = async (data: ProductFormData) => {
     setLoading(true);
     setError(null);
 
+    // Upload images first if there are selected files
+    if (selectedFiles.length > 0) {
+      const uploadSuccess = await handleImageUpload();
+      if (!uploadSuccess) {
+        setLoading(false);
+        return;
+      }
+    }
+
+    // Use first image URL or provided URL
+    const finalImageUrl = imageUrls[0] || data.image_url || "";
+
     const formData = new FormData();
     formData.append("name", data.name);
     formData.append("description", data.description || "");
-    formData.append("image_url", data.image_url || "");
+    formData.append("image_url", finalImageUrl);
     formData.append("type", data.type);
     formData.append("billing_cycle", data.billing_cycle || "");
     formData.append("base_price", data.base_price.toString());
@@ -195,10 +322,136 @@ export function ProductFormDialog({ open, onClose, product }: ProductFormDialogP
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="image_url">Resim URL</Label>
-              <Input id="image_url" type="url" {...register("image_url")} placeholder="https://..." />
-              {errors.image_url && <p className="text-sm text-red-600">{errors.image_url.message}</p>}
+            {/* Image Upload Section */}
+            <div className="space-y-4">
+              <Label>Ürün Resimleri (Maksimum 6)</Label>
+              
+              {/* Uploaded Images Preview */}
+              {imageUrls.length > 0 && (
+                <div className="grid grid-cols-3 gap-2">
+                  {imageUrls.map((url, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={url}
+                        alt={`Ürün resmi ${index + 1}`}
+                        className="w-full h-24 object-cover rounded-md border border-slate-700"
+                      />
+                      {index === 0 && (
+                        <span className="absolute top-1 left-1 bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded">
+                          Ana
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => removeImageUrl(index)}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* File Upload Area */}
+              <div
+                onDrop={handleDrop}
+                onDragOver={(e) => e.preventDefault()}
+                className="border-2 border-dashed border-slate-700 rounded-md p-6 text-center hover:border-slate-600 transition-colors"
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+                <Upload className="h-8 w-8 text-slate-400 mx-auto mb-2" />
+                <p className="text-sm text-slate-300 mb-2">
+                  Resimleri sürükleyip bırakın veya
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingImages || imageUrls.length + selectedFiles.length >= 6}
+                  className="mb-2"
+                >
+                  <ImageIcon className="h-4 w-4 mr-2" />
+                  Dosya Seç
+                </Button>
+                <p className="text-xs text-slate-500">
+                  {imageUrls.length + selectedFiles.length}/6 resim seçildi
+                </p>
+              </div>
+
+              {/* Selected Files Preview (before upload) */}
+              {selectedFiles.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm text-slate-300">Yüklenecek resimler:</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {selectedFiles.map((file, index) => (
+                      <div key={index} className="relative group">
+                        <div className="w-full h-24 bg-slate-800 rounded-md border border-slate-700 flex items-center justify-center">
+                          <ImageIcon className="h-6 w-6 text-slate-500" />
+                        </div>
+                        <p className="text-xs text-slate-400 mt-1 truncate">{file.name}</p>
+                        <button
+                          type="button"
+                          onClick={() => removeSelectedFile(index)}
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* URL Input Option */}
+              <div className="space-y-2">
+                {!showUrlInput ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowUrlInput(true)}
+                    className="text-slate-400 hover:text-slate-300"
+                  >
+                    <LinkIcon className="h-4 w-4 mr-2" />
+                    URL ile ekle
+                  </Button>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="image_url"
+                        type="url"
+                        {...register("image_url")}
+                        placeholder="https://..."
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setShowUrlInput(false);
+                          setValue("image_url", "");
+                        }}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    {errors.image_url && (
+                      <p className="text-sm text-red-600">{errors.image_url.message}</p>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -314,11 +567,21 @@ export function ProductFormDialog({ open, onClose, product }: ProductFormDialogP
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+            <Button type="button" variant="outline" onClick={onClose} disabled={loading || uploadingImages}>
               İptal
             </Button>
-            <Button type="submit" disabled={loading} className="bg-[#05594C] hover:bg-[#044a3f]">
-              {loading ? "Kaydediliyor..." : product ? "Güncelle" : "Ekle"}
+            <Button
+              type="submit"
+              disabled={loading || uploadingImages}
+              className="bg-[#05594C] hover:bg-[#044a3f]"
+            >
+              {uploadingImages
+                ? "Resimler yükleniyor..."
+                : loading
+                ? "Kaydediliyor..."
+                : product
+                ? "Güncelle"
+                : "Ekle"}
             </Button>
           </DialogFooter>
         </form>
