@@ -69,18 +69,32 @@ function LoginForm() {
         return;
       }
 
-      // Redirect based on role
-      const redirectPath = searchParams.get("redirect") || "";
+      // ÖNCE: Middleware'in yeni cookie'yi tanıması için refresh yap
+      router.refresh();
       
-      if (profile.role === "super_admin") {
-        router.push(redirectPath || "/super-admin/dashboard");
-      } else if (profile.role === "tenant_admin" || profile.role === "user") {
-        router.push(redirectPath || "/dashboard");
+      // Kısa bir bekleme ekle (cookie'nin set edilmesi için)
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // SONRA: Redirect path'i belirle
+      const redirectPath = searchParams.get("redirect") || "";
+      let targetPath = "";
+      
+      if (redirectPath && redirectPath.startsWith("/")) {
+        // URL parametresinden gelen redirect değerini kullan
+        targetPath = redirectPath;
       } else {
-        router.push("/dashboard");
+        // Role göre varsayılan dashboard'a yönlendir
+        if (profile.role === "super_admin") {
+          targetPath = "/super-admin/dashboard";
+        } else if (profile.role === "tenant_admin" || profile.role === "user") {
+          targetPath = "/dashboard";
+        } else {
+          targetPath = "/dashboard";
+        }
       }
 
-      router.refresh();
+      // router.replace kullan (push değil) - geri tuşu ile login sayfasına dönmesin
+      router.replace(targetPath);
     } catch (err: any) {
       setError(err.message || "Bir hata oluştu. Lütfen tekrar deneyin.");
       setLoading(false);

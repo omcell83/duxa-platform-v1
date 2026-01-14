@@ -81,8 +81,31 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // User is on login page but already logged in - redirect based on role
+  // User is on login page but already logged in - redirect based on role or redirect param
   if (isLoginPage) {
+    // Check if there's a redirect parameter in the URL
+    const redirectParam = request.nextUrl.searchParams.get('redirect');
+    
+    // Prevent infinite redirect loop - don't redirect to login page
+    if (redirectParam && redirectParam.startsWith('/') && redirectParam !== '/login') {
+      // Validate that the redirect path matches user's role
+      const isRedirectSuperAdmin = redirectParam.startsWith('/super-admin');
+      const isRedirectAppRoute = redirectParam.startsWith('/dashboard') || 
+                                 redirectParam.startsWith('/menu-builder') || 
+                                 redirectParam.startsWith('/settings');
+      
+      // Super admin can access super-admin routes
+      if (isRedirectSuperAdmin && userRole === 'super_admin') {
+        return NextResponse.redirect(new URL(redirectParam, request.url));
+      }
+      // All authenticated users can access app routes
+      if (isRedirectAppRoute) {
+        return NextResponse.redirect(new URL(redirectParam, request.url));
+      }
+      // If redirect doesn't match role, fall through to default redirect
+    }
+    
+    // Default redirect based on role
     if (userRole === 'super_admin') {
       return NextResponse.redirect(new URL('/super-admin/dashboard', request.url));
     }
