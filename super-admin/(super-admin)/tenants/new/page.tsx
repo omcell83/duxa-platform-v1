@@ -139,7 +139,7 @@ export default function NewTenantPage() {
                     disabled={loading}
                   />
                   {errors.name && (
-                    <p className="text-sm text-red-600 flex items-center gap-1">
+                    <p className="text-sm text-destructive flex items-center gap-1">
                       <AlertCircle className="h-3 w-3" />
                       {errors.name.message}
                     </p>
@@ -170,14 +170,14 @@ export default function NewTenantPage() {
                       <span className="text-sm text-muted-foreground">Kontrol ediliyor...</span>
                     )}
                     {slugSuggestion && !checkingSlug && (
-                      <span className="text-sm text-green-600 flex items-center gap-1">
+                      <span className="text-sm text-primary flex items-center gap-1">
                         <CheckCircle2 className="h-3 w-3" />
                         Öneri: {slugSuggestion}
                       </span>
                     )}
                   </div>
                   {errors.slug && (
-                    <p className="text-sm text-red-600 flex items-center gap-1">
+                    <p className="text-sm text-destructive flex items-center gap-1">
                       <AlertCircle className="h-3 w-3" />
                       {errors.slug.message}
                     </p>
@@ -213,7 +213,7 @@ export default function NewTenantPage() {
                     disabled={loading}
                   />
                   {errors.admin_full_name && (
-                    <p className="text-sm text-red-600 flex items-center gap-1">
+                    <p className="text-sm text-destructive flex items-center gap-1">
                       <AlertCircle className="h-3 w-3" />
                       {errors.admin_full_name.message}
                     </p>
@@ -230,7 +230,7 @@ export default function NewTenantPage() {
                     disabled={loading}
                   />
                   {errors.admin_email && (
-                    <p className="text-sm text-red-600 flex items-center gap-1">
+                    <p className="text-sm text-destructive flex items-center gap-1">
                       <AlertCircle className="h-3 w-3" />
                       {errors.admin_email.message}
                     </p>
@@ -250,7 +250,7 @@ export default function NewTenantPage() {
                     disabled={loading}
                   />
                   {errors.admin_password && (
-                    <p className="text-sm text-red-600 flex items-center gap-1">
+                    <p className="text-sm text-destructive flex items-center gap-1">
                       <AlertCircle className="h-3 w-3" />
                       {errors.admin_password.message}
                     </p>

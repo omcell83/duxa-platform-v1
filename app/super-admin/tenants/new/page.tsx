@@ -170,7 +170,7 @@ export default function NewTenantPage() {
                       <span className="text-sm text-muted-foreground">Kontrol ediliyor...</span>
                     )}
                     {slugSuggestion && !checkingSlug && (
-                      <span className="text-sm text-green-600 flex items-center gap-1">
+                      <span className="text-sm text-primary flex items-center gap-1">
                         <CheckCircle2 className="h-3 w-3" />
                         Öneri: {slugSuggestion}
                       </span>

@@ -2,51 +2,128 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Font Faces - Geist Font Family */
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/Geist-Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/Geist-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/Geist-SemiBold.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/Geist-Bold.otf') format('opentype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'GeistMono';
+  src: url('/fonts/GeistMono-Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
-  /* LIGHT MODE: Temiz Beyaz ve Koyu Gri */
-  --background: 0 0% 100%;
-  --foreground: 240 10% 3.9%;
-  --card: 0 0% 100%;
-  --card-foreground: 240 10% 3.9%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 240 10% 3.9%;
-  --primary: 240 5.9% 10%; /* Neredeyse Siyah */
-  --primary-foreground: 0 0% 98%; /* Beyaz Yazı */
-  --secondary: 240 4.8% 95.9%; /* Hafif Gri */
-  --secondary-foreground: 240 5.9% 10%;
-  --muted: 240 4.8% 95.9%;
-  --muted-foreground: 240 3.8% 46.1%;
-  --accent: 240 4.8% 95.9%;
-  --accent-foreground: 240 5.9% 10%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 240 5.9% 90%;
-  --input: 240 5.9% 90%;
-  --ring: 240 10% 3.9%;
-  --radius: 0.5rem;
+  /* Ada/Tailus Tema - Light Mode */
+  /* Background Colors (Zinc Gray Scale) */
+  --background: 0 0% 100%; /* white */
+  --foreground: 0 0% 10%; /* zinc.900 - Display/Title Text */
+  
+  /* Card/Surface */
+  --card: 0 0% 100%; /* white */
+  --card-foreground: 0 0% 10%; /* zinc.900 */
+  
+  /* Popover (Modals - Opaque) */
+  --popover: 0 0% 100%; /* white */
+  --popover-foreground: 0 0% 10%; /* zinc.900 */
+  
+  /* Primary (Blue) */
+  --primary: 221 83% 53%; /* blue.600 */
+  --primary-foreground: 0 0% 100%; /* white */
+  
+  /* Secondary (Muted Gray) */
+  --secondary: 0 0% 92%; /* zinc.100 */
+  --secondary-foreground: 0 0% 10%; /* zinc.900 */
+  
+  /* Muted (Soft Gray) */
+  --muted: 0 0% 92%; /* zinc.100 */
+  --muted-foreground: 0 0% 50%; /* zinc.500 - Caption Text */
+  
+  /* Accent */
+  --accent: 0 0% 92%; /* zinc.100 */
+  --accent-foreground: 0 0% 10%; /* zinc.900 */
+  
+  /* Destructive (Rose) */
+  --destructive: 347 77% 50%; /* rose.600 */
+  --destructive-foreground: 0 0% 100%; /* white */
+  
+  /* Border & Input */
+  --border: 0 0% 83%; /* zinc.200 */
+  --input: 0 0% 83%; /* zinc.200 */
+  --ring: 221 83% 53%; /* blue.600 - Primary for focus ring */
+  
+  /* Border Radius (Ada/Tailus uses xl = 0.75rem) */
+  --radius: 0.75rem;
 }
 
 .dark {
-  /* DARK MODE: ChatGPT Tarzı Antrasit/Füme (Zifiri siyah değil) */
-  --background: 240 10% 3.9%; /* Çok koyu gri */
-  --foreground: 0 0% 98%;
-  --card: 240 10% 3.9%;
-  --card-foreground: 0 0% 98%;
-  --popover: 240 10% 3.9%;
-  --popover-foreground: 0 0% 98%;
-  --primary: 0 0% 98%; /* Beyaz Buton */
-  --primary-foreground: 240 5.9% 10%; /* Siyah Yazı */
-  --secondary: 240 3.7% 15.9%; /* Koyu Gri butonlar */
-  --secondary-foreground: 0 0% 98%;
-  --muted: 240 3.7% 15.9%;
-  --muted-foreground: 240 5% 64.9%;
-  --accent: 240 3.7% 15.9%;
-  --accent-foreground: 0 0% 98%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 240 3.7% 15.9%;
-  --input: 240 3.7% 15.9%;
-  --ring: 240 4.9% 83.9%;
+  /* Ada/Tailus Tema - Dark Mode */
+  /* Background Colors (Zinc Gray Scale) */
+  --background: 0 0% 10%; /* zinc.900 */
+  --foreground: 0 0% 100%; /* white - Display/Title Text */
+  
+  /* Card/Surface */
+  --card: 0 0% 10%; /* zinc.900 */
+  --card-foreground: 0 0% 100%; /* white */
+  
+  /* Popover (Modals - Opaque) */
+  --popover: 0 0% 10%; /* zinc.900 */
+  --popover-foreground: 0 0% 100%; /* white */
+  
+  /* Primary (Blue) */
+  --primary: 221 83% 53%; /* blue.600 */
+  --primary-foreground: 0 0% 100%; /* white */
+  
+  /* Secondary (Dark Gray) */
+  --secondary: 0 0% 20%; /* zinc.800 */
+  --secondary-foreground: 0 0% 100%; /* white */
+  
+  /* Muted (Soft Dark Gray) */
+  --muted: 0 0% 20%; /* zinc.800 */
+  --muted-foreground: 0 0% 72%; /* zinc.300 - Body Text */
+  
+  /* Accent */
+  --accent: 0 0% 20%; /* zinc.800 */
+  --accent-foreground: 0 0% 100%; /* white */
+  
+  /* Destructive (Rose) */
+  --destructive: 347 77% 50%; /* rose.600 */
+  --destructive-foreground: 0 0% 100%; /* white */
+  
+  /* Border & Input */
+  --border: 0 0% 20%; /* zinc.800 */
+  --input: 0 0% 20%; /* zinc.800 */
+  --ring: 221 83% 53%; /* blue.600 - Primary for focus ring */
 }
 
 @theme {
@@ -80,5 +157,8 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }

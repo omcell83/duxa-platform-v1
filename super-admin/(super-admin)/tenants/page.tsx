@@ -66,7 +66,7 @@ export default async function TenantsPage({ searchParams }: TenantsPageProps) {
           <p className="text-muted-foreground mt-1">Müşteri işletmeleri yönetimi</p>
         </div>
         <Link href="/super-admin/tenants/new">
-          <Button className="bg-[#05594C] hover:bg-[#044a3f]">
+          <Button>
             <Plus className="h-4 w-4 mr-2" />
             Yeni Müşteri Ekle
           </Button>

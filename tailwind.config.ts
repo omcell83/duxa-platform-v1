@@ -68,7 +68,7 @@ const config: Config = {
       },
       fontFamily: {
         sans: [
-          "system-ui",
+          "Geist",
           "-apple-system",
           "BlinkMacSystemFont",
           '"Segoe UI"',
@@ -76,6 +76,17 @@ const config: Config = {
           '"Helvetica Neue"',
           "Arial",
           "sans-serif",
+        ],
+        mono: [
+          "GeistMono",
+          "ui-monospace",
+          "SFMono-Regular",
+          "Menlo",
+          "Monaco",
+          "Consolas",
+          '"Liberation Mono"',
+          '"Courier New"',
+          "monospace",
         ],
       },
     },
