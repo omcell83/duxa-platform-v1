@@ -328,28 +328,31 @@ export function ProductFormDialog({ open, onClose, product }: ProductFormDialogP
               
               {/* Uploaded Images Preview */}
               {imageUrls.length > 0 && (
-                <div className="grid grid-cols-3 gap-2">
-                  {imageUrls.map((url, index) => (
-                    <div key={index} className="relative group">
-                      <img
-                        src={url}
-                        alt={`Ürün resmi ${index + 1}`}
-                        className="w-full h-24 object-cover rounded-md border border-slate-700"
-                      />
-                      {index === 0 && (
-                        <span className="absolute top-1 left-1 bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded">
-                          Ana
-                        </span>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => removeImageUrl(index)}
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  ))}
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Yüklenen resimler:</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {imageUrls.map((url, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={url}
+                          alt={`Ürün resmi ${index + 1}`}
+                          className="w-full h-24 object-cover rounded-md border border-input"
+                        />
+                        {index === 0 && (
+                          <span className="absolute top-1 left-1 bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded">
+                            Ana
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => removeImageUrl(index)}
+                          className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -357,7 +360,7 @@ export function ProductFormDialog({ open, onClose, product }: ProductFormDialogP
               <div
                 onDrop={handleDrop}
                 onDragOver={(e) => e.preventDefault()}
-                className="border-2 border-dashed border-slate-700 rounded-md p-6 text-center hover:border-slate-600 transition-colors"
+                className="border-2 border-dashed border-input rounded-md p-6 text-center hover:border-primary/50 transition-colors"
               >
                 <input
                   ref={fileInputRef}
@@ -367,8 +370,8 @@ export function ProductFormDialog({ open, onClose, product }: ProductFormDialogP
                   onChange={handleFileSelect}
                   className="hidden"
                 />
-                <Upload className="h-8 w-8 text-slate-400 mx-auto mb-2" />
-                <p className="text-sm text-slate-300 mb-2">
+                <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground mb-2">
                   Resimleri sürükleyip bırakın veya
                 </p>
                 <Button
@@ -382,7 +385,7 @@ export function ProductFormDialog({ open, onClose, product }: ProductFormDialogP
                   <ImageIcon className="h-4 w-4 mr-2" />
                   Dosya Seç
                 </Button>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   {imageUrls.length + selectedFiles.length}/6 resim seçildi
                 </p>
               </div>
@@ -390,23 +393,32 @@ export function ProductFormDialog({ open, onClose, product }: ProductFormDialogP
               {/* Selected Files Preview (before upload) */}
               {selectedFiles.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-sm text-slate-300">Yüklenecek resimler:</p>
+                  <p className="text-sm text-muted-foreground">Yüklenecek resimler:</p>
                   <div className="grid grid-cols-3 gap-2">
-                    {selectedFiles.map((file, index) => (
-                      <div key={index} className="relative group">
-                        <div className="w-full h-24 bg-slate-800 rounded-md border border-slate-700 flex items-center justify-center">
-                          <ImageIcon className="h-6 w-6 text-slate-500" />
+                    {selectedFiles.map((file, index) => {
+                      const previewUrl = URL.createObjectURL(file);
+                      return (
+                        <div key={index} className="relative group">
+                          <img
+                            src={previewUrl}
+                            alt={file.name}
+                            className="w-full h-24 object-cover rounded-md border border-input"
+                            onLoad={() => URL.revokeObjectURL(previewUrl)}
+                          />
+                          <p className="text-xs text-muted-foreground mt-1 truncate">{file.name}</p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              URL.revokeObjectURL(previewUrl);
+                              removeSelectedFile(index);
+                            }}
+                            className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
                         </div>
-                        <p className="text-xs text-slate-400 mt-1 truncate">{file.name}</p>
-                        <button
-                          type="button"
-                          onClick={() => removeSelectedFile(index)}
-                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -419,7 +431,6 @@ export function ProductFormDialog({ open, onClose, product }: ProductFormDialogP
                     variant="ghost"
                     size="sm"
                     onClick={() => setShowUrlInput(true)}
-                    className="text-slate-400 hover:text-slate-300"
                   >
                     <LinkIcon className="h-4 w-4 mr-2" />
                     URL ile ekle
