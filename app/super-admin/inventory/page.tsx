@@ -1,63 +1,66 @@
+import { createClient } from "@/lib/supabase-server";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Package } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, Package, ShoppingCart, Edit, Trash2, Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
+import { CatalogProduct } from "@/lib/types";
+import { getProducts, deleteProduct } from "@/app/actions-products";
+import { ProductCatalog } from "@/components/product-catalog";
+import { HardwareInventoryList } from "@/components/hardware-inventory-list";
 
-export default function InventoryPage() {
+export default async function InventoryPage() {
+  const supabase = await createClient();
+
+  // Get products
+  const productsResult = await getProducts();
+  const products = productsResult.success ? productsResult.data : [];
+
+  // Get hardware inventory stats
+  const { data: hardwareStats } = await supabase
+    .from("hardware_inventory")
+    .select("status");
+
+  const stats = {
+    in_stock: hardwareStats?.filter((h) => h.status === "in_stock").length || 0,
+    rented: hardwareStats?.filter((h) => h.status === "rented").length || 0,
+    under_repair: hardwareStats?.filter((h) => h.status === "under_repair").length || 0,
+    total: hardwareStats?.length || 0,
+  };
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Donanım Envanteri</h1>
-          <p className="text-gray-600 mt-1">Cihaz yönetimi ve takibi</p>
+          <h1 className="text-3xl font-bold text-gray-900">Envanter Yönetimi</h1>
+          <p className="text-gray-600 mt-1">Ürün kataloğu ve donanım envanteri</p>
         </div>
-        <Button className="bg-[#05594C] hover:bg-[#044a3f]">
-          <Plus className="h-4 w-4 mr-2" />
-          Yeni Cihaz Ekle
-        </Button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Depoda</CardDescription>
-            <CardTitle className="text-2xl">0</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Kirada</CardDescription>
-            <CardTitle className="text-2xl">0</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Tamirde</CardDescription>
-            <CardTitle className="text-2xl">0</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Toplam</CardDescription>
-            <CardTitle className="text-2xl">0</CardTitle>
-          </CardHeader>
-        </Card>
-      </div>
+      {/* Tabs */}
+      <Tabs defaultValue="catalog" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="catalog" className="gap-2">
+            <ShoppingCart className="h-4 w-4" />
+            Ürün Kataloğu
+          </TabsTrigger>
+          <TabsTrigger value="hardware" className="gap-2">
+            <Package className="h-4 w-4" />
+            Cihaz Envanteri (Seri No)
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Inventory Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Cihaz Listesi</CardTitle>
-          <CardDescription>Tüm donanım cihazları</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <Package className="h-12 w-12 text-gray-400 mb-4" />
-            <p className="text-gray-500">Henüz cihaz eklenmemiş.</p>
-          </div>
-        </CardContent>
-      </Card>
+        {/* Product Catalog Tab */}
+        <TabsContent value="catalog">
+          <ProductCatalog initialProducts={products} />
+        </TabsContent>
+
+        {/* Hardware Inventory Tab */}
+        <TabsContent value="hardware">
+          <HardwareInventoryList initialStats={stats} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

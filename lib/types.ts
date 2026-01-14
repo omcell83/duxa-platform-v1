@@ -384,3 +384,114 @@ export interface Product {
   is_available?: boolean | null; // Default: true
   created_at: string; // timestamp with time zone -> ISO string
 }
+
+/**
+ * =====================================================
+ * PRODUCTS MODULE TYPES (Super Admin - Satılabilir Ürünler)
+ * =====================================================
+ */
+
+/**
+ * products Tablosu (Satılabilir Ürünler Kataloğu)
+ */
+export type ProductType = 'hardware' | 'subscription' | 'service' | 'addon';
+export type BillingCycle = 'one_time' | 'monthly' | 'yearly';
+
+export interface CatalogProduct {
+  id: number; // bigint
+  name: string;
+  description?: string | null;
+  image_url?: string | null;
+  type: ProductType;
+  billing_cycle?: BillingCycle | null;
+  base_price: number; // decimal(10,2) -> number
+  min_sales_price: number; // decimal(10,2) -> number
+  tax_rate: number; // decimal(5,2) -> number (0-100)
+  stock_track: boolean;
+  current_stock?: number | null; // integer
+  is_public: boolean;
+  is_active: boolean;
+  created_at: string; // timestamp with time zone -> ISO string
+  updated_at: string; // timestamp with time zone -> ISO string
+  // Computed fields
+  total_sales?: number; // Total sales count (from product_sales)
+}
+
+export interface CatalogProductInsert {
+  name: string;
+  description?: string | null;
+  image_url?: string | null;
+  type: ProductType;
+  billing_cycle?: BillingCycle | null;
+  base_price: number;
+  min_sales_price: number;
+  tax_rate?: number; // Default: 0
+  stock_track?: boolean; // Default: false
+  current_stock?: number | null;
+  is_public?: boolean; // Default: false
+  is_active?: boolean; // Default: true
+}
+
+export interface CatalogProductUpdate {
+  name?: string;
+  description?: string | null;
+  image_url?: string | null;
+  type?: ProductType;
+  billing_cycle?: BillingCycle | null;
+  base_price?: number;
+  min_sales_price?: number;
+  tax_rate?: number;
+  stock_track?: boolean;
+  current_stock?: number | null;
+  is_public?: boolean;
+  is_active?: boolean;
+}
+
+/**
+ * product_options Tablosu (Ürün İlişkileri/Bundle)
+ */
+export interface ProductOption {
+  id: number; // bigint
+  parent_product_id: number; // bigint (FK to products)
+  child_product_id: number; // bigint (FK to products)
+  is_required: boolean;
+  created_at: string; // timestamp with time zone -> ISO string
+  // Joined data
+  child_product?: CatalogProduct;
+}
+
+export interface ProductOptionInsert {
+  parent_product_id: number;
+  child_product_id: number;
+  is_required?: boolean; // Default: false
+}
+
+export interface ProductOptionUpdate {
+  is_required?: boolean;
+}
+
+/**
+ * product_sales Tablosu (Satış Kayıtları)
+ */
+export interface ProductSale {
+  id: number; // bigint
+  product_id: number; // bigint (FK to products)
+  tenant_id?: number | null; // bigint (FK to tenants)
+  quantity: number; // integer
+  unit_price: number; // decimal(10,2) -> number
+  total_price: number; // decimal(10,2) -> number
+  sold_by?: string | null; // uuid (FK to profiles)
+  sale_date: string; // timestamp with time zone -> ISO string
+  notes?: string | null;
+}
+
+export interface ProductSaleInsert {
+  product_id: number;
+  tenant_id?: number | null;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+  sold_by?: string | null;
+  sale_date?: string; // Default: now()
+  notes?: string | null;
+}
