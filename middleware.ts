@@ -68,7 +68,8 @@ export async function middleware(request: NextRequest) {
     .eq('id', session.user.id)
     .single();
 
-  const userRole = profile?.role || 'user';
+  // Normalize role (trim and lowercase for consistency)
+  const userRole = (profile?.role || 'user').trim().toLowerCase();
   const isActive = profile?.is_active ?? false;
 
   // Inactive users - redirect to login

@@ -69,11 +69,12 @@ function LoginForm() {
         return;
       }
 
-      // ÖNCE: Middleware'in yeni cookie'yi tanıması için refresh yap
-      router.refresh();
-      
-      // Kısa bir bekleme ekle (cookie'nin set edilmesi için)
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Debug: Role değerini kontrol et
+      console.log("Login successful - User role:", profile.role);
+      console.log("Profile data:", profile);
+
+      // Cookie'lerin set edilmesi için kısa bir bekleme
+      await new Promise(resolve => setTimeout(resolve, 200));
 
       // SONRA: Redirect path'i belirle
       const redirectPath = searchParams.get("redirect") || "";
@@ -84,17 +85,23 @@ function LoginForm() {
         targetPath = redirectPath;
       } else {
         // Role göre varsayılan dashboard'a yönlendir
-        if (profile.role === "super_admin") {
+        // Role string'ini trim ve lowercase yap (güvenlik için)
+        const normalizedRole = (profile.role || "").trim().toLowerCase();
+        
+        if (normalizedRole === "super_admin") {
           targetPath = "/super-admin/dashboard";
-        } else if (profile.role === "tenant_admin" || profile.role === "user") {
+        } else if (normalizedRole === "tenant_admin" || normalizedRole === "user") {
           targetPath = "/dashboard";
         } else {
           targetPath = "/dashboard";
         }
       }
 
-      // router.replace kullan (push değil) - geri tuşu ile login sayfasına dönmesin
-      router.replace(targetPath);
+      console.log("Redirecting to:", targetPath);
+
+      // window.location.href kullan - full page reload yapar ve middleware'in cookie'leri görmesini sağlar
+      // Bu, router.replace'den daha güvenilir çünkü server-side middleware çalışır
+      window.location.href = targetPath;
     } catch (err: any) {
       setError(err.message || "Bir hata oluştu. Lütfen tekrar deneyin.");
       setLoading(false);
