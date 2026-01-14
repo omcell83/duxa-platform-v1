@@ -189,7 +189,7 @@ export function TenantDetailPage({ data }: TenantDetailPageProps) {
     setLoading(false);
   };
 
-  const formatDate = (dateString: string | null) => {
+  const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return "";
     return new Date(dateString).toISOString().split("T")[0];
   };
