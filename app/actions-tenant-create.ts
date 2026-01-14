@@ -75,16 +75,21 @@ async function checkSlugAvailability(slug: string): Promise<{ available: boolean
  * Check if email is already registered
  */
 async function checkEmailAvailability(email: string): Promise<boolean> {
-  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    // If service role key is not available, only check profiles table
-    const supabase = await createClient();
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("email")
-      .eq("email", email)
-      .single();
+  // Check in profiles table first (this works without service role key)
+  const supabase = await createClient();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("email")
+    .eq("email", email)
+    .single();
 
-    return !profile; // Available if no profile found
+  if (profile) {
+    return false; // Email already exists in profiles
+  }
+
+  // If service role key is available, also check auth.users
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return true; // Available if no profile found and no service key
   }
 
   // Check in auth.users (requires admin client)
@@ -94,25 +99,28 @@ async function checkEmailAvailability(email: string): Promise<boolean> {
   );
 
   try {
-    const { data: authUser } = await adminClient.auth.admin.getUserByEmail(email);
+    // List users and filter by email (getUserByEmail doesn't exist in this version)
+    const { data: users, error } = await adminClient.auth.admin.listUsers();
     
-    if (authUser?.user) {
-      return false; // Email already exists
+    if (error) {
+      console.error("Error listing users:", error);
+      // If we can't check auth, assume email is available (profiles check already passed)
+      return true;
+    }
+
+    // Check if any user has this email
+    const userExists = users?.users?.some((user) => user.email === email);
+    
+    if (userExists) {
+      return false; // Email already exists in auth.users
     }
   } catch (error) {
     console.error("Error checking email in auth:", error);
-    // Continue to check profiles table
+    // If error, assume email is available (profiles check already passed)
+    return true;
   }
 
-  // Also check in profiles table
-  const supabase = await createClient();
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("email")
-    .eq("email", email)
-    .single();
-
-  return !profile; // Available if no profile found
+  return true; // Email is available
 }
 
 /**
