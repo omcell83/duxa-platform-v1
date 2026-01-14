@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase-browser";
 import { Button } from "@/components/ui/button";
 import { User, LogOut, Bell } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -14,8 +14,10 @@ interface UserProfile {
 
 export function SuperAdminHeader() {
   const router = useRouter();
+  const supabase = createClient();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
     async function loadUser() {
@@ -43,15 +45,29 @@ export function SuperAdminHeader() {
     }
 
     loadUser();
-  }, []);
+  }, [supabase]);
 
   const handleLogout = async () => {
+    setLoggingOut(true);
     try {
-      await supabase.auth.signOut();
-      router.push("/login");
-      router.refresh();
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error("Logout error:", error);
+        setLoggingOut(false);
+        return;
+      }
+
+      // Wait a bit for cookies to clear
+      await new Promise(resolve => setTimeout(resolve, 200));
+
+      // Redirect to login page with full page reload
+      // This ensures middleware sees the cleared session
+      window.location.href = "/login";
     } catch (error) {
       console.error("Logout error:", error);
+      setLoggingOut(false);
     }
   };
 
@@ -94,10 +110,11 @@ export function SuperAdminHeader() {
                 variant="ghost"
                 size="sm"
                 onClick={handleLogout}
+                disabled={loggingOut}
                 className="gap-2"
               >
                 <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline">Çıkış</span>
+                <span className="hidden sm:inline">{loggingOut ? "Çıkış yapılıyor..." : "Çıkış"}</span>
               </Button>
             </div>
           )}

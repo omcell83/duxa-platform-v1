@@ -3,9 +3,9 @@ import { notFound } from "next/navigation";
 import { TenantDetailPage } from "@/components/tenant-detail-page";
 
 interface PageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 async function getTenantData(tenantId: number) {
@@ -19,17 +19,18 @@ async function getTenantData(tenantId: number) {
     .single();
 
   if (tenantError || !tenant) {
+    console.error("Error fetching tenant:", tenantError);
     return null;
   }
 
-  // Get latest subscription
+  // Get latest subscription (use maybeSingle to handle no subscription case)
   const { data: subscription } = await supabase
     .from("subscriptions")
     .select("*")
     .eq("tenant_id", tenantId)
     .order("created_at", { ascending: false })
     .limit(1)
-    .single();
+    .maybeSingle();
 
   // Get hardware inventory for this tenant
   const { data: hardware } = await supabase
@@ -46,15 +47,19 @@ async function getTenantData(tenantId: number) {
 }
 
 export default async function Page({ params }: PageProps) {
-  const tenantId = parseInt(params.id);
+  // Next.js 16+ requires params to be awaited
+  const { id } = await params;
+  const tenantId = parseInt(id);
 
   if (isNaN(tenantId)) {
+    console.error("Invalid tenant ID:", id);
     notFound();
   }
 
   const data = await getTenantData(tenantId);
 
   if (!data) {
+    console.error("Tenant not found:", tenantId);
     notFound();
   }
 
