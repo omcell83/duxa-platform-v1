@@ -33,8 +33,8 @@ export default async function InventoryPage() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Envanter Yönetimi</h1>
-          <p className="text-gray-600 mt-1">Ürün kataloğu ve donanım envanteri</p>
+          <h1 className="text-3xl font-bold text-foreground">Envanter Yönetimi</h1>
+          <p className="text-muted-foreground mt-1">Ürün kataloğu ve donanım envanteri</p>
         </div>
       </div>
 

@@ -26,7 +26,7 @@ export default async function SuperAdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="flex">
         {/* Sidebar */}
         <SuperAdminSidebar />

@@ -60,9 +60,9 @@ export function HardwareInventoryList({ initialStats }: HardwareInventoryListPro
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <Package className="h-12 w-12 text-gray-400 mb-4" />
-            <p className="text-gray-500">Henüz cihaz eklenmemiş.</p>
-            <p className="text-sm text-gray-400 mt-2">Cihaz ekleme özelliği yakında eklenecek.</p>
+            <Package className="h-12 w-12 text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">Henüz cihaz eklenmemiş.</p>
+            <p className="text-sm text-muted-foreground mt-2">Cihaz ekleme özelliği yakında eklenecek.</p>
           </div>
         </CardContent>
       </Card>

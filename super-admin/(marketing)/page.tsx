@@ -305,7 +305,7 @@ export default function ConstructionPage() {
               key={lang + "sub"}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-gray-400 text-lg md:text-2xl font-light text-center max-w-3xl"
+              className="text-muted-foreground text-lg md:text-2xl font-light text-center max-w-3xl"
             >
               {t.subtitle}
             </motion.p>
@@ -347,12 +347,12 @@ export default function ConstructionPage() {
             animate={{ opacity: 1 }}
             className="flex items-center justify-center gap-8"
           >
-            <div className="flex items-center gap-2 text-gray-500 hover:text-[#05594C] transition-colors">
+            <div className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
               <Code className="w-4 h-4 md:w-5 md:h-5" />
               <span className="text-[10px] md:text-xs uppercase tracking-wider font-semibold">Software</span>
             </div>
             <div className="w-px h-4 md:h-6 bg-zinc-700" />
-            <div className="flex items-center gap-2 text-gray-500 hover:text-[#EF7F1A] transition-colors">
+            <div className="flex items-center gap-2 text-muted-foreground hover:text-accent transition-colors">
               <Cpu className="w-4 h-4 md:w-5 md:h-5" />
               <span className="text-[10px] md:text-xs uppercase tracking-wider font-semibold">Hardware</span>
             </div>
@@ -471,7 +471,7 @@ export default function ConstructionPage() {
           </div>
 
           {/* Footer */}
-          <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-3 text-zinc-400 text-[10px] md:text-xs font-mono uppercase tracking-wider text-center px-4">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-3 text-muted-foreground text-[10px] md:text-xs font-mono uppercase tracking-wider text-center px-4">
             <span>&copy; 2026 DUXA.PRO</span>
             <span className="hidden md:inline">|</span>
             <a 

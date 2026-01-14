@@ -199,8 +199,8 @@ export function TenantDetailPage({ data }: TenantDetailPageProps) {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">{tenant.name}</h1>
-          <p className="text-gray-600 mt-1">İşletme Detayları ve Yönetimi</p>
+          <h1 className="text-3xl font-bold text-foreground">{tenant.name}</h1>
+          <p className="text-muted-foreground mt-1">İşletme Detayları ve Yönetimi</p>
         </div>
         <div className="flex items-center gap-3">
           <Button
@@ -222,7 +222,7 @@ export function TenantDetailPage({ data }: TenantDetailPageProps) {
 
       {/* Error/Success Messages */}
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-md flex items-center gap-2 text-red-700">
+        <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-md flex items-center gap-2 text-destructive">
           <AlertCircle className="h-5 w-5" />
           <span>{error}</span>
         </div>
@@ -260,7 +260,7 @@ export function TenantDetailPage({ data }: TenantDetailPageProps) {
                       placeholder="İşletme Adı"
                     />
                     {generalForm.formState.errors.name && (
-                      <p className="text-sm text-red-600">{generalForm.formState.errors.name.message}</p>
+                      <p className="text-sm text-destructive">{generalForm.formState.errors.name.message}</p>
                     )}
                   </div>
 
@@ -291,7 +291,7 @@ export function TenantDetailPage({ data }: TenantDetailPageProps) {
                       placeholder="ornek@email.com"
                     />
                     {generalForm.formState.errors.contact_email && (
-                      <p className="text-sm text-red-600">{generalForm.formState.errors.contact_email.message}</p>
+                      <p className="text-sm text-destructive">{generalForm.formState.errors.contact_email.message}</p>
                     )}
                   </div>
                 </div>
@@ -373,9 +373,9 @@ export function TenantDetailPage({ data }: TenantDetailPageProps) {
 
                   {/* Hardware Info Display */}
                   {subscription.hardware_list && (
-                    <div className="space-y-2 mt-4 p-4 bg-gray-50 rounded-md">
+                    <div className="space-y-2 mt-4 p-4 bg-muted rounded-md">
                       <Label>Mevcut Donanım</Label>
-                      <div className="text-sm text-gray-600">
+                      <div className="text-sm text-muted-foreground">
                         {Array.isArray(subscription.hardware_list) ? (
                           <ul className="list-disc list-inside space-y-1">
                             {subscription.hardware_list.map((item: any, index: number) => (
@@ -397,7 +397,7 @@ export function TenantDetailPage({ data }: TenantDetailPageProps) {
                   </Button>
                 </form>
               ) : (
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-muted-foreground">
                   Bu işletme için abonelik kaydı bulunamadı.
                 </div>
               )}
@@ -422,9 +422,9 @@ export function TenantDetailPage({ data }: TenantDetailPageProps) {
                     placeholder="ornek-subdomain"
                   />
                   {settingsForm.formState.errors.slug && (
-                    <p className="text-sm text-red-600">{settingsForm.formState.errors.slug.message}</p>
+                    <p className="text-sm text-destructive">{settingsForm.formState.errors.slug.message}</p>
                   )}
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground">
                     Örnek: tr, kotor gibi. Sadece küçük harf, rakam ve tire kullanılabilir.
                   </p>
                 </div>
@@ -432,7 +432,7 @@ export function TenantDetailPage({ data }: TenantDetailPageProps) {
                 <div className="flex items-center justify-between p-4 border rounded-md">
                   <div className="space-y-0.5">
                     <Label htmlFor="is_online">Online Sipariş</Label>
-                    <p className="text-sm text-gray-500">Online sipariş alımını aktif/pasif yap</p>
+                    <p className="text-sm text-muted-foreground">Online sipariş alımını aktif/pasif yap</p>
                   </div>
                   <Switch
                     id="is_online"
@@ -465,17 +465,17 @@ export function TenantDetailPage({ data }: TenantDetailPageProps) {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium">{item.serial_number}</p>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-muted-foreground">
                             {item.device_type === "kiosk" ? "Kiosk" : "POS"} - {item.status}
                           </p>
                         </div>
-                        <Package className="h-5 w-5 text-gray-400" />
+                        <Package className="h-5 w-5 text-muted-foreground" />
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-muted-foreground">
                   Bu işletme için donanım kaydı bulunamadı.
                 </div>
               )}

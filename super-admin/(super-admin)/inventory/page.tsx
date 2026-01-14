@@ -8,8 +8,8 @@ export default function InventoryPage() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Donanım Envanteri</h1>
-          <p className="text-gray-600 mt-1">Cihaz yönetimi ve takibi</p>
+          <h1 className="text-3xl font-bold text-foreground">Donanım Envanteri</h1>
+          <p className="text-muted-foreground mt-1">Cihaz yönetimi ve takibi</p>
         </div>
         <Button>
           <Plus className="h-4 w-4 mr-2" />
@@ -53,8 +53,8 @@ export default function InventoryPage() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <Package className="h-12 w-12 text-gray-400 mb-4" />
-            <p className="text-gray-500">Henüz cihaz eklenmemiş.</p>
+            <Package className="h-12 w-12 text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">Henüz cihaz eklenmemiş.</p>
           </div>
         </CardContent>
       </Card>

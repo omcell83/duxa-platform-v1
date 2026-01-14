@@ -108,8 +108,8 @@ export function ProductCatalog({ initialProducts }: ProductCatalogProps) {
         <CardContent>
           {products.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <ShoppingCart className="h-12 w-12 text-gray-400 mb-4" />
-              <p className="text-gray-500">Henüz ürün eklenmemiş.</p>
+              <ShoppingCart className="h-12 w-12 text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">Henüz ürün eklenmemiş.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -140,8 +140,8 @@ export function ProductCatalog({ initialProducts }: ProductCatalogProps) {
                             className="w-12 h-12 object-cover rounded"
                           />
                         ) : (
-                          <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center">
-                            <ImageIcon className="h-6 w-6 text-gray-400" />
+                          <div className="w-12 h-12 bg-muted rounded flex items-center justify-center">
+                            <ImageIcon className="h-6 w-6 text-muted-foreground" />
                           </div>
                         )}
                       </TableCell>
@@ -153,11 +153,11 @@ export function ProductCatalog({ initialProducts }: ProductCatalogProps) {
                       <TableCell>%{product.tax_rate}</TableCell>
                       <TableCell>
                         {product.stock_track ? (
-                          <span className={product.current_stock && product.current_stock < 10 ? "text-red-600 font-semibold" : ""}>
+                          <span className={product.current_stock && product.current_stock < 10 ? "text-destructive font-semibold" : ""}>
                             {product.current_stock || 0}
                           </span>
                         ) : (
-                          <span className="text-gray-400">-</span>
+                          <span className="text-muted-foreground">-</span>
                         )}
                       </TableCell>
                       <TableCell>
@@ -168,12 +168,12 @@ export function ProductCatalog({ initialProducts }: ProductCatalogProps) {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           {product.is_public ? (
-                            <Eye className="h-4 w-4 text-green-600" />
+                            <Eye className="h-4 w-4 text-primary" />
                           ) : (
-                            <EyeOff className="h-4 w-4 text-gray-400" />
+                            <EyeOff className="h-4 w-4 text-muted-foreground" />
                           )}
                           {!product.is_active && (
-                            <span className="text-xs text-gray-500">Arşivli</span>
+                            <span className="text-xs text-muted-foreground">Arşivli</span>
                           )}
                         </div>
                       </TableCell>

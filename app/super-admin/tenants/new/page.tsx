@@ -112,8 +112,8 @@ export default function NewTenantPage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Yeni Müşteri Ekle</h1>
-          <p className="text-gray-600 mt-1">Yeni işletme ve yetkili kullanıcı oluştur</p>
+          <h1 className="text-3xl font-bold text-foreground">Yeni Müşteri Ekle</h1>
+          <p className="text-muted-foreground mt-1">Yeni işletme ve yetkili kullanıcı oluştur</p>
         </div>
       </div>
 
@@ -139,7 +139,7 @@ export default function NewTenantPage() {
                     disabled={loading}
                   />
                   {errors.name && (
-                    <p className="text-sm text-red-600 flex items-center gap-1">
+                    <p className="text-sm text-destructive flex items-center gap-1">
                       <AlertCircle className="h-3 w-3" />
                       {errors.name.message}
                     </p>
@@ -167,7 +167,7 @@ export default function NewTenantPage() {
                       className="flex-1"
                     />
                     {checkingSlug && (
-                      <span className="text-sm text-gray-500">Kontrol ediliyor...</span>
+                      <span className="text-sm text-muted-foreground">Kontrol ediliyor...</span>
                     )}
                     {slugSuggestion && !checkingSlug && (
                       <span className="text-sm text-green-600 flex items-center gap-1">
@@ -177,12 +177,12 @@ export default function NewTenantPage() {
                     )}
                   </div>
                   {errors.slug && (
-                    <p className="text-sm text-red-600 flex items-center gap-1">
+                    <p className="text-sm text-destructive flex items-center gap-1">
                       <AlertCircle className="h-3 w-3" />
                       {errors.slug.message}
                     </p>
                   )}
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground">
                     İşletme adından otomatik oluşturulur. Türkçe karakterler temizlenir.
                   </p>
                 </div>
@@ -213,7 +213,7 @@ export default function NewTenantPage() {
                     disabled={loading}
                   />
                   {errors.admin_full_name && (
-                    <p className="text-sm text-red-600 flex items-center gap-1">
+                    <p className="text-sm text-destructive flex items-center gap-1">
                       <AlertCircle className="h-3 w-3" />
                       {errors.admin_full_name.message}
                     </p>
@@ -230,12 +230,12 @@ export default function NewTenantPage() {
                     disabled={loading}
                   />
                   {errors.admin_email && (
-                    <p className="text-sm text-red-600 flex items-center gap-1">
+                    <p className="text-sm text-destructive flex items-center gap-1">
                       <AlertCircle className="h-3 w-3" />
                       {errors.admin_email.message}
                     </p>
                   )}
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground">
                     Bu email ile sisteme giriş yapılacak
                   </p>
                 </div>
@@ -250,12 +250,12 @@ export default function NewTenantPage() {
                     disabled={loading}
                   />
                   {errors.admin_password && (
-                    <p className="text-sm text-red-600 flex items-center gap-1">
+                    <p className="text-sm text-destructive flex items-center gap-1">
                       <AlertCircle className="h-3 w-3" />
                       {errors.admin_password.message}
                     </p>
                   )}
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground">
                     Kullanıcı ilk girişte şifresini değiştirebilir
                   </p>
                 </div>

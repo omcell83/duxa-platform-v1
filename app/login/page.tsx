@@ -153,7 +153,7 @@ function LoginForm() {
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-md flex items-center gap-2 text-red-700 text-sm">
+              <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md flex items-center gap-2 text-destructive text-sm">
                 <AlertCircle className="h-4 w-4" />
                 <span>{error}</span>
               </div>
@@ -208,8 +208,8 @@ export default function LoginPage() {
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center mb-4">
-              <div className="p-3 bg-[#05594C] rounded-lg">
-                <Building2 className="h-8 w-8 text-white" />
+              <div className="p-3 bg-primary rounded-lg">
+                <Building2 className="h-8 w-8 text-primary-foreground" />
               </div>
             </div>
             <CardTitle className="text-2xl font-bold">Duxa Platform</CardTitle>

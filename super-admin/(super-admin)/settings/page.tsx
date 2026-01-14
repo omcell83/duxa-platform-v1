@@ -6,8 +6,8 @@ export default function SuperAdminSettingsPage() {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Ayarlar</h1>
-        <p className="text-gray-600 mt-1">Sistem ve genel ayarlar</p>
+        <h1 className="text-3xl font-bold text-foreground">Ayarlar</h1>
+        <p className="text-muted-foreground mt-1">Sistem ve genel ayarlar</p>
       </div>
 
       {/* Settings Sections */}
@@ -18,7 +18,7 @@ export default function SuperAdminSettingsPage() {
             <CardDescription>SMTP konfigürasyonu</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-gray-500">Email ayarları buraya eklenecek.</p>
+            <p className="text-sm text-muted-foreground">Email ayarları buraya eklenecek.</p>
           </CardContent>
         </Card>
 
@@ -28,7 +28,7 @@ export default function SuperAdminSettingsPage() {
             <CardDescription>Güvenlik ayarları</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-gray-500">Güvenlik ayarları buraya eklenecek.</p>
+            <p className="text-sm text-muted-foreground">Güvenlik ayarları buraya eklenecek.</p>
           </CardContent>
         </Card>
 
@@ -38,7 +38,7 @@ export default function SuperAdminSettingsPage() {
             <CardDescription>Sistem genel ayarları</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-gray-500">Genel ayarlar buraya eklenecek.</p>
+            <p className="text-sm text-muted-foreground">Genel ayarlar buraya eklenecek.</p>
           </CardContent>
         </Card>
 
@@ -48,7 +48,7 @@ export default function SuperAdminSettingsPage() {
             <CardDescription>Veritabanı yedekleme</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-gray-500">Yedekleme ayarları buraya eklenecek.</p>
+            <p className="text-sm text-muted-foreground">Yedekleme ayarları buraya eklenecek.</p>
           </CardContent>
         </Card>
       </div>

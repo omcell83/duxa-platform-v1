@@ -62,8 +62,8 @@ export default async function TenantsPage({ searchParams }: TenantsPageProps) {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">İşletmeler</h1>
-          <p className="text-gray-600 mt-1">Müşteri işletmeleri yönetimi</p>
+          <h1 className="text-3xl font-bold text-foreground">İşletmeler</h1>
+          <p className="text-muted-foreground mt-1">Müşteri işletmeleri yönetimi</p>
         </div>
         <Link href="/super-admin/tenants/new">
           <Button>
@@ -92,7 +92,7 @@ export default async function TenantsPage({ searchParams }: TenantsPageProps) {
         </CardHeader>
         <CardContent>
           {tenants.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-muted-foreground">
               {searchQuery ? "Arama sonucu bulunamadı." : "Henüz işletme eklenmemiş."}
             </div>
           ) : (
@@ -132,7 +132,7 @@ export default async function TenantsPage({ searchParams }: TenantsPageProps) {
                               : "Pasif"}
                           </span>
                           {tenant.is_online && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
                               Online
                             </span>
                           )}

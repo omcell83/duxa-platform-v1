@@ -62,8 +62,8 @@ export default async function TenantsPage({ searchParams }: TenantsPageProps) {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">İşletmeler</h1>
-          <p className="text-gray-600 mt-1">Müşteri işletmeleri yönetimi</p>
+          <h1 className="text-3xl font-bold text-foreground">İşletmeler</h1>
+          <p className="text-muted-foreground mt-1">Müşteri işletmeleri yönetimi</p>
         </div>
         <Link href="/super-admin/tenants/new">
           <Button className="bg-[#05594C] hover:bg-[#044a3f]">
@@ -92,7 +92,7 @@ export default async function TenantsPage({ searchParams }: TenantsPageProps) {
         </CardHeader>
         <CardContent>
           {tenants.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-muted-foreground">
               {searchQuery ? "Arama sonucu bulunamadı." : "Henüz işletme eklenmemiş."}
             </div>
           ) : (
@@ -119,10 +119,10 @@ export default async function TenantsPage({ searchParams }: TenantsPageProps) {
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                               tenant.status === "active"
-                                ? "bg-green-100 text-green-800"
+                                ? "bg-primary/10 text-primary"
                                 : tenant.status === "suspended"
-                                ? "bg-red-100 text-red-800"
-                                : "bg-gray-100 text-gray-800"
+                                ? "bg-destructive/10 text-destructive"
+                                : "bg-muted text-muted-foreground"
                             }`}
                           >
                             {tenant.status === "active"
@@ -132,7 +132,7 @@ export default async function TenantsPage({ searchParams }: TenantsPageProps) {
                               : "Pasif"}
                           </span>
                           {tenant.is_online && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
                               Online
                             </span>
                           )}

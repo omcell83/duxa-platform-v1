@@ -112,8 +112,8 @@ export default function NewTenantPage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Yeni Müşteri Ekle</h1>
-          <p className="text-gray-600 mt-1">Yeni işletme ve yetkili kullanıcı oluştur</p>
+          <h1 className="text-3xl font-bold text-foreground">Yeni Müşteri Ekle</h1>
+          <p className="text-muted-foreground mt-1">Yeni işletme ve yetkili kullanıcı oluştur</p>
         </div>
       </div>
 
@@ -167,7 +167,7 @@ export default function NewTenantPage() {
                       className="flex-1"
                     />
                     {checkingSlug && (
-                      <span className="text-sm text-gray-500">Kontrol ediliyor...</span>
+                      <span className="text-sm text-muted-foreground">Kontrol ediliyor...</span>
                     )}
                     {slugSuggestion && !checkingSlug && (
                       <span className="text-sm text-green-600 flex items-center gap-1">
@@ -182,7 +182,7 @@ export default function NewTenantPage() {
                       {errors.slug.message}
                     </p>
                   )}
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground">
                     İşletme adından otomatik oluşturulur. Türkçe karakterler temizlenir.
                   </p>
                 </div>
@@ -235,7 +235,7 @@ export default function NewTenantPage() {
                       {errors.admin_email.message}
                     </p>
                   )}
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground">
                     Bu email ile sisteme giriş yapılacak
                   </p>
                 </div>
@@ -255,7 +255,7 @@ export default function NewTenantPage() {
                       {errors.admin_password.message}
                     </p>
                   )}
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground">
                     Kullanıcı ilk girişte şifresini değiştirebilir
                   </p>
                 </div>
@@ -269,7 +269,7 @@ export default function NewTenantPage() {
                   İptal
                 </Button>
               </Link>
-              <Button type="submit" disabled={loading} className="bg-[#05594C] hover:bg-[#044a3f]">
+              <Button type="submit" disabled={loading}>
                 <Save className="h-4 w-4 mr-2" />
                 {loading ? "Kaydediliyor..." : "Kaydet"}
               </Button>
