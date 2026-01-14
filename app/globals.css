@@ -1,85 +1,62 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @layer base {
   :root {
-    /* Background & Foreground */
-    --background: 0 0% 100%; /* Tam Beyaz - Light Mode Background */
-    --foreground: 222 47% 11%; /* Dark text for light mode */
-    
-    /* Card/Surface (Modals, Cards) */
-    --card: 0 0% 100%; /* Tam Beyaz - Light Mode Card */
-    --card-foreground: 222 47% 11%; /* Dark text on cards */
-    
-    /* Popover (Modals - Must be fully opaque, same as background) */
-    --popover: 0 0% 100%; /* Tam Beyaz - Same as background */
-    --popover-foreground: 222 47% 11%; /* Same as foreground */
-    
-    /* Primary (Main Brand Color) - #05594C */
-    --primary: 171 89% 18%; /* Dark Teal - Exact HSL */
-    --primary-foreground: 0 0% 100%; /* KESİNLİKLE BEYAZ - White text on primary */
-    
-    /* Secondary (Action/Accent Color) - #EF7F1A */
-    --secondary: 28 87% 52%; /* Orange - Exact HSL */
-    --secondary-foreground: 0 0% 100%; /* Beyaz - White text on secondary */
-    
-    /* Muted (Passive Areas) */
-    --muted: 210 40% 96%; /* Light gray */
-    --muted-foreground: 215 16% 47%; /* Muted text color */
-    
-    /* Accent */
-    --accent: 210 40% 96%; /* Light gray for accents */
-    --accent-foreground: 222 47% 11%; /* Dark text on accent */
-    
-    /* Destructive (Error/Delete) */
-    --destructive: 0 84% 60%; /* Kırmızı - Red */
-    --destructive-foreground: 0 0% 100%; /* Beyaz - White text on destructive */
-    
-    /* Borders & Inputs */
-    --border: 214 32% 91%; /* Light border - visible */
-    --input: 214 32% 91%; /* Input border - visible */
-    --ring: 171 89% 18%; /* Focus ring (primary color) */
-    
-    /* Border Radius */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    /* CARD & POPOVER (MODAL) */
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%; /* Beyaz - Opak */
+    --popover-foreground: 222.2 84% 4.9%;
+
+    /* PRIMARY COLOR: DUXA TEAL (#05594C -> 171 89% 18%) */
+    --primary: 171 89% 18%;
+    --primary-foreground: 0 0% 100%; /* Üzerindeki yazı BEYAZ */
+
+    /* SECONDARY COLOR: DUXA ORANGE (#EF7F1A -> 28 87% 52%) */
+    --secondary: 28 87% 52%;
+    --secondary-foreground: 0 0% 100%; /* Üzerindeki yazı BEYAZ */
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 171 89% 18%; /* Focus olunca yeşil yansın */
     --radius: 0.5rem;
   }
 
   .dark {
-    /* Background & Foreground */
-    --background: 222 47% 11%; /* Koyu Lacivert #0F172A - Dark Mode Background */
-    --foreground: 210 40% 98%; /* Light text for dark mode */
-    
-    /* Card/Surface (Modals, Cards) - Arkaplandan bir tık açık */
-    --card: 217 33% 17%; /* Dark Mode Card (one shade lighter than background) */
-    --card-foreground: 210 40% 98%; /* Light text on cards */
-    
-    /* Popover (Modals - Must be fully opaque, same as background) */
-    --popover: 222 47% 11%; /* Same as background - Fully opaque */
-    --popover-foreground: 210 40% 98%; /* Same as foreground */
-    
-    /* Primary (Main Brand Color) - #05594C */
-    --primary: 171 89% 18%; /* Dark Teal (same in both modes) */
-    --primary-foreground: 0 0% 100%; /* KESİNLİKLE BEYAZ - White text on primary */
-    
-    /* Secondary (Action/Accent Color) - #EF7F1A */
-    --secondary: 28 87% 52%; /* Orange (same in both modes) */
-    --secondary-foreground: 0 0% 100%; /* Beyaz - White text on secondary */
-    
-    /* Muted (Passive Areas) */
-    --muted: 217 33% 17%; /* Dark gray */
-    --muted-foreground: 215 20% 65%; /* Muted text color for dark mode */
-    
-    /* Accent */
-    --accent: 217 33% 17%; /* Dark gray for accents */
-    --accent-foreground: 210 40% 98%; /* Light text on accent */
-    
-    /* Destructive (Error/Delete) */
-    --destructive: 0 63% 31%; /* Darker red for dark mode */
-    --destructive-foreground: 0 0% 100%; /* Beyaz - White text on destructive */
-    
-    /* Borders & Inputs - More visible borders in dark mode */
-    --border: 217 33% 25%; /* Dark border - more visible */
-    --input: 217 33% 25%; /* Dark input border - more visible */
-    --ring: 171 89% 18%; /* Focus ring (primary color) */
+    --background: 222.2 84% 4.9%; /* Koyu Lacivert Arkaplan */
+    --foreground: 210 40% 98%;
+
+    /* CARD & POPOVER (MODAL) - DARK MODE */
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%; /* Koyu - Opak (Şeffaflık yok) */
+    --popover-foreground: 210 40% 98%;
+
+    /* Dark modda Primary aynı kalabilir veya hafif açılabilir, şimdilik sabit */
+    --primary: 171 89% 18%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 28 87% 52%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 171 89% 18%;
   }
 }
 
@@ -87,10 +64,8 @@
   * {
     border-color: hsl(var(--border));
   }
-  
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
 }
