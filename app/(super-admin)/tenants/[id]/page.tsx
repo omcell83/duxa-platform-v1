@@ -1,8 +1,8 @@
 import { createClient } from "@/lib/supabase-server";
-import { redirect, notFound } from "next/navigation";
+import { notFound } from "next/navigation";
 import { TenantDetailPage } from "@/components/tenant-detail-page";
 
-interface TenantDetailPageProps {
+interface PageProps {
   params: {
     id: string;
   };
@@ -45,7 +45,7 @@ async function getTenantData(tenantId: number) {
   };
 }
 
-export default async function TenantDetailPage({ params }: TenantDetailPageProps) {
+export default async function Page({ params }: PageProps) {
   const tenantId = parseInt(params.id);
 
   if (isNaN(tenantId)) {

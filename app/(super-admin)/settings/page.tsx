@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Settings } from "lucide-react";
 
-export default function SettingsPage() {
+export default function SuperAdminSettingsPage() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
