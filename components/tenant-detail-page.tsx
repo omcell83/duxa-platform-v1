@@ -228,7 +228,7 @@ export function TenantDetailPage({ data }: TenantDetailPageProps) {
         </div>
       )}
       {success && (
-        <div className="p-4 bg-green-50 border border-green-200 rounded-md flex items-center gap-2 text-green-700">
+        <div className="p-4 bg-primary/10 border border-primary/20 rounded-md flex items-center gap-2 text-primary">
           <span>{success}</span>
         </div>
       )}
@@ -305,7 +305,7 @@ export function TenantDetailPage({ data }: TenantDetailPageProps) {
                   />
                 </div>
 
-                <Button type="submit" disabled={loading} className="bg-[#05594C] hover:bg-[#044a3f]">
+                <Button type="submit" disabled={loading}>
                   <Save className="h-4 w-4 mr-2" />
                   {loading ? "Kaydediliyor..." : "Kaydet"}
                 </Button>
@@ -391,7 +391,7 @@ export function TenantDetailPage({ data }: TenantDetailPageProps) {
                     </div>
                   )}
 
-                  <Button type="submit" disabled={loading} className="bg-[#05594C] hover:bg-[#044a3f]">
+                  <Button type="submit" disabled={loading}>
                     <Save className="h-4 w-4 mr-2" />
                     {loading ? "Kaydediliyor..." : "Kaydet"}
                   </Button>
@@ -441,7 +441,7 @@ export function TenantDetailPage({ data }: TenantDetailPageProps) {
                   />
                 </div>
 
-                <Button type="submit" disabled={loading} className="bg-[#05594C] hover:bg-[#044a3f]">
+                <Button type="submit" disabled={loading}>
                   <Save className="h-4 w-4 mr-2" />
                   {loading ? "Kaydediliyor..." : "Kaydet"}
                 </Button>

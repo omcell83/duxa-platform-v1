@@ -52,7 +52,7 @@ export function HardwareInventoryList({ initialStats }: HardwareInventoryListPro
               <CardTitle>Cihaz Listesi</CardTitle>
               <CardDescription>Tüm donanım cihazları (Seri No ile)</CardDescription>
             </div>
-            <Button className="bg-[#05594C] hover:bg-[#044a3f]">
+            <Button>
               <Plus className="h-4 w-4 mr-2" />
               Yeni Cihaz Ekle
             </Button>

@@ -57,15 +57,15 @@ export function SuperAdminSidebar() {
       <div className="h-16 border-b border-border flex items-center justify-between px-4">
         {!isCollapsed && (
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-[#05594C] rounded-lg">
-              <Building2 className="h-5 w-5 text-white" />
+            <div className="p-2 bg-primary rounded-lg">
+              <Building2 className="h-5 w-5 text-primary-foreground" />
             </div>
             <span className="font-semibold text-foreground">Duxa Admin</span>
           </div>
         )}
         {isCollapsed && (
-          <div className="p-2 bg-[#05594C] rounded-lg mx-auto">
-            <Building2 className="h-5 w-5 text-white" />
+          <div className="p-2 bg-primary rounded-lg mx-auto">
+            <Building2 className="h-5 w-5 text-primary-foreground" />
           </div>
         )}
         <button

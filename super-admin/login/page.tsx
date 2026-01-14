@@ -123,8 +123,8 @@ function LoginForm() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
-            <div className="p-3 bg-[#05594C] rounded-lg">
-              <Building2 className="h-8 w-8 text-white" />
+            <div className="p-3 bg-primary rounded-lg">
+              <Building2 className="h-8 w-8 text-primary-foreground" />
             </div>
           </div>
           <CardTitle className="text-2xl font-bold">Duxa Platform</CardTitle>
@@ -169,7 +169,7 @@ function LoginForm() {
 
             <Button
               type="submit"
-              className="w-full bg-[#05594C] hover:bg-[#044a3f]"
+              className="w-full"
               disabled={loading}
             >
               {loading ? "Giriş yapılıyor..." : "Giriş Yap"}

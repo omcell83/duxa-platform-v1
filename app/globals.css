@@ -3,24 +3,24 @@
 @layer base {
   :root {
     /* Background & Foreground */
-    --background: 210 33% 98%; /* #F8FAFC - Light Mode Background */
+    --background: 0 0% 100%; /* Tam Beyaz - Light Mode Background */
     --foreground: 222 47% 11%; /* Dark text for light mode */
     
     /* Card/Surface (Modals, Cards) */
-    --card: 0 0% 100%; /* #FFFFFF - White for light mode */
+    --card: 0 0% 100%; /* Tam Beyaz - Light Mode Card */
     --card-foreground: 222 47% 11%; /* Dark text on cards */
     
-    /* Popover (Modals - Must be fully opaque) */
-    --popover: 0 0% 100%; /* #FFFFFF - White, fully opaque */
-    --popover-foreground: 222 47% 11%; /* Dark text on popovers */
+    /* Popover (Modals - Must be fully opaque, same as background) */
+    --popover: 0 0% 100%; /* Tam Beyaz - Same as background */
+    --popover-foreground: 222 47% 11%; /* Same as foreground */
     
     /* Primary (Main Brand Color) - #05594C */
-    --primary: 172 89% 19%; /* Dark Teal */
-    --primary-foreground: 0 0% 100%; /* White text on primary */
+    --primary: 171 89% 18%; /* Dark Teal - Exact HSL */
+    --primary-foreground: 0 0% 100%; /* KESİNLİKLE BEYAZ - White text on primary */
     
     /* Secondary (Action/Accent Color) - #EF7F1A */
-    --secondary: 25 87% 52%; /* Orange */
-    --secondary-foreground: 0 0% 100%; /* White text on secondary */
+    --secondary: 28 87% 52%; /* Orange - Exact HSL */
+    --secondary-foreground: 0 0% 100%; /* Beyaz - White text on secondary */
     
     /* Muted (Passive Areas) */
     --muted: 210 40% 96%; /* Light gray */
@@ -31,13 +31,13 @@
     --accent-foreground: 222 47% 11%; /* Dark text on accent */
     
     /* Destructive (Error/Delete) */
-    --destructive: 0 84% 60%; /* #ef4444 - Red */
-    --destructive-foreground: 0 0% 100%; /* White text on destructive */
+    --destructive: 0 84% 60%; /* Kırmızı - Red */
+    --destructive-foreground: 0 0% 100%; /* Beyaz - White text on destructive */
     
-    /* Borders & Inputs - More visible borders */
+    /* Borders & Inputs */
     --border: 214 32% 91%; /* Light border - visible */
     --input: 214 32% 91%; /* Input border - visible */
-    --ring: 172 89% 19%; /* Focus ring (primary color) */
+    --ring: 171 89% 18%; /* Focus ring (primary color) */
     
     /* Border Radius */
     --radius: 0.5rem;
@@ -45,24 +45,24 @@
 
   .dark {
     /* Background & Foreground */
-    --background: 222 47% 11%; /* #0F172A - Dark Mode Background */
+    --background: 222 47% 11%; /* Koyu Lacivert #0F172A - Dark Mode Background */
     --foreground: 210 40% 98%; /* Light text for dark mode */
     
-    /* Card/Surface (Modals, Cards) */
-    --card: 213 27% 24%; /* #1E293B - Dark Mode Card (one shade lighter than background) */
+    /* Card/Surface (Modals, Cards) - Arkaplandan bir tık açık */
+    --card: 217 33% 17%; /* Dark Mode Card (one shade lighter than background) */
     --card-foreground: 210 40% 98%; /* Light text on cards */
     
-    /* Popover (Modals - Must be fully opaque) */
-    --popover: 213 27% 24%; /* #1E293B - Dark Mode Popover, fully opaque */
-    --popover-foreground: 210 40% 98%; /* Light text on popovers */
+    /* Popover (Modals - Must be fully opaque, same as background) */
+    --popover: 222 47% 11%; /* Same as background - Fully opaque */
+    --popover-foreground: 210 40% 98%; /* Same as foreground */
     
     /* Primary (Main Brand Color) - #05594C */
-    --primary: 172 89% 19%; /* Dark Teal (same in both modes) */
-    --primary-foreground: 0 0% 100%; /* White text on primary */
+    --primary: 171 89% 18%; /* Dark Teal (same in both modes) */
+    --primary-foreground: 0 0% 100%; /* KESİNLİKLE BEYAZ - White text on primary */
     
     /* Secondary (Action/Accent Color) - #EF7F1A */
-    --secondary: 25 87% 52%; /* Orange (same in both modes) */
-    --secondary-foreground: 0 0% 100%; /* White text on secondary */
+    --secondary: 28 87% 52%; /* Orange (same in both modes) */
+    --secondary-foreground: 0 0% 100%; /* Beyaz - White text on secondary */
     
     /* Muted (Passive Areas) */
     --muted: 217 33% 17%; /* Dark gray */
@@ -74,12 +74,12 @@
     
     /* Destructive (Error/Delete) */
     --destructive: 0 63% 31%; /* Darker red for dark mode */
-    --destructive-foreground: 0 0% 100%; /* White text on destructive */
+    --destructive-foreground: 0 0% 100%; /* Beyaz - White text on destructive */
     
     /* Borders & Inputs - More visible borders in dark mode */
-    --border: 217 33% 25%; /* Dark border - more visible (was 17%, now 25%) */
+    --border: 217 33% 25%; /* Dark border - more visible */
     --input: 217 33% 25%; /* Dark input border - more visible */
-    --ring: 172 89% 19%; /* Focus ring (primary color) */
+    --ring: 171 89% 18%; /* Focus ring (primary color) */
   }
 }
 

@@ -11,7 +11,7 @@ export default function TranslationsPage() {
           <h1 className="text-3xl font-bold text-gray-900">Sistem Çevirileri</h1>
           <p className="text-gray-600 mt-1">Çok dilli içerik yönetimi</p>
         </div>
-        <Button className="bg-[#05594C] hover:bg-[#044a3f]">
+        <Button>
           <Plus className="h-4 w-4 mr-2" />
           Yeni Çeviri Ekle
         </Button>

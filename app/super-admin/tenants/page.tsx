@@ -66,7 +66,7 @@ export default async function TenantsPage({ searchParams }: TenantsPageProps) {
           <p className="text-gray-600 mt-1">Müşteri işletmeleri yönetimi</p>
         </div>
         <Link href="/super-admin/tenants/new">
-          <Button className="bg-[#05594C] hover:bg-[#044a3f]">
+          <Button>
             <Plus className="h-4 w-4 mr-2" />
             Yeni Müşteri Ekle
           </Button>
@@ -119,10 +119,10 @@ export default async function TenantsPage({ searchParams }: TenantsPageProps) {
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                               tenant.status === "active"
-                                ? "bg-green-100 text-green-800"
+                                ? "bg-primary/10 text-primary"
                                 : tenant.status === "suspended"
-                                ? "bg-red-100 text-red-800"
-                                : "bg-gray-100 text-gray-800"
+                                ? "bg-destructive/10 text-destructive"
+                                : "bg-muted text-muted-foreground"
                             }`}
                           >
                             {tenant.status === "active"

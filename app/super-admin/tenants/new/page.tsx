@@ -269,7 +269,7 @@ export default function NewTenantPage() {
                   İptal
                 </Button>
               </Link>
-              <Button type="submit" disabled={loading} className="bg-[#05594C] hover:bg-[#044a3f]">
+              <Button type="submit" disabled={loading}>
                 <Save className="h-4 w-4 mr-2" />
                 {loading ? "Kaydediliyor..." : "Kaydet"}
               </Button>

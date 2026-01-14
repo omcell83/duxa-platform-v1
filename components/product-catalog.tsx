@@ -99,7 +99,7 @@ export function ProductCatalog({ initialProducts }: ProductCatalogProps) {
               <CardTitle>Ürün Kataloğu</CardTitle>
               <CardDescription>Tüm satılabilir ürünler</CardDescription>
             </div>
-            <Button onClick={handleAdd} className="bg-[#05594C] hover:bg-[#044a3f]">
+            <Button onClick={handleAdd}>
               <Plus className="h-4 w-4 mr-2" />
               Yeni Ürün Ekle
             </Button>
@@ -161,7 +161,7 @@ export function ProductCatalog({ initialProducts }: ProductCatalogProps) {
                         )}
                       </TableCell>
                       <TableCell>
-                        <span className="font-semibold text-[#05594C]">
+                        <span className="font-semibold text-primary">
                           {product.total_sales || 0}
                         </span>
                       </TableCell>
