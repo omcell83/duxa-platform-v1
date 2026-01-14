@@ -1,0 +1,151 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Building2, AlertCircle } from "lucide-react";
+
+export default function LoginPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Check for error in URL params
+    const errorParam = searchParams.get("error");
+    if (errorParam === "unauthorized") {
+      setError("Bu sayfaya erişim yetkiniz yok.");
+    } else if (errorParam === "account_inactive") {
+      setError("Hesabınız aktif değil. Lütfen yönetici ile iletişime geçin.");
+    }
+  }, [searchParams]);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        setError(signInError.message || "Giriş başarısız. Email ve şifrenizi kontrol edin.");
+        setLoading(false);
+        return;
+      }
+
+      if (!data.user) {
+        setError("Kullanıcı bulunamadı.");
+        setLoading(false);
+        return;
+      }
+
+      // Get user profile to determine role
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("role, is_active")
+        .eq("id", data.user.id)
+        .single();
+
+      if (profileError || !profile) {
+        setError("Kullanıcı profili bulunamadı.");
+        setLoading(false);
+        return;
+      }
+
+      if (!profile.is_active) {
+        setError("Hesabınız aktif değil. Lütfen yönetici ile iletişime geçin.");
+        setLoading(false);
+        return;
+      }
+
+      // Redirect based on role
+      const redirectPath = searchParams.get("redirect") || "";
+      
+      if (profile.role === "super_admin") {
+        router.push(redirectPath || "/super-admin/dashboard");
+      } else if (profile.role === "tenant_admin" || profile.role === "user") {
+        router.push(redirectPath || "/dashboard");
+      } else {
+        router.push("/dashboard");
+      }
+
+      router.refresh();
+    } catch (err: any) {
+      setError(err.message || "Bir hata oluştu. Lütfen tekrar deneyin.");
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1 text-center">
+          <div className="flex justify-center mb-4">
+            <div className="p-3 bg-[#05594C] rounded-lg">
+              <Building2 className="h-8 w-8 text-white" />
+            </div>
+          </div>
+          <CardTitle className="text-2xl font-bold">Duxa Platform</CardTitle>
+          <CardDescription>Hesabınıza giriş yapın</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleLogin} className="space-y-4">
+            {error && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-md flex items-center gap-2 text-red-700 text-sm">
+                <AlertCircle className="h-4 w-4" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="ornek@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={loading}
+                autoComplete="email"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">Şifre</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                disabled={loading}
+                autoComplete="current-password"
+              />
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full bg-[#05594C] hover:bg-[#044a3f]"
+              disabled={loading}
+            >
+              {loading ? "Giriş yapılıyor..." : "Giriş Yap"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

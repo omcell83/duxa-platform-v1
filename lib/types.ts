@@ -36,3 +36,351 @@ export interface NewsletterSubscriberUpdate {
   email?: string;
   is_active?: boolean;
 }
+
+/**
+ * =====================================================
+ * SUPER ADMIN MODULE TYPES
+ * =====================================================
+ */
+
+/**
+ * profiles Tablosu (Admin Users / Personel Bilgileri)
+ */
+export type UserRole = 'super_admin' | 'support' | 'sales' | 'user';
+
+export interface Profile {
+  id: string; // uuid
+  email: string;
+  full_name?: string | null;
+  role: UserRole;
+  phone?: string | null;
+  department?: string | null;
+  position?: string | null;
+  is_active: boolean;
+  last_login_at?: string | null; // timestamp with time zone -> ISO string
+  created_at: string; // timestamp with time zone -> ISO string
+  updated_at: string; // timestamp with time zone -> ISO string
+}
+
+export interface ProfileInsert {
+  id: string; // uuid (from auth.users)
+  email: string;
+  full_name?: string | null;
+  role?: UserRole; // Default: 'user'
+  phone?: string | null;
+  department?: string | null;
+  position?: string | null;
+  is_active?: boolean; // Default: true
+}
+
+export interface ProfileUpdate {
+  email?: string;
+  full_name?: string | null;
+  role?: UserRole;
+  phone?: string | null;
+  department?: string | null;
+  position?: string | null;
+  is_active?: boolean;
+  last_login_at?: string | null;
+}
+
+/**
+ * tenants Tablosu (Genişletilmiş)
+ */
+export type TenantStatus = 'active' | 'passive' | 'suspended';
+export type PaymentPeriod = 'monthly' | 'quarterly' | 'yearly';
+export type PaymentStatus = 'paid' | 'pending' | 'overdue' | 'cancelled';
+
+export interface Tenant {
+  id: number; // bigint
+  name: string;
+  slug: string;
+  status: TenantStatus;
+  subscription_plan?: string | null; // Mevcut alan
+  commercial_name?: string | null; // Ticari Unvan
+  brand_name?: string | null; // Marka Adı
+  tax_number?: string | null; // Vergi No
+  contact_email?: string | null;
+  contact_phone?: string | null;
+  contact_address?: string | null;
+  is_online?: boolean | null; // Default: false
+  contract_date?: string | null; // date -> ISO string
+  payment_period?: PaymentPeriod | null;
+  last_payment_status?: PaymentStatus | null;
+  last_payment_date?: string | null; // date -> ISO string
+  created_at: string; // timestamp with time zone -> ISO string
+  updated_at?: string | null; // timestamp with time zone -> ISO string
+}
+
+export interface TenantInsert {
+  name: string;
+  slug: string;
+  status?: TenantStatus; // Default: 'active'
+  subscription_plan?: string | null;
+  commercial_name?: string | null;
+  brand_name?: string | null;
+  tax_number?: string | null;
+  contact_email?: string | null;
+  contact_phone?: string | null;
+  contact_address?: string | null;
+  is_online?: boolean; // Default: false
+  contract_date?: string | null;
+  payment_period?: PaymentPeriod | null;
+  last_payment_status?: PaymentStatus | null;
+  last_payment_date?: string | null;
+}
+
+export interface TenantUpdate {
+  name?: string;
+  slug?: string;
+  status?: TenantStatus;
+  subscription_plan?: string | null;
+  commercial_name?: string | null;
+  brand_name?: string | null;
+  tax_number?: string | null;
+  contact_email?: string | null;
+  contact_phone?: string | null;
+  contact_address?: string | null;
+  is_online?: boolean | null;
+  contract_date?: string | null;
+  payment_period?: PaymentPeriod | null;
+  last_payment_status?: PaymentStatus | null;
+  last_payment_date?: string | null;
+}
+
+/**
+ * subscriptions Tablosu (Abonelikler ve Ödemeler)
+ */
+export type HardwarePaymentMethod = 'one_time' | 'installment' | 'rental';
+export type SubscriptionPaymentMethod = 'credit_card' | 'bank_transfer' | 'cash' | 'check' | 'other';
+export type SubscriptionPaymentStatus = 'paid' | 'pending' | 'overdue' | 'cancelled' | 'refunded';
+
+export interface Subscription {
+  id: number; // bigint
+  tenant_id: number; // bigint (FK to tenants)
+  contract_content?: string | null;
+  contract_price: number; // decimal(10,2) -> number
+  contract_date: string; // date -> ISO string
+  contract_start_date?: string | null; // date -> ISO string
+  contract_end_date?: string | null; // date -> ISO string
+  special_terms?: string | null;
+  discount_rate?: number | null; // decimal(5,2) -> number (0-100)
+  hardware_list?: Record<string, any> | null; // jsonb
+  hardware_total_price?: number | null; // decimal(10,2) -> number
+  hardware_payment_method?: HardwarePaymentMethod | null;
+  payment_status: SubscriptionPaymentStatus; // Default: 'pending'
+  payment_date?: string | null; // date -> ISO string
+  payment_amount?: number | null; // decimal(10,2) -> number
+  payment_method?: SubscriptionPaymentMethod | null;
+  payment_reference?: string | null;
+  invoice_number?: string | null;
+  notes?: string | null;
+  created_at: string; // timestamp with time zone -> ISO string
+  updated_at: string; // timestamp with time zone -> ISO string
+  created_by?: string | null; // uuid (FK to profiles)
+}
+
+export interface SubscriptionInsert {
+  tenant_id: number;
+  contract_content?: string | null;
+  contract_price: number;
+  contract_date: string;
+  contract_start_date?: string | null;
+  contract_end_date?: string | null;
+  special_terms?: string | null;
+  discount_rate?: number | null; // 0-100
+  hardware_list?: Record<string, any> | null;
+  hardware_total_price?: number | null;
+  hardware_payment_method?: HardwarePaymentMethod | null;
+  payment_status?: SubscriptionPaymentStatus; // Default: 'pending'
+  payment_date?: string | null;
+  payment_amount?: number | null;
+  payment_method?: SubscriptionPaymentMethod | null;
+  payment_reference?: string | null;
+  invoice_number?: string | null;
+  notes?: string | null;
+  created_by?: string | null;
+}
+
+export interface SubscriptionUpdate {
+  tenant_id?: number;
+  contract_content?: string | null;
+  contract_price?: number;
+  contract_date?: string;
+  contract_start_date?: string | null;
+  contract_end_date?: string | null;
+  special_terms?: string | null;
+  discount_rate?: number | null;
+  hardware_list?: Record<string, any> | null;
+  hardware_total_price?: number | null;
+  hardware_payment_method?: HardwarePaymentMethod | null;
+  payment_status?: SubscriptionPaymentStatus;
+  payment_date?: string | null;
+  payment_amount?: number | null;
+  payment_method?: SubscriptionPaymentMethod | null;
+  payment_reference?: string | null;
+  invoice_number?: string | null;
+  notes?: string | null;
+}
+
+/**
+ * hardware_inventory Tablosu (Donanım Envanteri)
+ */
+export type DeviceType = 'kiosk' | 'pos';
+export type HardwareStatus = 'in_stock' | 'rented' | 'under_repair' | 'broken' | 'decommissioned';
+
+export interface HardwareInventory {
+  id: number; // bigint
+  serial_number: string; // UNIQUE
+  device_type: DeviceType;
+  status: HardwareStatus; // Default: 'in_stock'
+  tenant_id?: number | null; // bigint (FK to tenants)
+  warehouse_entry_date?: string | null; // date -> ISO string
+  assignment_date?: string | null; // date -> ISO string
+  return_date?: string | null; // date -> ISO string
+  model?: string | null;
+  manufacturer?: string | null;
+  purchase_price?: number | null; // decimal(10,2) -> number
+  notes?: string | null;
+  created_at: string; // timestamp with time zone -> ISO string
+  updated_at: string; // timestamp with time zone -> ISO string
+}
+
+export interface HardwareInventoryInsert {
+  serial_number: string;
+  device_type: DeviceType;
+  status?: HardwareStatus; // Default: 'in_stock'
+  tenant_id?: number | null;
+  warehouse_entry_date?: string | null;
+  assignment_date?: string | null;
+  return_date?: string | null;
+  model?: string | null;
+  manufacturer?: string | null;
+  purchase_price?: number | null;
+  notes?: string | null;
+}
+
+export interface HardwareInventoryUpdate {
+  serial_number?: string;
+  device_type?: DeviceType;
+  status?: HardwareStatus;
+  tenant_id?: number | null;
+  warehouse_entry_date?: string | null;
+  assignment_date?: string | null;
+  return_date?: string | null;
+  model?: string | null;
+  manufacturer?: string | null;
+  purchase_price?: number | null;
+  notes?: string | null;
+}
+
+/**
+ * system_translations Tablosu (Sistem Çevirileri)
+ */
+export interface SystemTranslation {
+  id: number; // bigint
+  key: string;
+  lang_code: string; // varchar(10)
+  value: string;
+  context?: string | null;
+  created_at: string; // timestamp with time zone -> ISO string
+  updated_at: string; // timestamp with time zone -> ISO string
+}
+
+export interface SystemTranslationInsert {
+  key: string;
+  lang_code: string;
+  value: string;
+  context?: string | null;
+}
+
+export interface SystemTranslationUpdate {
+  key?: string;
+  lang_code?: string;
+  value?: string;
+  context?: string | null;
+}
+
+/**
+ * mail_configs Tablosu (Email Ayarları ve Şablonlar)
+ */
+export type MailConfigType = 'smtp' | 'template';
+export type SMTPEncryption = 'none' | 'ssl' | 'tls';
+
+export interface MailConfig {
+  id: number; // bigint
+  name: string; // UNIQUE
+  config_type: MailConfigType;
+  smtp_host?: string | null;
+  smtp_port?: number | null;
+  smtp_username?: string | null;
+  smtp_password?: string | null; // Encrypted olarak saklanmalı
+  smtp_encryption?: SMTPEncryption | null;
+  smtp_from_email?: string | null;
+  smtp_from_name?: string | null;
+  template_subject?: string | null;
+  template_body_html?: string | null;
+  template_body_text?: string | null;
+  template_variables?: Record<string, any> | null; // jsonb
+  is_active?: boolean | null; // Default: true
+  is_default?: boolean | null; // Default: false
+  created_at: string; // timestamp with time zone -> ISO string
+  updated_at: string; // timestamp with time zone -> ISO string
+}
+
+export interface MailConfigInsert {
+  name: string;
+  config_type: MailConfigType;
+  smtp_host?: string | null;
+  smtp_port?: number | null;
+  smtp_username?: string | null;
+  smtp_password?: string | null;
+  smtp_encryption?: SMTPEncryption | null;
+  smtp_from_email?: string | null;
+  smtp_from_name?: string | null;
+  template_subject?: string | null;
+  template_body_html?: string | null;
+  template_body_text?: string | null;
+  template_variables?: Record<string, any> | null;
+  is_active?: boolean; // Default: true
+  is_default?: boolean; // Default: false
+}
+
+export interface MailConfigUpdate {
+  name?: string;
+  config_type?: MailConfigType;
+  smtp_host?: string | null;
+  smtp_port?: number | null;
+  smtp_username?: string | null;
+  smtp_password?: string | null;
+  smtp_encryption?: SMTPEncryption | null;
+  smtp_from_email?: string | null;
+  smtp_from_name?: string | null;
+  template_subject?: string | null;
+  template_body_html?: string | null;
+  template_body_text?: string | null;
+  template_variables?: Record<string, any> | null;
+  is_active?: boolean | null;
+  is_default?: boolean | null;
+}
+
+/**
+ * Mevcut categories ve products tabloları için tipler (referans için)
+ */
+export interface Category {
+  id: number; // bigint
+  tenant_id: number; // bigint (FK to tenants)
+  name: string;
+  created_at: string; // timestamp with time zone -> ISO string
+}
+
+export interface Product {
+  id: number; // bigint
+  tenant_id: number; // bigint (FK to tenants)
+  category_id?: number | null; // bigint (FK to categories)
+  name: string;
+  price: number; // integer (kuruş cinsinden)
+  image_url?: string | null;
+  is_available?: boolean | null; // Default: true
+  created_at: string; // timestamp with time zone -> ISO string
+}

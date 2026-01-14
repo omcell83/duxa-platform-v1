@@ -1,0 +1,43 @@
+"use client";
+
+import { useRouter, useSearchParams } from "next/navigation";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Search } from "lucide-react";
+import { useState, FormEvent } from "react";
+
+export function TenantsSearch() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const params = new URLSearchParams();
+    if (searchQuery.trim()) {
+      params.set("q", searchQuery.trim());
+    }
+    router.push(`/super-admin/tenants?${params.toString()}`);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="relative">
+      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+      <Input
+        type="text"
+        placeholder="İşletme adı, yasal isim, telefon veya email ile ara..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        className="pl-10 pr-20"
+      />
+      <Button
+        type="submit"
+        variant="outline"
+        size="sm"
+        className="absolute right-2 top-1/2 transform -translate-y-1/2"
+      >
+        Ara
+      </Button>
+    </form>
+  );
+}
