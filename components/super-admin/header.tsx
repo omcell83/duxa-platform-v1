@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase-browser";
 import { Button } from "@/components/ui/button";
 import { User, LogOut, Bell } from "lucide-react";
 import { useState, useEffect } from "react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface UserProfile {
   email: string;
@@ -72,38 +73,41 @@ export function SuperAdminHeader() {
   };
 
   return (
-    <header className="h-16 border-b border-gray-200 bg-white sticky top-0 z-10">
+    <header className="h-16 border-b border-border bg-background sticky top-0 z-10">
       <div className="h-full px-6 flex items-center justify-between">
         {/* Left side - can be used for breadcrumbs or title */}
         <div className="flex items-center gap-4">
-          <h1 className="text-lg font-semibold text-gray-900">
+          <h1 className="text-lg font-semibold text-foreground">
             Süper Admin Paneli
           </h1>
         </div>
 
         {/* Right side - User menu */}
         <div className="flex items-center gap-3">
+          {/* Theme Toggle */}
+          <ThemeToggle />
+
           {/* Notifications (optional) */}
           <button
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors relative"
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors relative"
             aria-label="Bildirimler"
           >
-            <Bell className="h-5 w-5 text-gray-600" />
+            <Bell className="h-5 w-5 text-gray-600 dark:text-gray-400" />
             {/* Notification badge can be added here */}
           </button>
 
           {/* User info */}
           {!loading && user && (
-            <div className="flex items-center gap-3 pl-3 border-l border-gray-200">
+            <div className="flex items-center gap-3 pl-3 border-l border-border">
               <div className="flex items-center gap-2">
-                <div className="p-2 bg-gray-100 rounded-full">
-                  <User className="h-4 w-4 text-gray-600" />
+                <div className="p-2 bg-muted rounded-full">
+                  <User className="h-4 w-4 text-muted-foreground" />
                 </div>
                 <div className="hidden sm:block text-right">
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-sm font-medium text-foreground">
                     {user.full_name || "Admin"}
                   </p>
-                  <p className="text-xs text-gray-500">{user.email}</p>
+                  <p className="text-xs text-muted-foreground">{user.email}</p>
                 </div>
               </div>
               <Button
@@ -121,7 +125,7 @@ export function SuperAdminHeader() {
 
           {loading && (
             <div className="flex items-center gap-2">
-              <div className="h-8 w-8 bg-gray-200 rounded-full animate-pulse" />
+              <div className="h-8 w-8 bg-muted rounded-full animate-pulse" />
             </div>
           )}
         </div>

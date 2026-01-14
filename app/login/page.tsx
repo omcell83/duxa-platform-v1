@@ -8,11 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2, AlertCircle } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { getUserTheme } from "@/app/actions/user-settings";
+import { useTheme } from "next-themes";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
+  const { setTheme } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -86,6 +90,17 @@ function LoginForm() {
       // Cookie'lerin set edilmesi için kısa bir bekleme
       await new Promise(resolve => setTimeout(resolve, 300));
 
+      // Kullanıcının tema tercihini yükle ve uygula
+      try {
+        const dbTheme = await getUserTheme();
+        if (dbTheme) {
+          setTheme(dbTheme);
+        }
+      } catch (themeError) {
+        console.error("Error loading user theme:", themeError);
+        // Tema yükleme hatası kritik değil, devam et
+      }
+
       // SONRA: Redirect path'i belirle
       const redirectPath = searchParams.get("redirect") || "";
       let targetPath = "";
@@ -119,7 +134,12 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4 relative">
+      {/* Theme Toggle - Top Right */}
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
+
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
@@ -184,7 +204,7 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center mb-4">

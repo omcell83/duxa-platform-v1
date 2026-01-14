@@ -1,3 +1,4 @@
+
 # DUXA PLATFORM - SECURITY & CODING MANIFESTO
 
 You are creating a high-security, offline-first restaurant SaaS called "Duxa".
@@ -32,3 +33,19 @@ Prioritize STABILITY, SECURITY, and TYPE SAFETY over speed.
 - **Styling:** Tailwind CSS, Shadcn UI.
 - **State:** Zustand (Client), TanStack Query (Server State).
 - **DB:** Supabase (Cloud), SQLite (Local).
+
+
+## 5. UI/UX DESIGN SYSTEM (THEME)
+- **Component Library:** Use **Shadcn UI** for ALL interactive elements (Buttons, Inputs, Modals, Tabs). Do not build from scratch.
+- **Colors:**
+  - Use `bg-primary` for main actions (Save, Submit).
+  - Use `bg-secondary` for highlights or secondary actions.
+  - Use `bg-destructive` for dangerous actions (Delete, Suspend).
+  - Use `bg-muted` for disabled states or secondary info.
+  - Use `bg-card` for containers/panels.
+  - Use `bg-popover` for Modals and Dropdowns (Must be opaque).
+- **Layout:**
+  - Use `container mx-auto` for page widths.
+  - Use `gap-4` or `gap-6` for consistent spacing.
+  - Use `rounded-lg` (radius variable) for borders.
+- **Dark Mode:** All UI code MUST support Dark Mode automatically by using the semantic classes above.
