@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase-browser";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,7 @@ import { Building2, AlertCircle } from "lucide-react";
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const supabase = createClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -73,8 +74,17 @@ function LoginForm() {
       console.log("Login successful - User role:", profile.role);
       console.log("Profile data:", profile);
 
+      // Cookie'lerin set edilmesi için session'ı kontrol et
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        console.error("Session not found after login!");
+        setError("Oturum oluşturulamadı. Lütfen tekrar deneyin.");
+        setLoading(false);
+        return;
+      }
+
       // Cookie'lerin set edilmesi için kısa bir bekleme
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise(resolve => setTimeout(resolve, 300));
 
       // SONRA: Redirect path'i belirle
       const redirectPath = searchParams.get("redirect") || "";
@@ -99,9 +109,9 @@ function LoginForm() {
 
       console.log("Redirecting to:", targetPath);
 
-      // window.location.href kullan - full page reload yapar ve middleware'in cookie'leri görmesini sağlar
-      // Bu, router.replace'den daha güvenilir çünkü server-side middleware çalışır
-      window.location.href = targetPath;
+      // window.location.replace kullan - full page reload yapar ve middleware'in cookie'leri görmesini sağlar
+      // replace kullanıyoruz ki geri tuşu ile login sayfasına dönmesin
+      window.location.replace(targetPath);
     } catch (err: any) {
       setError(err.message || "Bir hata oluştu. Lütfen tekrar deneyin.");
       setLoading(false);
