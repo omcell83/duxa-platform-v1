@@ -49,18 +49,18 @@ export function SuperAdminSidebar() {
   return (
     <aside
       className={cn(
-        "bg-white border-r border-gray-200 transition-all duration-300 flex flex-col h-screen sticky top-0",
+        "bg-card border-r border-border transition-all duration-300 flex flex-col h-screen sticky top-0",
         isCollapsed ? "w-16" : "w-64"
       )}
     >
       {/* Logo/Header */}
-      <div className="h-16 border-b border-gray-200 flex items-center justify-between px-4">
+      <div className="h-16 border-b border-border flex items-center justify-between px-4">
         {!isCollapsed && (
           <div className="flex items-center gap-2">
             <div className="p-2 bg-[#05594C] rounded-lg">
               <Building2 className="h-5 w-5 text-white" />
             </div>
-            <span className="font-semibold text-gray-900">Duxa Admin</span>
+            <span className="font-semibold text-foreground">Duxa Admin</span>
           </div>
         )}
         {isCollapsed && (
@@ -70,13 +70,13 @@ export function SuperAdminSidebar() {
         )}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="p-1.5 rounded-md hover:bg-gray-100 transition-colors"
+          className="p-1.5 rounded-md hover:bg-muted transition-colors"
           aria-label={isCollapsed ? "Menüyü genişlet" : "Menüyü daralt"}
         >
           {isCollapsed ? (
-            <ChevronRight className="h-4 w-4 text-gray-600" />
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
           ) : (
-            <ChevronLeft className="h-4 w-4 text-gray-600" />
+            <ChevronLeft className="h-4 w-4 text-muted-foreground" />
           )}
         </button>
       </div>
@@ -94,15 +94,15 @@ export function SuperAdminSidebar() {
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors group",
                 isActive
-                  ? "bg-[#05594C] text-white"
-                  : "text-gray-700 hover:bg-gray-100"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-foreground hover:bg-muted"
               )}
               title={isCollapsed ? item.title : undefined}
             >
               <Icon
                 className={cn(
                   "h-5 w-5 flex-shrink-0",
-                  isActive ? "text-white" : "text-gray-500 group-hover:text-gray-700"
+                  isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground"
                 )}
               />
               {!isCollapsed && (
@@ -115,8 +115,8 @@ export function SuperAdminSidebar() {
 
       {/* Footer */}
       {!isCollapsed && (
-        <div className="p-4 border-t border-gray-200">
-          <p className="text-xs text-gray-500 text-center">
+        <div className="p-4 border-t border-border">
+          <p className="text-xs text-muted-foreground text-center">
             Duxa Platform v1.0
           </p>
         </div>

@@ -128,8 +128,8 @@ export default async function SuperAdminDashboardPage() {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-1">Sistem genel bakış ve istatistikler</p>
+        <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+        <p className="text-muted-foreground mt-1">Sistem genel bakış ve istatistikler</p>
       </div>
 
       {/* Stats Cards */}
@@ -184,7 +184,7 @@ export default async function SuperAdminDashboardPage() {
         </CardHeader>
         <CardContent>
           {upcomingPayments.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-muted-foreground">
               Yaklaşan ödeme bulunmuyor.
             </div>
           ) : (
@@ -220,10 +220,10 @@ export default async function SuperAdminDashboardPage() {
                           <span
                             className={
                               isOverdue
-                                ? "text-red-600 font-semibold"
+                                ? "text-destructive font-semibold"
                                 : daysUntil <= 7
-                                ? "text-orange-600 font-semibold"
-                                : "text-gray-600"
+                                ? "text-secondary font-semibold"
+                                : "text-muted-foreground"
                             }
                           >
                             {isOverdue
@@ -243,10 +243,10 @@ export default async function SuperAdminDashboardPage() {
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                             isOverdue
-                              ? "bg-red-100 text-red-800"
+                              ? "bg-destructive/10 text-destructive"
                               : subscription.payment_status === "pending"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : "bg-gray-100 text-gray-800"
+                              ? "bg-secondary/10 text-secondary"
+                              : "bg-muted text-muted-foreground"
                           }`}
                         >
                           {isOverdue

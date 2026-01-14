@@ -89,10 +89,10 @@ export function SuperAdminHeader() {
 
           {/* Notifications (optional) */}
           <button
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors relative"
+            className="p-2 rounded-lg hover:bg-muted transition-colors relative"
             aria-label="Bildirimler"
           >
-            <Bell className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+            <Bell className="h-5 w-5 text-muted-foreground" />
             {/* Notification badge can be added here */}
           </button>
 
