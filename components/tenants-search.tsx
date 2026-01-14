@@ -4,9 +4,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, Suspense } from "react";
 
-export function TenantsSearch() {
+function TenantsSearchForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
@@ -39,5 +39,31 @@ export function TenantsSearch() {
         Ara
       </Button>
     </form>
+  );
+}
+
+export function TenantsSearch() {
+  return (
+    <Suspense fallback={
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Input
+          type="text"
+          placeholder="İşletme adı, yasal isim, telefon veya email ile ara..."
+          disabled
+          className="pl-10 pr-20"
+        />
+        <Button
+          variant="outline"
+          size="sm"
+          disabled
+          className="absolute right-2 top-1/2 transform -translate-y-1/2"
+        >
+          Ara
+        </Button>
+      </div>
+    }>
+      <TenantsSearchForm />
+    </Suspense>
   );
 }
