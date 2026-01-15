@@ -40,6 +40,7 @@ export async function middleware(request: NextRequest) {
   const isForgotPasswordPage = pathname === '/login/forgot-password';
   const isUpdatePasswordPage = pathname === '/login/update-password';
   const isChangePasswordPage = pathname === '/dashboard/change-password';
+  const isAuthCallback = pathname === '/auth/callback';
   const isSuperAdminRoute = pathname.startsWith('/super-admin');
   const isDashboardRoute = pathname.startsWith('/dashboard');
   const isAppRoute = pathname.startsWith('/menu-builder') || pathname.startsWith('/settings');
@@ -51,6 +52,11 @@ export async function middleware(request: NextRequest) {
 
   // Public routes - allow access
   if (isPublicRoute) {
+    return response;
+  }
+
+  // Auth callback route - allow access (needed for PKCE flow)
+  if (isAuthCallback) {
     return response;
   }
 

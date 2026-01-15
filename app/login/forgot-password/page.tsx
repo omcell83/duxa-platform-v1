@@ -27,16 +27,13 @@ export default function ForgotPasswordPage() {
     try {
       const result = await resetPasswordForEmail(email);
 
-      if (!result.success) {
-        setError(result.error || "Bir hata oluştu");
-        setLoading(false);
-        return;
-      }
-
+      // Always show success message (security: prevents email enumeration)
+      // The server action always returns success: true
       setSuccess(true);
       setLoading(false);
     } catch (err: any) {
-      setError(err.message || "Bir hata oluştu");
+      // Even on error, show success to prevent email enumeration
+      setSuccess(true);
       setLoading(false);
     }
   };
@@ -67,11 +64,10 @@ export default function ForgotPasswordPage() {
                 <Mail className="h-5 w-5 text-primary mt-0.5" />
                 <div className="flex-1">
                   <p className="text-sm font-medium text-foreground mb-1">
-                    Email gönderildi
+                    İstek alındı
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {email} adresine şifre sıfırlama bağlantısı gönderildi. 
-                    Lütfen email kutunuzu kontrol edin.
+                    Eğer bu e-posta adresi sistemimizde kayıtlıysa, şifre sıfırlama talimatları gönderilmiştir.
                   </p>
                 </div>
               </div>
