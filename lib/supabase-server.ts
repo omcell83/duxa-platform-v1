@@ -2,8 +2,12 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
 /**
- * Server-side Supabase client for middleware and server components
+ * Server-side Supabase client for server components and route handlers
  * Uses SSR package for proper cookie handling
+ * Gold Standard Next.js implementation for PKCE flow
+ * 
+ * Note: In Next.js 15+, cookies() is async, so this function is async
+ * For route handlers, use createClient() directly (it handles async internally)
  */
 export async function createClient() {
   const cookieStore = await cookies();
@@ -22,7 +26,8 @@ export async function createClient() {
               cookieStore.set(name, value, options);
             });
           } catch (error) {
-            // Cookie setting might fail in middleware, ignore
+            // Server Component'lerde cookie yazarken hata alabiliriz, bu normaldir.
+            // Ancak Route Handler'da çalışıyorsak bu blok çalışır.
           }
         },
       },
