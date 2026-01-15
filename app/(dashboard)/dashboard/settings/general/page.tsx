@@ -77,6 +77,7 @@ export default function GeneralSettingsPage() {
   const [showSubdomainWarning, setShowSubdomainWarning] = useState(false);
   const [availableLanguages, setAvailableLanguages] = useState<Array<{ code: string; name: string; flag_path: string }>>([]);
   const [currentSystemLanguage, setCurrentSystemLanguage] = useState("tr");
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const {
     register,
@@ -118,12 +119,20 @@ export default function GeneralSettingsPage() {
         ]);
 
         if (!settingsResult.success) {
-          toast.error(settingsResult.error || "Ayarlar yüklenemedi");
-          if (settingsResult.error?.includes("tenant_admin")) {
-            router.push("/dashboard");
+          const errorMessage = settingsResult.error || "Ayarlar yüklenemedi";
+          setLoadError(errorMessage);
+          toast.error(errorMessage);
+          if (errorMessage.includes("tenant_admin")) {
+            // Redirect after a short delay to show the error message
+            setTimeout(() => {
+              router.push("/dashboard");
+            }, 2000);
           }
+          setLoading(false);
           return;
         }
+
+        setLoadError(null);
 
         const settings = settingsResult.data!;
         setOriginalSubdomain(settings.subdomain);
@@ -159,8 +168,9 @@ export default function GeneralSettingsPage() {
         }
       } catch (error) {
         console.error("Error loading settings:", error);
-        toast.error("Ayarlar yüklenirken bir hata oluştu");
-      } finally {
+        const errorMessage = "Ayarlar yüklenirken bir hata oluştu";
+        setLoadError(errorMessage);
+        toast.error(errorMessage);
         setLoading(false);
       }
     }
@@ -318,6 +328,53 @@ export default function GeneralSettingsPage() {
       <div className="bg-background min-h-full p-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center py-12 text-muted-foreground">Yükleniyor...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if settings failed to load
+  if (!loading && loadError) {
+    return (
+      <div className="bg-background min-h-full p-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Genel Ayarlar</h1>
+            <p className="text-muted-foreground mt-2">
+              İşletme kimliği, iletişim bilgileri ve menü ayarlarını yönetin
+            </p>
+          </div>
+          <Card className="border-red-200 bg-red-50 dark:bg-red-950/20 dark:border-red-800">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-3">
+                <XCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5" />
+                <div className="flex-1">
+                  <h3 className="font-semibold text-red-900 dark:text-red-200 mb-2">
+                    Ayarlar Yüklenemedi
+                  </h3>
+                  <p className="text-sm text-red-700 dark:text-red-300 mb-4">
+                    {loadError}
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => window.location.reload()}
+                      variant="outline"
+                    >
+                      Sayfayı Yenile
+                    </Button>
+                    {loadError.includes("tenant_admin") && (
+                      <Button
+                        onClick={() => router.push("/dashboard")}
+                        variant="default"
+                      >
+                        Dashboard'a Dön
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );

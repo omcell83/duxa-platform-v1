@@ -1,4 +1,19 @@
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Clock, Users, Building2 } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import Link from "next/link";
+
 export default function SettingsPage() {
+  const router = useRouter();
+
+  // Redirect to general settings by default
+  useEffect(() => {
+    router.replace("/dashboard/settings/general");
+  }, [router]);
+
   return (
     <div className="bg-background min-h-full p-6">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -8,8 +23,53 @@ export default function SettingsPage() {
             İşletme ayarlarını, personel bilgilerini ve fatura ayarlarını yönetin
           </p>
         </div>
-        <div className="text-center py-12 text-muted-foreground">
-          Ayarlar sayfası yakında eklenecek
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <Link href="/dashboard/settings/general">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5" />
+                  Genel Ayarlar
+                </CardTitle>
+                <CardDescription>
+                  İşletme kimliği, iletişim bilgileri ve menü ayarları
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+
+          <Link href="/dashboard/settings/hours">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5" />
+                  Çalışma Saatleri
+                </CardTitle>
+                <CardDescription>
+                  Haftalık çalışma saatleri ve kapalı günler
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+
+          <Link href="/dashboard/settings/staff">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Personel
+                </CardTitle>
+                <CardDescription>
+                  Personel yönetimi ve yetkiler
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+        </div>
+
+        <div className="text-center py-4 text-muted-foreground text-sm">
+          Genel ayarlar sayfasına yönlendiriliyorsunuz...
         </div>
       </div>
     </div>
