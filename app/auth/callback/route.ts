@@ -5,7 +5,14 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   // Origin'i request'ten alma, env'den alacağız.
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/dashboard";
+  const type = searchParams.get("type");
+  let next = searchParams.get("next") ?? "/dashboard";
+  
+  // KRİTİK DÜZELTME: Eğer işlem tipi 'recovery' ise, next parametresi ne olursa olsun
+  // kullanıcıyı ZORLA şifre yenileme sayfasına gönder.
+  if (type === "recovery") {
+    next = "/login/update-password";
+  }
 
   // Origin belirleme (Prod ve Local uyumlu)
   const origin = process.env.NEXT_PUBLIC_SITE_URL || "https://duxa.pro";
