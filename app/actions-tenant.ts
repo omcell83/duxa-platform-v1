@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase-server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -65,6 +66,15 @@ export async function updateTenantGeneralInfo(
 
     const validatedData = tenantUpdateSchema.parse(data);
 
+    // Get current tenant data to check if contact_email changed
+    const { data: currentTenant } = await supabase
+      .from("tenants")
+      .select("contact_email")
+      .eq("id", tenantId)
+      .single();
+
+    const emailChanged = currentTenant?.contact_email !== validatedData.contact_email;
+
     // Update tenant
     const { error } = await supabase
       .from("tenants")
@@ -74,6 +84,89 @@ export async function updateTenantGeneralInfo(
     if (error) {
       console.error("Error updating tenant:", error);
       return { success: false, error: error.message };
+    }
+
+    // Sync owner information if email changed or if owner fields are provided
+    const ownerFullName = formData.get("owner_full_name") as string | null;
+    const ownerEmail = formData.get("owner_email") as string | null;
+    const shouldUpdateOwner = emailChanged || ownerFullName || ownerEmail;
+
+    if (shouldUpdateOwner) {
+      try {
+        // Find tenant owner from tenant_users table
+        const { data: tenantUser, error: tenantUserError } = await supabase
+          .from("tenant_users")
+          .select("user_id")
+          .eq("tenant_id", tenantId)
+          .eq("role", "owner")
+          .single();
+
+        if (tenantUserError || !tenantUser) {
+          console.warn("Tenant owner not found, skipping owner sync:", tenantUserError?.message);
+        } else {
+          const ownerUserId = tenantUser.user_id;
+
+          // Prepare update data for profiles
+          const profileUpdateData: any = {};
+          if (ownerFullName) {
+            profileUpdateData.full_name = ownerFullName;
+          }
+          if (ownerEmail || emailChanged) {
+            profileUpdateData.email = ownerEmail || validatedData.contact_email;
+          }
+
+          // Update profiles table if there's data to update
+          if (Object.keys(profileUpdateData).length > 0) {
+            const { error: profileError } = await supabase
+              .from("profiles")
+              .update(profileUpdateData)
+              .eq("id", ownerUserId);
+
+            if (profileError) {
+              console.error("Error updating owner profile:", profileError);
+              // Don't fail the whole operation, just log
+            }
+          }
+
+          // Update auth.users using admin client
+          if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+            try {
+              const adminClient = createAdminClient(
+                process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                process.env.SUPABASE_SERVICE_ROLE_KEY
+              );
+
+              const authUpdateData: any = {};
+              if (ownerFullName) {
+                authUpdateData.user_metadata = { full_name: ownerFullName };
+              }
+              if (ownerEmail || emailChanged) {
+                authUpdateData.email = ownerEmail || validatedData.contact_email;
+              }
+
+              if (Object.keys(authUpdateData).length > 0) {
+                const { error: authError } = await adminClient.auth.admin.updateUserById(
+                  ownerUserId,
+                  authUpdateData
+                );
+
+                if (authError) {
+                  console.error("Error updating owner auth user:", authError);
+                  // Don't fail the whole operation, just log
+                }
+              }
+            } catch (authErr: any) {
+              console.error("Error in auth update (non-critical):", authErr);
+              // Don't fail the whole operation, just log
+            }
+          } else {
+            console.warn("SUPABASE_SERVICE_ROLE_KEY not configured, skipping auth.users update");
+          }
+        }
+      } catch (ownerSyncError: any) {
+        console.error("Error syncing owner information (non-critical):", ownerSyncError);
+        // Don't fail the whole operation, just log
+      }
     }
 
     revalidatePath(`/super-admin/tenants/${tenantId}`);

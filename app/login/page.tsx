@@ -11,6 +11,7 @@ import { Building2, AlertCircle } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { getUserTheme } from "@/app/actions/user-settings";
 import { useTheme } from "next-themes";
+import Link from "next/link";
 
 function LoginForm() {
   const router = useRouter();
@@ -174,7 +175,15 @@ function LoginForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Şifre</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Şifre</Label>
+                <Link
+                  href="/login/forgot-password"
+                  className="text-sm text-primary hover:underline"
+                >
+                  Şifremi Unuttum
+                </Link>
+              </div>
               <Input
                 id="password"
                 type="password"

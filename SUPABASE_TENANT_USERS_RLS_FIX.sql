@@ -7,8 +7,11 @@
 -- Mevcut politikaları kontrol et (opsiyonel)
 -- SELECT * FROM pg_policies WHERE tablename = 'tenant_users';
 
+-- Önce mevcut politikayı sil (varsa)
+DROP POLICY IF EXISTS "Service Role Full Access" ON "public"."tenant_users";
+
 -- Service Role için tam yetki politikası oluştur
-CREATE POLICY IF NOT EXISTS "Service Role Full Access" 
+CREATE POLICY "Service Role Full Access" 
 ON "public"."tenant_users"
 AS PERMISSIVE FOR ALL
 TO service_role

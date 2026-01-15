@@ -37,6 +37,9 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
   const isLoginPage = pathname === '/login';
+  const isForgotPasswordPage = pathname === '/login/forgot-password';
+  const isUpdatePasswordPage = pathname === '/login/update-password';
+  const isChangePasswordPage = pathname === '/dashboard/change-password';
   const isSuperAdminRoute = pathname.startsWith('/super-admin');
   const isDashboardRoute = pathname.startsWith('/dashboard');
   const isAppRoute = pathname.startsWith('/menu-builder') || pathname.startsWith('/settings');
@@ -53,7 +56,7 @@ export async function middleware(request: NextRequest) {
 
   // Not logged in
   if (!session) {
-    if (isLoginPage) {
+    if (isLoginPage || isForgotPasswordPage || isUpdatePasswordPage) {
       return response;
     }
     // Redirect to login
@@ -65,17 +68,18 @@ export async function middleware(request: NextRequest) {
   // User is logged in - get profile with role
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, is_active')
+    .select('role, is_active, must_change_password')
     .eq('id', session.user.id)
     .single();
 
   // Normalize role (trim and lowercase for consistency)
   const userRole = (profile?.role || 'user').trim().toLowerCase();
   const isActive = profile?.is_active ?? false;
+  const mustChangePassword = profile?.must_change_password ?? false;
 
   // Inactive users - redirect to login
   if (!isActive) {
-    if (isLoginPage) {
+    if (isLoginPage || isForgotPasswordPage || isUpdatePasswordPage) {
       return response;
     }
     const loginUrl = new URL('/login', request.url);
@@ -83,8 +87,32 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // User is on login page but already logged in - redirect based on role or redirect param
-  if (isLoginPage) {
+  // Force password change check - must be after active check
+  if (mustChangePassword) {
+    // Allow access to change password page and login-related pages
+    if (isChangePasswordPage || isLoginPage || isForgotPasswordPage || isUpdatePasswordPage) {
+      return response;
+    }
+    // Redirect to change password page
+    return NextResponse.redirect(new URL('/dashboard/change-password', request.url));
+  }
+
+  // User is on change password page but doesn't need to change password
+  if (isChangePasswordPage && !mustChangePassword) {
+    // Redirect to dashboard
+    if (userRole === 'super_admin') {
+      return NextResponse.redirect(new URL('/super-admin/dashboard', request.url));
+    }
+    return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
+
+  // User is on login/forgot/update password pages but already logged in - redirect
+  if (isLoginPage || isForgotPasswordPage || isUpdatePasswordPage) {
+    // If must change password, redirect to change password page
+    if (mustChangePassword) {
+      return NextResponse.redirect(new URL('/dashboard/change-password', request.url));
+    }
+
     // Check if there's a redirect parameter in the URL
     const redirectParam = request.nextUrl.searchParams.get('redirect');
     
