@@ -38,7 +38,8 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const isLoginPage = pathname === '/login';
   const isSuperAdminRoute = pathname.startsWith('/super-admin');
-  const isAppRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/menu-builder') || pathname.startsWith('/settings');
+  const isDashboardRoute = pathname.startsWith('/dashboard');
+  const isAppRoute = pathname.startsWith('/menu-builder') || pathname.startsWith('/settings');
   const isPublicRoute = 
     pathname.startsWith('/about') ||
     pathname.startsWith('/contact') ||
@@ -91,12 +92,16 @@ export async function middleware(request: NextRequest) {
     if (redirectParam && redirectParam.startsWith('/') && redirectParam !== '/login') {
       // Validate that the redirect path matches user's role
       const isRedirectSuperAdmin = redirectParam.startsWith('/super-admin');
-      const isRedirectAppRoute = redirectParam.startsWith('/dashboard') || 
-                                 redirectParam.startsWith('/menu-builder') || 
+      const isRedirectDashboard = redirectParam.startsWith('/dashboard');
+      const isRedirectAppRoute = redirectParam.startsWith('/menu-builder') || 
                                  redirectParam.startsWith('/settings');
       
       // Super admin can access super-admin routes
       if (isRedirectSuperAdmin && userRole === 'super_admin') {
+        return NextResponse.redirect(new URL(redirectParam, request.url));
+      }
+      // Tenant admin and staff can access dashboard routes
+      if (isRedirectDashboard && (userRole === 'tenant_admin' || userRole === 'staff')) {
         return NextResponse.redirect(new URL(redirectParam, request.url));
       }
       // All authenticated users can access app routes
@@ -110,7 +115,7 @@ export async function middleware(request: NextRequest) {
     if (userRole === 'super_admin') {
       return NextResponse.redirect(new URL('/super-admin/dashboard', request.url));
     }
-    if (userRole === 'tenant_admin' || userRole === 'user') {
+    if (userRole === 'tenant_admin' || userRole === 'staff') {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
     return NextResponse.redirect(new URL('/dashboard', request.url));
@@ -126,7 +131,17 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  // App/Dashboard routes - allow tenant_admin and regular users
+  // Dashboard routes protection - only tenant_admin and staff
+  if (isDashboardRoute) {
+    if (userRole !== 'tenant_admin' && userRole !== 'staff') {
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('error', 'unauthorized');
+      return NextResponse.redirect(loginUrl);
+    }
+    return response;
+  }
+
+  // App routes - allow tenant_admin and regular users
   if (isAppRoute) {
     // Allow access for tenant_admin and regular users
     // Super admin can also access these routes if needed
