@@ -159,13 +159,22 @@ export default function GeneralSettingsPage() {
         // Load languages with current system language
         if (languagesResult.success) {
           setAvailableLanguages(languagesResult.data || []);
+        } else {
+          // If initial languages load fails, still try to load with system language
+          console.warn("Initial languages load failed:", languagesResult.error);
         }
 
         // Reload languages with selected system language
         const updatedLanguagesResult = await getAvailableLanguages(settings.systemLanguage);
         if (updatedLanguagesResult.success) {
           setAvailableLanguages(updatedLanguagesResult.data || []);
+        } else {
+          // If system language languages load fails, keep the initial ones if they were loaded
+          console.warn("System language languages load failed:", updatedLanguagesResult.error);
         }
+
+        // Mark loading as complete
+        setLoading(false);
       } catch (error) {
         console.error("Error loading settings:", error);
         const errorMessage = "Ayarlar yüklenirken bir hata oluştu";
@@ -178,10 +187,13 @@ export default function GeneralSettingsPage() {
     loadData();
   }, [setValue, router]);
 
-  // Update languages when system language changes
+  // Update languages when system language changes (but not on initial load)
   useEffect(() => {
     async function updateLanguages() {
-      if (!watchedSystemLanguage) return;
+      if (!watchedSystemLanguage || loading) return;
+      
+      // Only update if system language actually changed (not initial load)
+      if (watchedSystemLanguage === currentSystemLanguage) return;
 
       const result = await getAvailableLanguages(watchedSystemLanguage);
       if (result.success) {
@@ -191,7 +203,7 @@ export default function GeneralSettingsPage() {
     }
 
     updateLanguages();
-  }, [watchedSystemLanguage]);
+  }, [watchedSystemLanguage, currentSystemLanguage, loading]);
 
   // Check subdomain availability
   useEffect(() => {
