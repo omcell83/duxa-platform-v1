@@ -55,7 +55,7 @@ export async function inviteStaff(formData: FormData) {
     const validated = inviteStaffSchema.safeParse({ email, role, fullName });
 
     if (!validated.success) {
-      return { error: validated.error.errors[0].message };
+      return { error: validated.error.issues[0].message };
     }
 
     // Check if user exists in profiles by email

@@ -10,7 +10,7 @@ ADD COLUMN IF NOT EXISTS settings JSONB DEFAULT '{}'::jsonb;
 -- 2. Menu Categories tablosu
 CREATE TABLE IF NOT EXISTS menu_categories (
   id BIGSERIAL PRIMARY KEY,
-  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  tenant_id BIGINT NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   description TEXT,
   image TEXT,
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS menu_categories (
 -- 3. Menu Products tablosu
 CREATE TABLE IF NOT EXISTS menu_products (
   id BIGSERIAL PRIMARY KEY,
-  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  tenant_id BIGINT NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
   category_id BIGINT REFERENCES menu_categories(id) ON DELETE SET NULL,
   name TEXT NOT NULL,
   description TEXT,
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS menu_products (
 -- 4. Product Modifiers tablosu (Opsiyon grupları)
 CREATE TABLE IF NOT EXISTS product_modifiers (
   id BIGSERIAL PRIMARY KEY,
-  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  tenant_id BIGINT NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
   name TEXT NOT NULL, -- Örn: "Ekstra Peynir", "Sos Seçimi"
   type TEXT NOT NULL CHECK (type IN ('single', 'multiple')), -- Tek seçim veya çoklu seçim
   is_required BOOLEAN DEFAULT false,
@@ -199,7 +199,7 @@ CREATE TRIGGER update_product_modifiers_updated_at
 -- 10. Orders tablosu
 CREATE TABLE IF NOT EXISTS orders (
   id BIGSERIAL PRIMARY KEY,
-  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  tenant_id BIGINT NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
   total_amount INTEGER NOT NULL, -- Kuruş cinsinden
   status TEXT NOT NULL CHECK (status IN ('pending', 'preparing', 'ready', 'completed', 'cancelled')),
   payment_method TEXT,
@@ -298,7 +298,7 @@ CREATE TRIGGER update_orders_updated_at
 -- 16. Invoices tablosu
 CREATE TABLE IF NOT EXISTS invoices (
   id BIGSERIAL PRIMARY KEY,
-  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  tenant_id BIGINT NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
   amount INTEGER NOT NULL, -- Kuruş cinsinden
   currency TEXT DEFAULT 'TRY',
   status TEXT NOT NULL CHECK (status IN ('paid', 'pending', 'overdue')),
@@ -309,7 +309,7 @@ CREATE TABLE IF NOT EXISTS invoices (
 -- 17. Tenant Users tablosu (Personel yönetimi)
 CREATE TABLE IF NOT EXISTS tenant_users (
   id BIGSERIAL PRIMARY KEY,
-  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  tenant_id BIGINT NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   role TEXT NOT NULL CHECK (role IN ('owner', 'manager', 'staff', 'kitchen', 'courier')),
   is_active BOOLEAN DEFAULT true,
