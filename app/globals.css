@@ -44,108 +44,96 @@
 }
 
 :root {
-  /* Ada/Tailus Tema - Light Mode */
-  /* Background Colors */
-  --background: 0 0% 100%; /* white */
-  --foreground: 240 5.88% 10%; /* gray-900 / zinc-900 - Display/Title Text */
+  /* 1. TAILUS TEMA DEĞİŞKENLERİNİ TANIMLA (Referans Dosyadan) */
+  /* Renk Paleti (Tailus.css'den alınmıştır) */
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+  --color-gray-950: #030712;
+
+  /* 2. SHADCN <-> TAILUS KÖPRÜSÜ (MAPPING) - KRİTİK BÖLÜM */
+  /* Modal ve Sayfa Arkaplanları için KESİN DEĞERLER */
+  --background: var(--color-white);
+  --foreground: var(--color-gray-900);
   
-  /* Card/Surface */
-  --card: 0 0% 100%; /* white */
-  --card-foreground: 240 5.88% 10%; /* gray-900 */
+  /* Card ve Modal (Popover) Arkaplanları - ASLA ŞEFFAF OLAMAZ */
+  --card: var(--color-white);
+  --card-foreground: var(--color-gray-900);
+  --popover: var(--color-white); /* Modal arkaplanı BEYAZ olacak */
+  --popover-foreground: var(--color-gray-900);
   
-  /* Popover (Modals - Opaque) */
-  --popover: 0 0% 100%; /* white */
-  --popover-foreground: 240 5.88% 10%; /* gray-900 */
-  
-  /* Primary (Ada teması: Siyah/Gray-900) */
-  --primary: 240 5.88% 10%; /* gray-900 - Ada teması genelde siyah buton kullanır */
-  --primary-foreground: 0 0% 100%; /* white */
-  
-  /* Secondary (Muted Gray) */
-  --secondary: 220 14% 96%; /* gray-100 */
-  --secondary-foreground: 240 5.88% 10%; /* gray-900 */
-  
-  /* Muted (Soft Gray) */
-  --muted: 220 14% 96%; /* gray-100 */
-  --muted-foreground: 220 9% 46%; /* gray-500 - Caption Text */
-  
-  /* Accent */
-  --accent: 220 14% 96%; /* gray-100 */
-  --accent-foreground: 240 5.88% 10%; /* gray-900 */
-  
-  /* Destructive (Rose) */
-  --destructive: 347 77% 50%; /* rose.600 */
-  --destructive-foreground: 0 0% 100%; /* white */
+  /* Butonlar */
+  --primary: var(--color-gray-900); /* Siyah Buton */
+  --primary-foreground: var(--color-white);
+  --secondary: var(--color-gray-100);
+  --secondary-foreground: var(--color-gray-900);
+  --muted: var(--color-gray-100);
+  --muted-foreground: var(--color-gray-500);
+  --accent: var(--color-gray-100);
+  --accent-foreground: var(--color-gray-900);
+  --destructive: #ef4444;
+  --destructive-foreground: var(--color-white);
   
   /* Border & Input */
-  --border: 220 13% 91%; /* gray-200 */
-  --input: 220 13% 91%; /* gray-200 */
-  --ring: 240 5.88% 10%; /* gray-900 - Primary for focus ring */
+  --border: var(--color-gray-200);
+  --input: var(--color-gray-200);
+  --ring: var(--color-gray-900);
   
-  /* Border Radius (Ada/Tailus uses xl = 0.75rem) */
-  --radius: 0.75rem;
+  /* Border Radius */
+  --radius: 0.5rem;
 }
 
 .dark {
-  /* Ada/Tailus Tema - Dark Mode */
-  /* Background Colors */
-  --background: 240 5.88% 10%; /* gray-950 / zinc-950 - Koyu arka plan */
-  --foreground: 0 0% 100%; /* white - Display/Title Text */
-  
-  /* Card/Surface */
-  --card: 240 5.88% 10%; /* gray-900 / zinc-900 */
-  --card-foreground: 0 0% 100%; /* white */
-  
-  /* Popover (Modals - Opaque) */
-  --popover: 240 5.88% 10%; /* gray-900 */
-  --popover-foreground: 0 0% 100%; /* white */
-  
-  /* Primary (Ada teması: Koyu modda beyaz) */
-  --primary: 0 0% 100%; /* white - Koyu modda beyaz buton */
-  --primary-foreground: 240 5.88% 10%; /* gray-900 */
-  
-  /* Secondary (Dark Gray) */
-  --secondary: 240 5.26% 20%; /* gray-800 / zinc-800 */
-  --secondary-foreground: 0 0% 100%; /* white */
-  
-  /* Muted (Soft Dark Gray) */
-  --muted: 240 5.26% 20%; /* gray-800 */
-  --muted-foreground: 240 4.88% 72%; /* gray-300 / zinc-300 - Body Text */
-  
-  /* Accent */
-  --accent: 240 5.26% 20%; /* gray-800 */
-  --accent-foreground: 0 0% 100%; /* white */
-  
-  /* Destructive (Rose) */
-  --destructive: 347 77% 50%; /* rose.600 */
-  --destructive-foreground: 0 0% 100%; /* white */
-  
-  /* Border & Input */
-  --border: 240 5.26% 20%; /* gray-800 */
-  --input: 240 5.26% 20%; /* gray-800 */
-  --ring: 0 0% 100%; /* white - Primary for focus ring */
+  /* DARK MODE MAPPING */
+  --background: var(--color-gray-950); /* Koyu Arkaplan */
+  --foreground: var(--color-white);
+  --card: var(--color-gray-900);
+  --card-foreground: var(--color-white);
+  --popover: var(--color-gray-900); /* Modal arkaplanı KOYU ve OPAK */
+  --popover-foreground: var(--color-white);
+  --primary: var(--color-white);
+  --primary-foreground: var(--color-gray-900);
+  --secondary: var(--color-gray-800);
+  --secondary-foreground: var(--color-white);
+  --muted: var(--color-gray-800);
+  --muted-foreground: var(--color-gray-400);
+  --accent: var(--color-gray-800);
+  --accent-foreground: var(--color-white);
+  --destructive: #ef4444;
+  --destructive-foreground: var(--color-white);
+  --border: var(--color-gray-800);
+  --input: var(--color-gray-800);
+  --ring: var(--color-gray-300);
 }
 
 @theme {
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
+  /* Tailwind v4 Bağlantıları */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
