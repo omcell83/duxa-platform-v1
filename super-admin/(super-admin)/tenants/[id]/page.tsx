@@ -3,9 +3,9 @@ import { notFound } from "next/navigation";
 import { TenantDetailPage } from "@/components/tenant-detail-page";
 
 interface PageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 async function getTenantData(tenantId: number) {
@@ -22,14 +22,12 @@ async function getTenantData(tenantId: number) {
     return null;
   }
 
-  // Get latest subscription
-  const { data: subscription } = await supabase
+  // Get all subscriptions (not just latest)
+  const { data: subscriptions } = await supabase
     .from("subscriptions")
     .select("*")
     .eq("tenant_id", tenantId)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .single();
+    .order("created_at", { ascending: false });
 
   // Get hardware inventory for this tenant
   const { data: hardware } = await supabase
@@ -40,13 +38,15 @@ async function getTenantData(tenantId: number) {
 
   return {
     tenant,
-    subscription: subscription || null,
+    subscriptions: subscriptions || [],
     hardware: hardware || [],
   };
 }
 
 export default async function Page({ params }: PageProps) {
-  const tenantId = parseInt(params.id);
+  // Next.js 16+ requires params to be awaited
+  const { id } = await params;
+  const tenantId = parseInt(id);
 
   if (isNaN(tenantId)) {
     notFound();
@@ -58,5 +58,5 @@ export default async function Page({ params }: PageProps) {
     notFound();
   }
 
-  return <TenantDetailPage data={data} />;
+  return <TenantDetailPage tenantId={tenantId} data={data} />;
 }
