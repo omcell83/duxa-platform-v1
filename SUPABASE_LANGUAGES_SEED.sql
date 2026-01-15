@@ -2,6 +2,43 @@
 -- public/flags klasöründeki tüm bayrak dosyaları için INSERT sorguları
 -- Her dil için translations JSONB alanı içinde çoklu dil desteği
 
+-- ÖNCE TABLOYU OLUŞTUR (Eğer yoksa)
+CREATE TABLE IF NOT EXISTS public.languages (
+  id SERIAL PRIMARY KEY,
+  code TEXT NOT NULL UNIQUE,
+  flag_path TEXT NOT NULL,
+  is_active BOOLEAN DEFAULT true,
+  translations JSONB NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- INDEX oluştur (performans için)
+CREATE INDEX IF NOT EXISTS idx_languages_code ON public.languages(code);
+CREATE INDEX IF NOT EXISTS idx_languages_is_active ON public.languages(is_active);
+
+-- RLS (Row Level Security) - Eğer RLS aktifse, bu policy'leri ekle
+ALTER TABLE public.languages ENABLE ROW LEVEL SECURITY;
+
+-- Herkesin languages tablosunu okumasına izin ver (SELECT için)
+DROP POLICY IF EXISTS "Languages are viewable by everyone" ON public.languages;
+CREATE POLICY "Languages are viewable by everyone" ON public.languages
+  FOR SELECT
+  USING (true);
+
+-- Sadece super_admin'lerin languages tablosunu değiştirmesine izin ver
+DROP POLICY IF EXISTS "Only super admins can modify languages" ON public.languages;
+CREATE POLICY "Only super admins can modify languages" ON public.languages
+  FOR ALL
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.role = 'super_admin'
+    )
+  );
+
+-- Şimdi verileri ekle
 INSERT INTO public.languages (code, flag_path, is_active, translations) VALUES
 -- Albania / Arnavutça
 ('al', '/flags/al.svg', true, '{"tr": "Arnavutça", "en": "Albanian", "de": "Albanisch", "me": "Albanski", "ru": "Албанский", "ar": "الألبانية", "al": "Shqip"}'::jsonb),

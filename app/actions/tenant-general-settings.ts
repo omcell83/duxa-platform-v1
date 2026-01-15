@@ -148,7 +148,7 @@ export async function updateGeneralSettings(
     if (!validated.success) {
       return {
         success: false,
-        error: validated.error.errors.map((e) => e.message).join(", "),
+        error: validated.error.issues.map((e) => e.message).join(", "),
       };
     }
 
