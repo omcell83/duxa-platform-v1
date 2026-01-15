@@ -74,7 +74,7 @@ export async function inviteStaff(formData: FormData) {
       await supabase
         .from("profiles")
         .update({ full_name: validated.data.fullName })
-        .eq("id", authUser.user.id);
+        .eq("id", existingProfile.id);
     }
 
     // Check if user is already in tenant_users
@@ -82,7 +82,7 @@ export async function inviteStaff(formData: FormData) {
       .from("tenant_users")
       .select("id")
       .eq("tenant_id", profile.tenant_id)
-      .eq("user_id", authUser.user.id)
+      .eq("user_id", existingProfile.id)
       .single();
 
     if (existingTenantUser) {
