@@ -1,19 +1,14 @@
 import { createClient } from "@/lib/supabase-server";
 import { NextResponse } from "next/server";
 
+// Force dynamic rendering - prevent caching for auth callback
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  // Origin'i request'ten alma, env'den alacağız.
   const code = searchParams.get("code");
   const type = searchParams.get("type");
-  let next = searchParams.get("next") ?? "/dashboard";
   
-  // KRİTİK DÜZELTME: Eğer işlem tipi 'recovery' ise, next parametresi ne olursa olsun
-  // kullanıcıyı ZORLA şifre yenileme sayfasına gönder.
-  if (type === "recovery") {
-    next = "/login/update-password";
-  }
-
   // Origin belirleme (Prod ve Local uyumlu)
   const origin = process.env.NEXT_PUBLIC_SITE_URL || "https://duxa.pro";
 
@@ -22,8 +17,25 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
-      // Başarılıysa, yönlendirilecek adresi oluştur
-      const forwardedHost = request.headers.get("x-forwarded-host"); // Load balancer arkası için
+      // HEMEN ARDINDAN: URL parametresindeki type değerini kontrol et
+      // Eğer type === 'recovery' ise, başka hiçbir şeye bakmaksızın (next parametresini ezerek)
+      // şifre yenileme sayfasına yönlendir
+      if (type === "recovery") {
+        const forwardedHost = request.headers.get("x-forwarded-host");
+        const isLocal = origin.includes("localhost");
+        
+        if (isLocal) {
+          return NextResponse.redirect(`${origin}/login/update-password`);
+        } else if (forwardedHost) {
+          return NextResponse.redirect(`https://${forwardedHost}/login/update-password`);
+        } else {
+          return NextResponse.redirect(`${origin}/login/update-password`);
+        }
+      }
+
+      // Diğer durumlarda normal next yönlendirmesini yap
+      const next = searchParams.get("next") ?? "/dashboard";
+      const forwardedHost = request.headers.get("x-forwarded-host");
       const isLocal = origin.includes("localhost");
       
       if (isLocal) {

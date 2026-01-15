@@ -112,8 +112,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
-  // User is on login/forgot/update password pages but already logged in - redirect
-  if (isLoginPage || isForgotPasswordPage || isUpdatePasswordPage) {
+  // User is on login/forgot password pages but already logged in - redirect
+  if (isLoginPage || isForgotPasswordPage) {
     // If must change password, redirect to change password page
     if (mustChangePassword) {
       return NextResponse.redirect(new URL('/dashboard/change-password', request.url));
@@ -153,6 +153,11 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
     return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
+
+  // ISTİSNA: Update password page - giriş yapmış kullanıcılar erişebilir (recovery flow için gerekli)
+  if (isUpdatePasswordPage) {
+    return response;
   }
 
   // Super Admin routes protection

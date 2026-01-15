@@ -20,6 +20,9 @@ export default function UpdatePasswordPage() {
   const [verifying, setVerifying] = useState(true);
 
   useEffect(() => {
+    // Refresh router to clear browser cache
+    router.refresh();
+
     // Verify that user has a valid session (auth code exchange should have happened)
     const verifySession = async () => {
       const supabase = createClient();
@@ -37,7 +40,7 @@ export default function UpdatePasswordPage() {
     };
 
     verifySession();
-  }, []);
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
