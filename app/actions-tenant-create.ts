@@ -292,14 +292,43 @@ export async function createTenant(formData: FormData) {
       // Rollback on any error
       if (createdUserId) {
         // Delete profile if exists
-        await supabase.from("profiles").delete().eq("id", createdUserId).catch(() => {});
+        try {
+          const { error: deleteError } = await supabase
+            .from("profiles")
+            .delete()
+            .eq("id", createdUserId);
+          if (deleteError) console.error("Rollback: Error deleting profile:", deleteError);
+        } catch (e) {
+          // Ignore errors during rollback
+        }
         // Delete tenant_user if exists
-        await supabase.from("tenant_users").delete().eq("user_id", createdUserId).catch(() => {});
+        try {
+          const { error: deleteError } = await supabase
+            .from("tenant_users")
+            .delete()
+            .eq("user_id", createdUserId);
+          if (deleteError) console.error("Rollback: Error deleting tenant_user:", deleteError);
+        } catch (e) {
+          // Ignore errors during rollback
+        }
         // Delete auth user
-        await adminClient.auth.admin.deleteUser(createdUserId).catch(() => {});
+        try {
+          const { error: deleteError } = await adminClient.auth.admin.deleteUser(createdUserId);
+          if (deleteError) console.error("Rollback: Error deleting auth user:", deleteError);
+        } catch (e) {
+          // Ignore errors during rollback
+        }
       }
       if (createdTenantId) {
-        await supabase.from("tenants").delete().eq("id", createdTenantId).catch(() => {});
+        try {
+          const { error: deleteError } = await supabase
+            .from("tenants")
+            .delete()
+            .eq("id", createdTenantId);
+          if (deleteError) console.error("Rollback: Error deleting tenant:", deleteError);
+        } catch (e) {
+          // Ignore errors during rollback
+        }
       }
       throw error;
     }
