@@ -1,6 +1,13 @@
 -- TENANT DASHBOARD SETUP - Veritabanı Güncellemeleri
 -- Bu migration dosyası Tenant Yönetici Paneli için gerekli tabloları ve sütunları oluşturur
 
+-- 0. Profiles tablosuna tenant_id sütunu ekle (eğer yoksa)
+ALTER TABLE profiles 
+ADD COLUMN IF NOT EXISTS tenant_id BIGINT REFERENCES tenants(id) ON DELETE SET NULL;
+
+-- Index for tenant_id lookups
+CREATE INDEX IF NOT EXISTS idx_profiles_tenant_id ON profiles(tenant_id);
+
 -- 1. Tenants tablosuna onboarding ve settings sütunları ekle
 ALTER TABLE tenants 
 ADD COLUMN IF NOT EXISTS onboarding_completed BOOLEAN DEFAULT false,

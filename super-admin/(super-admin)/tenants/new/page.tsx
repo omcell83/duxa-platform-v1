@@ -81,8 +81,8 @@ export default function NewTenantPage() {
     const result = await createTenant(formData);
 
     if (result.success) {
-      toast.success("Müşteri başarıyla eklendi!", {
-        description: `${data.name} işletmesi ve yetkili kullanıcı oluşturuldu.`,
+      toast.success("Müşteri ve Kullanıcı Başarıyla Oluşturuldu!", {
+        description: `${data.name} işletmesi ve ${data.admin_email} email adresli yetkili kullanıcı başarıyla oluşturuldu.`,
       });
       router.push("/super-admin/tenants");
       router.refresh();

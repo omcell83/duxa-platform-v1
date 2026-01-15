@@ -128,6 +128,14 @@ async function checkEmailAvailability(email: string): Promise<boolean> {
  */
 export async function createTenant(formData: FormData) {
   try {
+    // Check if service role key is available FIRST
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return { 
+        success: false, 
+        error: "SUPABASE_SERVICE_ROLE_KEY ortam değişkeni yapılandırılmamış. Lütfen Supabase Service Role Key'i ayarlayın." 
+      };
+    }
+
     const supabase = await createClient();
 
     // Get current user to verify super_admin role
@@ -172,20 +180,13 @@ export async function createTenant(formData: FormData) {
       };
     }
 
-    // Check email availability (only if service role key is available)
-    if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      const emailAvailable = await checkEmailAvailability(validatedData.admin_email);
-      if (!emailAvailable) {
-        return {
-          success: false,
-          error: "Bu email adresi zaten sistemde kayıtlı",
-        };
-      }
-    }
-
-    // Check if service role key is available
-    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      return { success: false, error: "Service role key yapılandırılmamış. Lütfen SUPABASE_SERVICE_ROLE_KEY ortam değişkenini ayarlayın." };
+    // Check email availability
+    const emailAvailable = await checkEmailAvailability(validatedData.admin_email);
+    if (!emailAvailable) {
+      return {
+        success: false,
+        error: "Bu email adresi zaten sistemde kayıtlı",
+      };
     }
 
     // Use service role key for admin operations
@@ -238,7 +239,7 @@ export async function createTenant(formData: FormData) {
 
       createdTenantId = tenantData.id;
 
-      // Step 3: Create profile with tenant_admin role
+      // Step 3: Create profile with tenant_admin role and tenant_id
       const { error: profileError } = await supabase
         .from("profiles")
         .insert({
@@ -246,6 +247,7 @@ export async function createTenant(formData: FormData) {
           email: validatedData.admin_email,
           full_name: validatedData.admin_full_name,
           role: "tenant_admin",
+          tenant_id: createdTenantId,
           is_active: true,
         });
 
@@ -260,15 +262,44 @@ export async function createTenant(formData: FormData) {
         return { success: false, error: `Profil oluşturulamadı: ${profileError.message}` };
       }
 
+      // Step 4: Link user to tenant in tenant_users table
+      const { error: tenantUserError } = await supabase
+        .from("tenant_users")
+        .insert({
+          tenant_id: createdTenantId,
+          user_id: createdUserId,
+          role: "owner",
+          is_active: true,
+        });
+
+      if (tenantUserError) {
+        // Rollback: Delete profile, tenant and user
+        if (createdUserId) {
+          await supabase.from("profiles").delete().eq("id", createdUserId);
+        }
+        if (createdTenantId) {
+          await supabase.from("tenants").delete().eq("id", createdTenantId);
+        }
+        if (createdUserId) {
+          await adminClient.auth.admin.deleteUser(createdUserId);
+        }
+        return { success: false, error: `Tenant kullanıcı bağlantısı oluşturulamadı: ${tenantUserError.message}` };
+      }
+
       revalidatePath("/super-admin/tenants");
-      return { success: true, tenantId: createdTenantId };
+      return { success: true, tenantId: createdTenantId, userId: createdUserId };
     } catch (error: any) {
       // Rollback on any error
-      if (createdTenantId) {
-        await supabase.from("tenants").delete().eq("id", createdTenantId);
-      }
       if (createdUserId) {
-        await adminClient.auth.admin.deleteUser(createdUserId);
+        // Delete profile if exists
+        await supabase.from("profiles").delete().eq("id", createdUserId).catch(() => {});
+        // Delete tenant_user if exists
+        await supabase.from("tenant_users").delete().eq("user_id", createdUserId).catch(() => {});
+        // Delete auth user
+        await adminClient.auth.admin.deleteUser(createdUserId).catch(() => {});
+      }
+      if (createdTenantId) {
+        await supabase.from("tenants").delete().eq("id", createdTenantId).catch(() => {});
       }
       throw error;
     }
