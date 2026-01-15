@@ -23,14 +23,12 @@ async function getTenantData(tenantId: number) {
     return null;
   }
 
-  // Get latest subscription (use maybeSingle to handle no subscription case)
-  const { data: subscription } = await supabase
+  // Get all subscriptions (not just latest)
+  const { data: subscriptions } = await supabase
     .from("subscriptions")
     .select("*")
     .eq("tenant_id", tenantId)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .order("created_at", { ascending: false });
 
   // Get hardware inventory for this tenant
   const { data: hardware } = await supabase
@@ -41,7 +39,7 @@ async function getTenantData(tenantId: number) {
 
   return {
     tenant,
-    subscription: subscription || null,
+    subscriptions: subscriptions || [],
     hardware: hardware || [],
   };
 }
@@ -63,5 +61,5 @@ export default async function Page({ params }: PageProps) {
     notFound();
   }
 
-  return <TenantDetailPage data={data} />;
+  return <TenantDetailPage tenantId={tenantId} data={data} />;
 }

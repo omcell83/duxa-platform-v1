@@ -34,18 +34,24 @@ Prioritize STABILITY, SECURITY, and TYPE SAFETY over speed.
 - **State:** Zustand (Client), TanStack Query (Server State).
 - **DB:** Supabase (Cloud), SQLite (Local).
 
+## 5. UI/UX DESIGN SYSTEM (THEME: ADA/TAILUS + SHADCN)
+- **Design Source:** We use **Tailus UI** (Zinc/Neutral) aesthetics mapped to **Shadcn UI** components.
+- **STRICT Semantic Colors (NO HARDCODING):**
+  - **Forbidden:** NEVER use `bg-white`, `bg-black`, `bg-slate-50`, `bg-gray-100` or arbitrary Hex codes (e.g., `#fff`).
+  - **Mandatory:** ALWAYS use semantic classes mapped in `globals.css`:
+    - `bg-background` / `text-foreground` (Main Page Backgrounds)
+    - `bg-card` / `text-card-foreground` (Cards, Panels, Form Containers)
+    - `bg-popover` / `text-popover-foreground` (Modals, Dropdowns, Sheets)
+    - `bg-primary` / `text-primary-foreground` (Action Buttons)
+    - `bg-muted` (Secondary/Disabled states)
+- **Modal & Overlay Transparency Rule:**
+  - Every `DialogContent`, `SheetContent`, or `PopoverContent` MUST explicitly have `bg-popover` or `bg-card` in its className.
+  - **Never** allow modals to rely on default transparency. They must be OPAQUE (Solid).
+- **Typography & Borders:**
+  - Use `text-muted-foreground` for secondary text (descriptions).
+  - Use `border-border` for all dividers and inputs. Never use `border-gray-200`.
 
-## 5. UI/UX DESIGN SYSTEM (THEME)
-- **Component Library:** Use **Shadcn UI** for ALL interactive elements (Buttons, Inputs, Modals, Tabs). Do not build from scratch.
-- **Colors:**
-  - Use `bg-primary` for main actions (Save, Submit).
-  - Use `bg-secondary` for highlights or secondary actions.
-  - Use `bg-destructive` for dangerous actions (Delete, Suspend).
-  - Use `bg-muted` for disabled states or secondary info.
-  - Use `bg-card` for containers/panels.
-  - Use `bg-popover` for Modals and Dropdowns (Must be opaque).
-- **Layout:**
-  - Use `container mx-auto` for page widths.
-  - Use `gap-4` or `gap-6` for consistent spacing.
-  - Use `rounded-lg` (radius variable) for borders.
-- **Dark Mode:** All UI code MUST support Dark Mode automatically by using the semantic classes above.
+## 6. MODULE & PAGE CREATION PROTOCOL
+- **Layout Integrity:** Every new page (`page.tsx`) or layout (`layout.tsx`) must explicitly set `bg-background` in its outer container to prevent "transparent page" issues.
+- **Variable Mapping Awareness:** Do not overwrite CSS variables in `globals.css`. If a color looks wrong, check the mapping between Tailus variables (`--color-white`) and Shadcn variables (`--background`), but do not hardcode colors in the component.
+- **Dark Mode Compliance:** When writing classes, assume the background might be dark. e.g., never write `text-black` (it disappears in dark mode), always write `text-foreground`.
