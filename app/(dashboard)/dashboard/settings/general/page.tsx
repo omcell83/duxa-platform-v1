@@ -110,10 +110,7 @@ export default function GeneralSettingsPage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [settingsResult, languagesResult] = await Promise.all([
-          getGeneralSettings(),
-          getAvailableLanguages("tr"),
-        ]);
+        const settingsResult = await getGeneralSettings();
 
         if (!settingsResult.success) {
           const errorMessage = settingsResult.error || "Ayarlar yüklenemedi";
