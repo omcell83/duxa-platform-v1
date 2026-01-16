@@ -5,9 +5,6 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 const generalSettingsSchema = z.object({
-  businessName: z.string().min(1, "İşletme adı gereklidir"),
-  currency: z.enum(["TRY", "USD", "EUR", "GBP"]),
-  systemLanguage: z.string().min(1, "Yönetici dili gereklidir"),
   subdomain: z.string().min(1, "Subdomain gereklidir").regex(/^[a-z0-9-]+$/, "Sadece küçük harf, rakam ve tire (-) kullanılabilir"),
   instagram: z.string().optional(),
   facebook: z.string().optional(),
@@ -20,7 +17,6 @@ const generalSettingsSchema = z.object({
   onlineMenuEnabled: z.boolean(),
   seoIndexingEnabled: z.boolean(),
   menuLanguages: z.array(z.string()),
-  logoUrl: z.string().optional(),
 });
 
 export type GeneralSettingsInput = z.infer<typeof generalSettingsSchema>;
@@ -125,9 +121,6 @@ export async function updateGeneralSettings(
 
     // Parse form data
     const rawData = {
-      businessName: formData.get("businessName") as string,
-      currency: formData.get("currency") as string,
-      systemLanguage: formData.get("systemLanguage") as string,
       subdomain: formData.get("subdomain") as string,
       instagram: formData.get("instagram") as string,
       facebook: formData.get("facebook") as string,
@@ -140,7 +133,6 @@ export async function updateGeneralSettings(
       onlineMenuEnabled: formData.get("onlineMenuEnabled") === "true",
       seoIndexingEnabled: formData.get("seoIndexingEnabled") === "true",
       menuLanguages: JSON.parse(formData.get("menuLanguages") as string || "[]"),
-      logoUrl: formData.get("logoUrl") as string,
     };
 
     // Validate
@@ -199,10 +191,6 @@ export async function updateGeneralSettings(
     // Update settings
     const updatedSettings = {
       ...settings,
-      business_name: validated.data.businessName,
-      currency: validated.data.currency,
-      system_language: validated.data.systemLanguage,
-      logo_url: validated.data.logoUrl,
       social_media: {
         instagram: validated.data.instagram || "",
         facebook: validated.data.facebook || "",
@@ -219,28 +207,10 @@ export async function updateGeneralSettings(
       },
     };
 
-    // Update tenant name, currency, address, and system_language_code if changed
+    // Update tenant address if changed
     const updateData: any = { settings: updatedSettings };
-    if (validated.data.businessName !== tenant?.name) {
-      updateData.name = validated.data.businessName;
-    }
-    if (validated.data.currency !== tenant?.currency) {
-      updateData.currency = validated.data.currency;
-    }
     if (validated.data.address !== tenant?.address) {
       updateData.address = validated.data.address || null;
-    }
-    // System language is stored in both settings and tenant table for quick access
-    if (validated.data.systemLanguage) {
-      updatedSettings.system_language = validated.data.systemLanguage;
-      updateData.settings = updatedSettings;
-      // Also update tenant.system_language_code (if column exists - will be added by SQL)
-      // Note: This will work after SQL migration adds the column
-      const currentSystemLang = settings.system_language || "tr";
-      if (validated.data.systemLanguage !== currentSystemLang) {
-        // Add system_language_code to update - will work after SQL migration
-        (updateData as any).system_language_code = validated.data.systemLanguage;
-      }
     }
 
     // Update tenant

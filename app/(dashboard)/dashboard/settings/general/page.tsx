@@ -16,7 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
@@ -26,21 +25,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { CheckCircle2, XCircle, AlertTriangle, Upload, Save, Instagram, Facebook, Twitter, ExternalLink, MapPin, Lock, Info } from "lucide-react";
+import { CheckCircle2, XCircle, AlertTriangle, Save, Instagram, Facebook, Twitter, ExternalLink, MapPin, Lock } from "lucide-react";
 import {
   getGeneralSettings,
   updateGeneralSettings,
   checkSubdomainAvailability,
   getAvailableLanguages,
 } from "@/app/actions/tenant-general-settings";
-import { uploadProductImage } from "@/lib/image-upload";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
-  businessName: z.string().min(1, "İşletme adı gereklidir"),
-  currency: z.enum(["TRY", "USD", "EUR", "GBP"]),
-  systemLanguage: z.string().min(1, "Yönetici dili gereklidir"),
   subdomain: z.string().min(1, "Subdomain gereklidir").regex(/^[a-z0-9-]+$/, "Sadece küçük harf, rakam ve tire (-) kullanılabilir"),
   instagram: z.string().optional(),
   facebook: z.string().optional(),
@@ -51,7 +46,6 @@ const formSchema = z.object({
   onlineMenuEnabled: z.boolean(),
   seoIndexingEnabled: z.boolean(),
   menuLanguages: z.array(z.string()),
-  logoUrl: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -77,18 +71,12 @@ export default function GeneralSettingsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [originalSubdomain, setOriginalSubdomain] = useState("");
   const [subdomainStatus, setSubdomainStatus] = useState<"idle" | "checking" | "available" | "taken">("idle");
   const [subdomainSuggestion, setSubdomainSuggestion] = useState<string>("");
   const [showSubdomainWarning, setShowSubdomainWarning] = useState(false);
   const [availableLanguages, setAvailableLanguages] = useState<Array<{ code: string; name: string; flag_path: string }>>([]);
-  const [currentSystemLanguage, setCurrentSystemLanguage] = useState("tr");
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [taxId, setTaxId] = useState<string>("");
-  const [taxLabel, setTaxLabel] = useState<string>("Vergi Numarası");
-  const [commercialName, setCommercialName] = useState<string>("");
-  const [countryName, setCountryName] = useState<string>("");
   const [subdomainLocked, setSubdomainLocked] = useState(true);
   const [subdomainUnlockDialogOpen, setSubdomainUnlockDialogOpen] = useState(false);
 
@@ -101,9 +89,6 @@ export default function GeneralSettingsPage() {
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      businessName: "",
-      currency: "TRY",
-      systemLanguage: "tr",
       subdomain: "",
       instagram: "",
       facebook: "",
@@ -114,7 +99,6 @@ export default function GeneralSettingsPage() {
       onlineMenuEnabled: false,
       seoIndexingEnabled: false,
       menuLanguages: [],
-      logoUrl: "",
     },
   });
 
@@ -149,14 +133,9 @@ export default function GeneralSettingsPage() {
 
         const settings = settingsResult.data!;
         setOriginalSubdomain(settings.subdomain);
-        setCurrentSystemLanguage(settings.systemLanguage);
 
         // Set form values
-        setValue("businessName", settings.businessName);
-        setValue("currency", settings.currency as "TRY" | "USD" | "EUR" | "GBP");
-        setValue("systemLanguage", settings.systemLanguage);
         setValue("subdomain", settings.subdomain);
-        setValue("logoUrl", settings.logoUrl || "");
         setValue("instagram", settings.instagram || "");
         setValue("facebook", settings.facebook || "");
         setValue("twitter", settings.twitter || "");
@@ -166,28 +145,11 @@ export default function GeneralSettingsPage() {
         setValue("onlineMenuEnabled", settings.onlineMenuEnabled);
         setValue("seoIndexingEnabled", settings.seoIndexingEnabled);
         setValue("menuLanguages", settings.menuLanguages || []);
-        
-        // Set legal info (read-only)
-        setCommercialName(settings.commercialName || "");
-        setTaxId(settings.taxId || "");
-        setTaxLabel(settings.taxLabel || "Vergi Numarası");
-        setCountryName(settings.countryName || "");
 
-        // Load languages with current system language
+        // Load languages with system language for menu languages
+        const languagesResult = await getAvailableLanguages(settings.systemLanguage || "tr");
         if (languagesResult.success) {
           setAvailableLanguages(languagesResult.data || []);
-        } else {
-          // If initial languages load fails, still try to load with system language
-          console.warn("Initial languages load failed:", languagesResult.error);
-        }
-
-        // Reload languages with selected system language
-        const updatedLanguagesResult = await getAvailableLanguages(settings.systemLanguage);
-        if (updatedLanguagesResult.success) {
-          setAvailableLanguages(updatedLanguagesResult.data || []);
-        } else {
-          // If system language languages load fails, keep the initial ones if they were loaded
-          console.warn("System language languages load failed:", updatedLanguagesResult.error);
         }
 
         // Mark loading as complete
@@ -203,24 +165,6 @@ export default function GeneralSettingsPage() {
 
     loadData();
   }, [setValue, router]);
-
-  // Update languages when system language changes (but not on initial load)
-  useEffect(() => {
-    async function updateLanguages() {
-      if (!watchedSystemLanguage || loading) return;
-      
-      // Only update if system language actually changed (not initial load)
-      if (watchedSystemLanguage === currentSystemLanguage) return;
-
-      const result = await getAvailableLanguages(watchedSystemLanguage);
-      if (result.success) {
-        setAvailableLanguages(result.data || []);
-        setCurrentSystemLanguage(watchedSystemLanguage);
-      }
-    }
-
-    updateLanguages();
-  }, [watchedSystemLanguage, currentSystemLanguage, loading]);
 
   // Check subdomain availability
   useEffect(() => {
@@ -281,26 +225,6 @@ export default function GeneralSettingsPage() {
     checkSubdomain();
   }, [debouncedSubdomain, originalSubdomain]);
 
-  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploadingLogo(true);
-    try {
-      const result = await uploadProductImage(file);
-      if (result.success && result.url) {
-        setValue("logoUrl", result.url, { shouldDirty: true });
-        toast.success("Logo yüklendi");
-      } else {
-        toast.error(result.error || "Logo yüklenirken bir hata oluştu");
-      }
-    } catch (error) {
-      console.error("Error uploading logo:", error);
-      toast.error("Logo yüklenirken bir hata oluştu");
-    } finally {
-      setUploadingLogo(false);
-    }
-  };
 
   const onSubmit = async (data: FormData) => {
     // Validate subdomain if changed
@@ -431,151 +355,7 @@ export default function GeneralSettingsPage() {
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* BÖLÜM 1: İşletme Kimliği */}
-          <Card>
-            <CardHeader>
-              <CardTitle>İşletme Kimliği</CardTitle>
-              <CardDescription>Logo, işletme adı ve temel ayarlar</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Logo */}
-              <div className="space-y-2">
-                <Label>Logo</Label>
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-24 w-24">
-                    <AvatarImage src={watch("logoUrl")} />
-                    <AvatarFallback>
-                      <Upload className="h-8 w-8" />
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex flex-col gap-2">
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleLogoUpload}
-                      disabled={uploadingLogo}
-                      className="cursor-pointer"
-                    />
-                    {uploadingLogo && (
-                      <p className="text-sm text-muted-foreground">Yükleniyor...</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* İşletme Adı */}
-              <div className="space-y-2">
-                <Label htmlFor="businessName">İşletme Adı *</Label>
-                <Input
-                  id="businessName"
-                  {...register("businessName")}
-                  placeholder="Örn: Murad Steakhouse"
-                />
-                {errors.businessName && (
-                  <p className="text-sm text-destructive">{errors.businessName.message}</p>
-                )}
-              </div>
-
-              {/* Para Birimi */}
-              <div className="space-y-2">
-                <Label htmlFor="currency">Para Birimi *</Label>
-                <Select
-                  value={watch("currency")}
-                  onValueChange={(value) => setValue("currency", value as "TRY" | "USD" | "EUR" | "GBP", { shouldDirty: true })}
-                >
-                  <SelectTrigger id="currency">
-                    <SelectValue placeholder="Para birimi seçin" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="TRY">₺ Türk Lirası (TRY)</SelectItem>
-                    <SelectItem value="USD">$ US Dollar (USD)</SelectItem>
-                    <SelectItem value="EUR">€ Euro (EUR)</SelectItem>
-                    <SelectItem value="GBP">£ British Pound (GBP)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Yönetici Dili */}
-              <div className="space-y-2">
-                <Label htmlFor="systemLanguage">Yönetici Dili *</Label>
-                <Select
-                  value={watch("systemLanguage")}
-                  onValueChange={(value) => {
-                    setValue("systemLanguage", value, { shouldDirty: true });
-                  }}
-                >
-                  <SelectTrigger id="systemLanguage">
-                    <SelectValue placeholder="Yönetici dili seçin" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[300px] overflow-y-auto">
-                    {availableLanguages.map((lang) => (
-                      <SelectItem key={lang.code} value={lang.code}>
-                        <div className="flex items-center gap-2">
-                          <img src={lang.flag_path} alt={lang.name} className="w-5 h-3.5" />
-                          <span>{lang.name}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Yasal Bilgiler (Read-Only) */}
-              <div className="space-y-4 pt-4 border-t">
-                <div className="flex items-start gap-3 p-4 bg-muted/50 rounded-lg">
-                  <Info className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div className="flex-1">
-                    <p className="text-sm text-muted-foreground">
-                      Bu bilgileri değiştirmek için Müşteri Temsilcisi ile iletişime geçin.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="commercial_name">Yasal İsim</Label>
-                  <Input
-                    id="commercial_name"
-                    value={commercialName}
-                    disabled
-                    className="bg-muted"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="tax_id">{taxLabel}</Label>
-                  <Input
-                    id="tax_id"
-                    value={taxId}
-                    disabled
-                    className="bg-muted"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="address">Adres</Label>
-                  <textarea
-                    id="address"
-                    value={watch("address") || ""}
-                    disabled
-                    className="w-full min-h-[100px] px-3 py-2 text-sm bg-muted rounded-md border border-input disabled:cursor-not-allowed disabled:opacity-50"
-                    readOnly
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="country">Ülke</Label>
-                  <Input
-                    id="country"
-                    value={countryName || ""}
-                    disabled
-                    className="bg-muted"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* BÖLÜM 2: Menü Internet Adresi */}
+          {/* BÖLÜM 1: Menü Internet Adresi */}
           <Card>
             <CardHeader>
               <CardTitle>Menü Internet Adresi</CardTitle>

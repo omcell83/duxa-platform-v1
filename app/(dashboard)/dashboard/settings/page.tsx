@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, Users, Building2 } from "lucide-react";
+import { Clock, Users, Building2, FileText, Receipt } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Link from "next/link";
 
@@ -16,15 +16,43 @@ export default function SettingsPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Link href="/dashboard/settings/general">
+          <Link href="/dashboard/settings/business-identity">
             <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Building2 className="h-5 w-5" />
+                  İşletme Kimliği
+                </CardTitle>
+                <CardDescription>
+                  Logo, işletme adı, yasal bilgiler ve temel ayarlar
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+
+          <Link href="/dashboard/settings/general">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
                   Genel Ayarlar
                 </CardTitle>
                 <CardDescription>
-                  İşletme kimliği, iletişim bilgileri ve menü ayarları
+                  İletişim bilgileri, menü ayarları ve SEO ayarları
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+
+          <Link href="/dashboard/settings/invoices">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Receipt className="h-5 w-5" />
+                  Faturalar
+                </CardTitle>
+                <CardDescription>
+                  Müşteriye ait faturaları görüntüleyin ve yönetin
                 </CardDescription>
               </CardHeader>
             </Card>
