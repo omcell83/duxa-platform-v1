@@ -125,8 +125,6 @@ export function TenantDetailPage({ tenantId, data }: TenantDetailPageProps) {
   const [productAddons, setProductAddons] = useState<any[]>([]);
   const [availableCountries, setAvailableCountries] = useState<Array<{ code: string; name: string; flag_path: string }>>([]);
   const [taxLabel, setTaxLabel] = useState<string>("Vergi Numarası");
-  const countryCode = generalForm.watch("country_code");
-  const systemLanguageCode = generalForm.watch("system_language_code");
 
   // General Info Form
   const generalForm = useForm<z.infer<typeof generalInfoSchema>>({
@@ -143,6 +141,9 @@ export function TenantDetailPage({ tenantId, data }: TenantDetailPageProps) {
       tax_id: (tenant as any).tax_id || "",
     },
   });
+
+  const countryCode = generalForm.watch("country_code");
+  const systemLanguageCode = generalForm.watch("system_language_code");
 
   // Load available countries on mount
   useEffect(() => {
