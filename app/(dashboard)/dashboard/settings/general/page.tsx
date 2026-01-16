@@ -315,11 +315,11 @@ export default function GeneralSettingsPage() {
           if (Array.isArray(value)) {
             formData.append(key, JSON.stringify(value));
           } else if (typeof value === "boolean") {
-            formData.append(key, value.toString());
+            formData.append(key, String(value));
           } else if (typeof value === "number") {
-            formData.append(key, value.toString());
+            formData.append(key, String(value));
           } else {
-            formData.append(key, value);
+            formData.append(key, String(value));
           }
         }
       });
