@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createTenant, generateSlugSuggestion } from "@/app/actions-tenant-create";
-import { getAvailableLanguages, getTaxIdentifierLabel } from "@/app/actions/tenant-general-settings";
+import { getAvailableCountries, getTaxIdentifierLabel } from "@/app/actions/tenant-general-settings";
 import { ArrowLeft, Save, AlertCircle, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -77,7 +77,7 @@ export default function NewTenantPage() {
   // Load available countries on mount
   useEffect(() => {
     async function loadCountries() {
-      const result = await getAvailableLanguages("tr");
+      const result = await getAvailableCountries("tr");
       if (result.success && result.data) {
         setAvailableCountries(result.data);
       }

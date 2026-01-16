@@ -415,6 +415,56 @@ export async function getAvailableLanguages(
 }
 
 /**
+ * Get all available countries from languages table (using country_names column)
+ */
+export async function getAvailableCountries(
+  systemLanguageCode: string = "tr"
+): Promise<{
+  success: boolean;
+  data?: Array<{ code: string; name: string; flag_path: string }>;
+  error?: string;
+}> {
+  try {
+    const supabase = await createClient();
+
+    const { data: languages, error } = await supabase
+      .from("languages")
+      .select("code, flag_path, country_names, is_active")
+      .eq("is_active", true)
+      .order("code");
+
+    if (error) {
+      console.error("Error fetching countries:", error);
+      return { success: false, error: "Ülkeler alınamadı" };
+    }
+
+    // Get country name based on system language from country_names column
+    const countriesWithNames = languages?.map((lang: any) => {
+      const countryNames = typeof lang.country_names === "string"
+        ? JSON.parse(lang.country_names)
+        : lang.country_names || {};
+
+      // Get name in system language, fallback to English, then to code
+      const name = countryNames[systemLanguageCode] || countryNames.en || countryNames[lang.code] || lang.code.toUpperCase();
+
+      return {
+        code: lang.code,
+        name,
+        flag_path: lang.flag_path,
+      };
+    }) || [];
+
+    return {
+      success: true,
+      data: countriesWithNames,
+    };
+  } catch (error: any) {
+    console.error("Error in getAvailableCountries:", error);
+    return { success: false, error: error?.message || "Bir hata oluştu" };
+  }
+}
+
+/**
  * Get tax identifier label for a country code
  */
 export async function getTaxIdentifierLabel(

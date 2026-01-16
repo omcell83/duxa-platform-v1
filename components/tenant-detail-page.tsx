@@ -35,7 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getAvailableLanguages, getTaxIdentifierLabel } from "@/app/actions/tenant-general-settings";
+import { getAvailableCountries, getTaxIdentifierLabel } from "@/app/actions/tenant-general-settings";
 import {
   Dialog,
   DialogContent,
@@ -148,7 +148,7 @@ export function TenantDetailPage({ tenantId, data }: TenantDetailPageProps) {
   // Load available countries on mount
   useEffect(() => {
     async function loadCountries() {
-      const result = await getAvailableLanguages("tr");
+      const result = await getAvailableCountries("tr");
       if (result.success && result.data) {
         setAvailableCountries(result.data);
       }
