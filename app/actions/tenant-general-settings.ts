@@ -313,16 +313,24 @@ export async function getGeneralSettings(): Promise<{
       ? JSON.parse(tenant.settings)
       : tenant.settings || {};
 
-    // Get tax label for country
+    // Get tax label and country name for country
     let taxLabel = "Vergi Numarası";
+    let countryName = "";
+    const systemLang = settings.system_language || "tr";
+    
     if (tenant.country_code) {
       const { data: language } = await supabase
         .from("languages")
-        .select("tax_identifier_label")
+        .select("tax_identifier_label, country_names")
         .eq("code", tenant.country_code.toLowerCase())
         .single();
       if (language?.tax_identifier_label) {
         taxLabel = language.tax_identifier_label;
+      }
+      // Get country name in system language
+      if (language?.country_names && typeof language.country_names === 'object') {
+        const countryNames = language.country_names as Record<string, string>;
+        countryName = countryNames[systemLang] || countryNames[tenant.country_code.toLowerCase()] || countryNames['en'] || tenant.country_code.toUpperCase();
       }
     }
 
@@ -337,6 +345,7 @@ export async function getGeneralSettings(): Promise<{
         commercialName: tenant.commercial_name || "",
         address: tenant.address || "",
         countryCode: tenant.country_code || "",
+        countryName: countryName,
         taxId: tenant.tax_id || "",
         taxLabel: taxLabel,
         instagram: settings.social_media?.instagram || "",

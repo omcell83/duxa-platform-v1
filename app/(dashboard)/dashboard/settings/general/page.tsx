@@ -88,6 +88,7 @@ export default function GeneralSettingsPage() {
   const [taxId, setTaxId] = useState<string>("");
   const [taxLabel, setTaxLabel] = useState<string>("Vergi Numarası");
   const [commercialName, setCommercialName] = useState<string>("");
+  const [countryName, setCountryName] = useState<string>("");
   const [subdomainLocked, setSubdomainLocked] = useState(true);
   const [subdomainUnlockDialogOpen, setSubdomainUnlockDialogOpen] = useState(false);
 
@@ -170,6 +171,7 @@ export default function GeneralSettingsPage() {
         setCommercialName(settings.commercialName || "");
         setTaxId(settings.taxId || "");
         setTaxLabel(settings.taxLabel || "Vergi Numarası");
+        setCountryName(settings.countryName || "");
 
         // Load languages with current system language
         if (languagesResult.success) {
@@ -544,6 +546,27 @@ export default function GeneralSettingsPage() {
                   <Input
                     id="tax_id"
                     value={taxId}
+                    disabled
+                    className="bg-muted"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="address">Adres</Label>
+                  <textarea
+                    id="address"
+                    value={watch("address") || ""}
+                    disabled
+                    className="w-full min-h-[100px] px-3 py-2 text-sm bg-muted rounded-md border border-input disabled:cursor-not-allowed disabled:opacity-50"
+                    readOnly
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="country">Ülke</Label>
+                  <Input
+                    id="country"
+                    value={countryName || ""}
                     disabled
                     className="bg-muted"
                   />

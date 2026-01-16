@@ -1,0 +1,65 @@
+-- Languages tablosuna country_names JSONB sütunu ekle
+-- Her dil için ülke isimlerini farklı dillerde saklamak için
+
+-- 1. country_names sütununu ekle
+ALTER TABLE public.languages 
+ADD COLUMN IF NOT EXISTS country_names JSONB;
+
+-- 2. Mevcut kayıtlara ülke isimlerini ekle (her dil için çeviriler)
+-- Format: {"tr": "Türkiye", "en": "Turkey", "de": "Türkei", "ru": "Турция", ...}
+
+UPDATE public.languages SET country_names = '{"tr": "Türkiye", "en": "Turkey", "de": "Türkei", "ru": "Турция", "ar": "تركيا", "me": "Turska", "fr": "Turquie", "es": "Turquía", "it": "Turchia", "pt": "Turquia", "nl": "Turkije", "pl": "Turcja", "ro": "Turcia", "bg": "Турция", "el": "Τουρκία", "hr": "Turska", "sr": "Турска", "ba": "Turska", "al": "Turqia", "mk": "Турција", "sq": "Turqia"}'::jsonb WHERE code = 'tr';
+
+UPDATE public.languages SET country_names = '{"tr": "Karadağ", "en": "Montenegro", "de": "Montenegro", "ru": "Черногория", "ar": "الجبل الأسود", "me": "Crna Gora", "fr": "Monténégro", "es": "Montenegro", "it": "Montenegro", "pt": "Montenegro", "nl": "Montenegro", "pl": "Czarnogóra", "ro": "Muntenegru", "bg": "Черна гора", "el": "Μαυροβούνιο", "hr": "Crna Gora", "sr": "Црна Гора", "ba": "Crna Gora", "al": "Mali i Zi", "mk": "Црна Гора", "sq": "Mali i Zi"}'::jsonb WHERE code = 'me';
+
+UPDATE public.languages SET country_names = '{"tr": "Almanya", "en": "Germany", "de": "Deutschland", "ru": "Германия", "ar": "ألمانيا", "me": "Njemačka", "fr": "Allemagne", "es": "Alemania", "it": "Germania", "pt": "Alemanha", "nl": "Duitsland", "pl": "Niemcy", "ro": "Germania", "bg": "Германия", "el": "Γερμανία", "hr": "Njemačka", "sr": "Немачка", "ba": "Njemačka", "al": "Gjermania", "mk": "Германија", "sq": "Gjermania"}'::jsonb WHERE code = 'de';
+
+UPDATE public.languages SET country_names = '{"tr": "Avusturya", "en": "Austria", "de": "Österreich", "ru": "Австрия", "ar": "النمسا", "me": "Austrija", "fr": "Autriche", "es": "Austria", "it": "Austria", "pt": "Áustria", "nl": "Oostenrijk", "pl": "Austria", "ro": "Austria", "bg": "Австрия", "el": "Αυστρία", "hr": "Austrija", "sr": "Аустрија", "ba": "Austrija", "al": "Austria", "mk": "Австрија", "sq": "Austria"}'::jsonb WHERE code = 'at';
+
+UPDATE public.languages SET country_names = '{"tr": "İsviçre", "en": "Switzerland", "de": "Schweiz", "ru": "Швейцария", "ar": "سويسرا", "me": "Švajcarska", "fr": "Suisse", "es": "Suiza", "it": "Svizzera", "pt": "Suíça", "nl": "Zwitserland", "pl": "Szwajcaria", "ro": "Elveția", "bg": "Швейцария", "el": "Ελβετία", "hr": "Švicarska", "sr": "Швајцарска", "ba": "Švicarska", "al": "Zvicra", "mk": "Швајцарија", "sq": "Zvicra"}'::jsonb WHERE code = 'ch';
+
+UPDATE public.languages SET country_names = '{"tr": "Birleşik Krallık", "en": "United Kingdom", "de": "Vereinigtes Königreich", "ru": "Великобритания", "ar": "المملكة المتحدة", "me": "Ujedinjeno Kraljevstvo", "fr": "Royaume-Uni", "es": "Reino Unido", "it": "Regno Unito", "pt": "Reino Unido", "nl": "Verenigd Koninkrijk", "pl": "Wielka Brytania", "ro": "Regatul Unit", "bg": "Великобритания", "el": "Ηνωμένο Βασίλειο", "hr": "Ujedinjeno Kraljevstvo", "sr": "Уједињено Краљевство", "ba": "Ujedinjeno Kraljevstvo", "al": "Mbretëria e Bashkuar", "mk": "Обединето Кралство", "sq": "Mbretëria e Bashkuar"}'::jsonb WHERE code = 'gb';
+
+UPDATE public.languages SET country_names = '{"tr": "Amerika Birleşik Devletleri", "en": "United States", "de": "Vereinigte Staaten", "ru": "Соединенные Штаты", "ar": "الولايات المتحدة", "me": "Sjedinjene Američke Države", "fr": "États-Unis", "es": "Estados Unidos", "it": "Stati Uniti", "pt": "Estados Unidos", "nl": "Verenigde Staten", "pl": "Stany Zjednoczone", "ro": "Statele Unite", "bg": "Съединени американски щати", "el": "Ηνωμένες Πολιτείες", "hr": "Sjedinjene Američke Države", "sr": "Сједињене Америчке Државе", "ba": "Sjedinjene Američke Države", "al": "Shtetet e Bashkuara", "mk": "Соединети Американски Држави", "sq": "Shtetet e Bashkuara"}'::jsonb WHERE code = 'us';
+
+UPDATE public.languages SET country_names = '{"tr": "Fransa", "en": "France", "de": "Frankreich", "ru": "Франция", "ar": "فرنسا", "me": "Francuska", "fr": "France", "es": "Francia", "it": "Francia", "pt": "França", "nl": "Frankrijk", "pl": "Francja", "ro": "Franța", "bg": "Франция", "el": "Γαλλία", "hr": "Francuska", "sr": "Француска", "ba": "Francuska", "al": "Franca", "mk": "Франција", "sq": "Franca"}'::jsonb WHERE code = 'fr';
+
+UPDATE public.languages SET country_names = '{"tr": "İspanya", "en": "Spain", "de": "Spanien", "ru": "Испания", "ar": "إسبانيا", "me": "Španija", "fr": "Espagne", "es": "España", "it": "Spagna", "pt": "Espanha", "nl": "Spanje", "pl": "Hiszpania", "ro": "Spania", "bg": "Испания", "el": "Ισπανία", "hr": "Španjolska", "sr": "Шпанија", "ba": "Španija", "al": "Spanja", "mk": "Шпанија", "sq": "Spanja"}'::jsonb WHERE code = 'es';
+
+UPDATE public.languages SET country_names = '{"tr": "İtalya", "en": "Italy", "de": "Italien", "ru": "Италия", "ar": "إيطاليا", "me": "Italija", "fr": "Italie", "es": "Italia", "it": "Italia", "pt": "Itália", "nl": "Italië", "pl": "Włochy", "ro": "Italia", "bg": "Италия", "el": "Ιταλία", "hr": "Italija", "sr": "Италија", "ba": "Italija", "al": "Italia", "mk": "Италија", "sq": "Italia"}'::jsonb WHERE code = 'it';
+
+UPDATE public.languages SET country_names = '{"tr": "Portekiz", "en": "Portugal", "de": "Portugal", "ru": "Португалия", "ar": "البرتغال", "me": "Portugalija", "fr": "Portugal", "es": "Portugal", "it": "Portogallo", "pt": "Portugal", "nl": "Portugal", "pl": "Portugalia", "ro": "Portugalia", "bg": "Португалия", "el": "Πορτογαλία", "hr": "Portugal", "sr": "Португал", "ba": "Portugal", "al": "Portugalia", "mk": "Португалија", "sq": "Portugalia"}'::jsonb WHERE code = 'pt';
+
+UPDATE public.languages SET country_names = '{"tr": "Hollanda", "en": "Netherlands", "de": "Niederlande", "ru": "Нидерланды", "ar": "هولندا", "me": "Holandija", "fr": "Pays-Bas", "es": "Países Bajos", "it": "Paesi Bassi", "pt": "Países Baixos", "nl": "Nederland", "pl": "Holandia", "ro": "Țările de Jos", "bg": "Нидерландия", "el": "Ολλανδία", "hr": "Nizozemska", "sr": "Холандија", "ba": "Holandija", "al": "Holanda", "mk": "Холандија", "sq": "Holanda"}'::jsonb WHERE code = 'nl';
+
+UPDATE public.languages SET country_names = '{"tr": "Belçika", "en": "Belgium", "de": "Belgien", "ru": "Бельгия", "ar": "بلجيكا", "me": "Belgija", "fr": "Belgique", "es": "Bélgica", "it": "Belgio", "pt": "Bélgica", "nl": "België", "pl": "Belgia", "ro": "Belgia", "bg": "Белгия", "el": "Βέλγιο", "hr": "Belgija", "sr": "Белгија", "ba": "Belgija", "al": "Belgjika", "mk": "Белгија", "sq": "Belgjika"}'::jsonb WHERE code = 'be';
+
+UPDATE public.languages SET country_names = '{"tr": "Polonya", "en": "Poland", "de": "Polen", "ru": "Польша", "ar": "بولندا", "me": "Poljska", "fr": "Pologne", "es": "Polonia", "it": "Polonia", "pt": "Polônia", "nl": "Polen", "pl": "Polska", "ro": "Polonia", "bg": "Полша", "el": "Πολωνία", "hr": "Poljska", "sr": "Пољска", "ba": "Poljska", "al": "Polonia", "mk": "Полска", "sq": "Polonia"}'::jsonb WHERE code = 'pl';
+
+UPDATE public.languages SET country_names = '{"tr": "Romanya", "en": "Romania", "de": "Rumänien", "ru": "Румыния", "ar": "رومانيا", "me": "Rumunija", "fr": "Roumanie", "es": "Rumanía", "it": "Romania", "pt": "Romênia", "nl": "Roemenië", "pl": "Rumunia", "ro": "România", "bg": "Румъния", "el": "Ρουμανία", "hr": "Rumunjska", "sr": "Румунија", "ba": "Rumunija", "al": "Rumania", "mk": "Романија", "sq": "Rumania"}'::jsonb WHERE code = 'ro';
+
+UPDATE public.languages SET country_names = '{"tr": "Bulgaristan", "en": "Bulgaria", "de": "Bulgarien", "ru": "Болгария", "ar": "بلغاريا", "me": "Bugarska", "fr": "Bulgarie", "es": "Bulgaria", "it": "Bulgaria", "pt": "Bulgária", "nl": "Bulgarije", "pl": "Bułgaria", "ro": "Bulgaria", "bg": "България", "el": "Βουλγαρία", "hr": "Bugarska", "sr": "Бугарска", "ba": "Bugarska", "al": "Bullgaria", "mk": "Бугарија", "sq": "Bullgaria"}'::jsonb WHERE code = 'bg';
+
+UPDATE public.languages SET country_names = '{"tr": "Yunanistan", "en": "Greece", "de": "Griechenland", "ru": "Греция", "ar": "اليونان", "me": "Grčka", "fr": "Grèce", "es": "Grecia", "it": "Grecia", "pt": "Grécia", "nl": "Griekenland", "pl": "Grecja", "ro": "Grecia", "bg": "Гърция", "el": "Ελλάδα", "hr": "Grčka", "sr": "Грчка", "ba": "Grčka", "al": "Greqia", "mk": "Грција", "sq": "Greqia"}'::jsonb WHERE code = 'gr';
+
+UPDATE public.languages SET country_names = '{"tr": "Hırvatistan", "en": "Croatia", "de": "Kroatien", "ru": "Хорватия", "ar": "كرواتيا", "me": "Hrvatska", "fr": "Croatie", "es": "Croacia", "it": "Croazia", "pt": "Croácia", "nl": "Kroatië", "pl": "Chorwacja", "ro": "Croația", "bg": "Хърватия", "el": "Κροατία", "hr": "Hrvatska", "sr": "Хрватска", "ba": "Hrvatska", "al": "Kroacia", "mk": "Хрватска", "sq": "Kroacia"}'::jsonb WHERE code = 'hr';
+
+UPDATE public.languages SET country_names = '{"tr": "Sırbistan", "en": "Serbia", "de": "Serbien", "ru": "Сербия", "ar": "صربيا", "me": "Srbija", "fr": "Serbie", "es": "Serbia", "it": "Serbia", "pt": "Sérvia", "nl": "Servië", "pl": "Serbia", "ro": "Serbia", "bg": "Сърбия", "el": "Σερβία", "hr": "Srbija", "sr": "Србија", "ba": "Srbija", "al": "Serbia", "mk": "Србија", "sq": "Serbia"}'::jsonb WHERE code = 'rs';
+
+UPDATE public.languages SET country_names = '{"tr": "Bosna Hersek", "en": "Bosnia and Herzegovina", "de": "Bosnien und Herzegowina", "ru": "Босния и Герцеговина", "ar": "البوسنة والهرسك", "me": "Bosna i Hercegovina", "fr": "Bosnie-Herzégovine", "es": "Bosnia y Herzegovina", "it": "Bosnia ed Erzegovina", "pt": "Bósnia e Herzegovina", "nl": "Bosnië en Herzegovina", "pl": "Bośnia i Hercegowina", "ro": "Bosnia și Herțegovina", "bg": "Босна и Херцеговина", "el": "Βοσνία και Ερζεγοβίνη", "hr": "Bosna i Hercegovina", "sr": "Босна и Херцеговина", "ba": "Bosna i Hercegovina", "al": "Bosnja dhe Hercegovina", "mk": "Босна и Херцеговина", "sq": "Bosnja dhe Hercegovina"}'::jsonb WHERE code = 'ba';
+
+UPDATE public.languages SET country_names = '{"tr": "Arnavutluk", "en": "Albania", "de": "Albanien", "ru": "Албания", "ar": "ألبانيا", "me": "Albanija", "fr": "Albanie", "es": "Albania", "it": "Albania", "pt": "Albânia", "nl": "Albanië", "pl": "Albania", "ro": "Albania", "bg": "Албания", "el": "Αλβανία", "hr": "Albanija", "sr": "Албанија", "ba": "Albanija", "al": "Shqipëria", "mk": "Албанија", "sq": "Shqipëria"}'::jsonb WHERE code = 'al';
+
+UPDATE public.languages SET country_names = '{"tr": "Rusya", "en": "Russia", "de": "Russland", "ru": "Россия", "ar": "روسيا", "me": "Rusija", "fr": "Russie", "es": "Rusia", "it": "Russia", "pt": "Rússia", "nl": "Rusland", "pl": "Rosja", "ro": "Rusia", "bg": "Русия", "el": "Ρωσία", "hr": "Rusija", "sr": "Русија", "ba": "Rusija", "al": "Rusia", "mk": "Русија", "sq": "Rusia"}'::jsonb WHERE code = 'ru';
+
+UPDATE public.languages SET country_names = '{"tr": "İsveç", "en": "Sweden", "de": "Schweden", "ru": "Швеция", "ar": "السويد", "me": "Švedska", "fr": "Suède", "es": "Suecia", "it": "Svezia", "pt": "Suécia", "nl": "Zweden", "pl": "Szwecja", "ro": "Suedia", "bg": "Швеция", "el": "Σουηδία", "hr": "Švedska", "sr": "Шведска", "ba": "Švedska", "al": "Suedia", "mk": "Шведска", "sq": "Suedia"}'::jsonb WHERE code = 'se';
+
+UPDATE public.languages SET country_names = '{"tr": "Norveç", "en": "Norway", "de": "Norwegen", "ru": "Норвегия", "ar": "النرويج", "me": "Norveška", "fr": "Norvège", "es": "Noruega", "it": "Norvegia", "pt": "Noruega", "nl": "Noorwegen", "pl": "Norwegia", "ro": "Norvegia", "bg": "Норвегия", "el": "Норвешка", "hr": "Norveška", "sr": "Норвешка", "ba": "Norveška", "al": "Norvegjia", "mk": "Норвешка", "sq": "Norvegjia"}'::jsonb WHERE code = 'no';
+
+UPDATE public.languages SET country_names = '{"tr": "Danimarka", "en": "Denmark", "de": "Dänemark", "ru": "Дания", "ar": "الدنمارك", "me": "Danska", "fr": "Danemark", "es": "Dinamarca", "it": "Danimarca", "pt": "Dinamarca", "nl": "Denemarken", "pl": "Dania", "ro": "Danemarca", "bg": "Дания", "el": "Δανία", "hr": "Danska", "sr": "Данска", "ba": "Danska", "al": "Danimarka", "mk": "Данска", "sq": "Danimarka"}'::jsonb WHERE code = 'dk';
+
+UPDATE public.languages SET country_names = '{"tr": "Finlandiya", "en": "Finland", "de": "Finnland", "ru": "Финляндия", "ar": "فنلندا", "me": "Finska", "fr": "Finlande", "es": "Finlandia", "it": "Finlandia", "pt": "Finlândia", "nl": "Finland", "pl": "Finlandia", "ro": "Finlanda", "bg": "Финландия", "el": "Φινλανδία", "hr": "Finska", "sr": "Финска", "ba": "Finska", "al": "Finlanda", "mk": "Финска", "sq": "Finlanda"}'::jsonb WHERE code = 'fi';
+
+UPDATE public.languages SET country_names = '{"tr": "Lüksemburg", "en": "Luxembourg", "de": "Luxemburg", "ru": "Люксембург", "ar": "لوكسمبورغ", "me": "Luksemburg", "fr": "Luxembourg", "es": "Luxemburgo", "it": "Lussemburgo", "pt": "Luxemburgo", "nl": "Luxemburg", "pl": "Luksemburg", "ro": "Luxemburg", "bg": "Люксембург", "el": "Λουξεμβούργο", "hr": "Luksemburg", "sr": "Луксембург", "ba": "Luksemburg", "al": "Luksemburgu", "mk": "Луксембург", "sq": "Luksemburgu"}'::jsonb WHERE code = 'lu';
+
+-- Not: Eğer başka ülkeler varsa, onları da ekleyin
