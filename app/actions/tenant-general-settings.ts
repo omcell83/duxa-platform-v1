@@ -187,7 +187,7 @@ export async function updateGeneralSettings(
     // Get current settings
     const { data: tenant } = await supabase
       .from("tenants")
-      .select("settings, name")
+      .select("settings, name, currency, address")
       .eq("id", profile.tenant_id)
       .single();
 
