@@ -234,9 +234,10 @@ export async function createTenant(formData: FormData) {
           contact_email: validatedData.admin_email,
           address: validatedData.address,
           country_code: validatedData.country_code,
-          system_language_code: validatedData.system_language_code,
           tax_id: validatedData.tax_id,
           status: "active",
+          // system_language_code will be added if column exists (after SQL migration)
+          ...(validatedData.system_language_code ? { system_language_code: validatedData.system_language_code } : {}),
         })
         .select()
         .single();

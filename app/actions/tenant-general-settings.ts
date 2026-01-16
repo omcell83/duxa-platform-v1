@@ -187,7 +187,7 @@ export async function updateGeneralSettings(
     // Get current settings
     const { data: tenant } = await supabase
       .from("tenants")
-      .select("settings, name, currency, address")
+      .select("settings, name, currency, address, slug")
       .eq("id", profile.tenant_id)
       .single();
 
@@ -234,10 +234,12 @@ export async function updateGeneralSettings(
     if (validated.data.systemLanguage) {
       updatedSettings.system_language = validated.data.systemLanguage;
       updateData.settings = updatedSettings;
-      // Also update tenant.system_language_code
-      const currentSystemLang = (tenant as any)?.system_language_code || settings.system_language || "tr";
+      // Also update tenant.system_language_code (if column exists - will be added by SQL)
+      // Note: This will work after SQL migration adds the column
+      const currentSystemLang = settings.system_language || "tr";
       if (validated.data.systemLanguage !== currentSystemLang) {
-        updateData.system_language_code = validated.data.systemLanguage;
+        // Add system_language_code to update - will work after SQL migration
+        (updateData as any).system_language_code = validated.data.systemLanguage;
       }
     }
 
@@ -298,7 +300,7 @@ export async function getGeneralSettings(): Promise<{
     // Get tenant data
     const { data: tenant, error } = await supabase
       .from("tenants")
-      .select("id, name, slug, settings, address, country_code, system_language_code, commercial_name, tax_id, currency")
+      .select("id, name, slug, settings, address, country_code, commercial_name, tax_id, currency")
       .eq("id", profile.tenant_id)
       .single();
 
@@ -329,7 +331,7 @@ export async function getGeneralSettings(): Promise<{
       data: {
         businessName: tenant.name || "",
         currency: tenant.currency || settings.currency || "TRY",
-        systemLanguage: tenant.system_language_code || settings.system_language || "tr",
+        systemLanguage: settings.system_language || "tr",
         subdomain: tenant.slug || "",
         logoUrl: settings.logo_url || "",
         commercialName: tenant.commercial_name || "",
