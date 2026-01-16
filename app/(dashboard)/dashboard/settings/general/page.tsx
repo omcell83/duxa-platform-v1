@@ -103,7 +103,6 @@ export default function GeneralSettingsPage() {
   });
 
   const watchedSubdomain = watch("subdomain");
-  const watchedSystemLanguage = watch("systemLanguage");
   const debouncedSubdomain = useDebounce(watchedSubdomain, 500);
 
   // Load initial data
