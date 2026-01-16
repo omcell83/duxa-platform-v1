@@ -12,6 +12,10 @@ const tenantUpdateSchema = z.object({
   contact_phone: z.string().optional().nullable(),
   contact_email: z.string().email("Geçerli bir email adresi giriniz").optional().nullable(),
   contact_address: z.string().optional().nullable(),
+  address: z.string().optional().nullable(),
+  country_code: z.string().optional().nullable(),
+  legal_name: z.string().optional().nullable(),
+  tax_id: z.string().optional().nullable(),
 });
 
 const subscriptionUpdateSchema = z.object({
@@ -62,6 +66,10 @@ export async function updateTenantGeneralInfo(
       contact_phone: formData.get("contact_phone") as string || null,
       contact_email: formData.get("contact_email") as string || null,
       contact_address: formData.get("contact_address") as string || null,
+      address: formData.get("address") as string || null,
+      country_code: formData.get("country_code") as string || null,
+      legal_name: formData.get("legal_name") as string || null,
+      tax_id: formData.get("tax_id") as string || null,
     };
 
     const validatedData = tenantUpdateSchema.parse(data);

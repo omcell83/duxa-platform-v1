@@ -10,9 +10,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createTenant, generateSlugSuggestion } from "@/app/actions-tenant-create";
+import { getAvailableLanguages, getTaxIdentifierLabel } from "@/app/actions/tenant-general-settings";
 import { ArrowLeft, Save, AlertCircle, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Validation schema
 const createTenantSchema = z.object({
@@ -23,6 +31,10 @@ const createTenantSchema = z.object({
   admin_email: z.string().email("Geçerli bir email adresi giriniz"),
   admin_password: z.string().min(6, "Şifre en az 6 karakter olmalıdır"),
   contact_phone: z.string().optional().nullable(),
+  address: z.string().optional().nullable(),
+  country_code: z.string().optional().nullable(),
+  legal_name: z.string().optional().nullable(),
+  tax_id: z.string().optional().nullable(),
 });
 
 type FormData = z.infer<typeof createTenantSchema>;
@@ -32,6 +44,8 @@ export default function NewTenantPage() {
   const [loading, setLoading] = useState(false);
   const [slugSuggestion, setSlugSuggestion] = useState<string>("");
   const [checkingSlug, setCheckingSlug] = useState(false);
+  const [availableCountries, setAvailableCountries] = useState<Array<{ code: string; name: string; flag_path: string }>>([]);
+  const [taxLabel, setTaxLabel] = useState<string>("Vergi Numarası");
 
   const {
     register,
@@ -49,10 +63,43 @@ export default function NewTenantPage() {
       admin_email: "",
       admin_password: "",
       contact_phone: "",
+      address: "",
+      country_code: "",
+      legal_name: "",
+      tax_id: "",
     },
   });
 
   const businessName = watch("name");
+  const countryCode = watch("country_code");
+
+  // Load available countries on mount
+  useEffect(() => {
+    async function loadCountries() {
+      const result = await getAvailableLanguages("tr");
+      if (result.success && result.data) {
+        setAvailableCountries(result.data);
+      }
+    }
+    loadCountries();
+  }, []);
+
+  // Update tax label when country changes
+  useEffect(() => {
+    async function updateTaxLabel() {
+      if (countryCode) {
+        const result = await getTaxIdentifierLabel(countryCode);
+        if (result.success && result.label) {
+          setTaxLabel(result.label);
+        } else {
+          setTaxLabel("Vergi Numarası");
+        }
+      } else {
+        setTaxLabel("Vergi Numarası");
+      }
+    }
+    updateTaxLabel();
+  }, [countryCode]);
 
   // Auto-generate slug when business name changes
   useEffect(() => {
@@ -75,7 +122,9 @@ export default function NewTenantPage() {
 
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
-      formData.append(key, value || "");
+      if (value !== null && value !== undefined) {
+        formData.append(key, value);
+      }
     });
 
     const result = await createTenant(formData);
@@ -195,6 +244,69 @@ export default function NewTenantPage() {
                     placeholder="+90 555 123 4567"
                     disabled={loading}
                   />
+                </div>
+
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="address">Adres</Label>
+                  <textarea
+                    id="address"
+                    {...register("address")}
+                    placeholder="Tam adres bilgisi"
+                    rows={3}
+                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled={loading}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="country_code">Ülke</Label>
+                  <Select
+                    value={watch("country_code") || ""}
+                    onValueChange={(value) => {
+                      setValue("country_code", value || null, { shouldValidate: true });
+                    }}
+                    disabled={loading}
+                  >
+                    <SelectTrigger id="country_code">
+                      <SelectValue placeholder="Ülke seçin" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px] overflow-y-auto">
+                      {availableCountries.map((country) => (
+                        <SelectItem key={country.code} value={country.code}>
+                          <div className="flex items-center gap-2">
+                            <img src={country.flag_path} alt={country.name} className="w-5 h-3.5" />
+                            <span>{country.name}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="legal_name">Yasal İsim</Label>
+                  <Input
+                    id="legal_name"
+                    {...register("legal_name")}
+                    placeholder="Yasal firma adı"
+                    disabled={loading}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="tax_id">{taxLabel} *</Label>
+                  <Input
+                    id="tax_id"
+                    {...register("tax_id")}
+                    placeholder={taxLabel}
+                    disabled={loading}
+                  />
+                  {errors.tax_id && (
+                    <p className="text-sm text-destructive flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      {errors.tax_id.message}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

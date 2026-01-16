@@ -210,11 +210,8 @@ export async function updateGeneralSettings(
         tripadvisor: validated.data.tripadvisor || "",
         website: validated.data.website || "",
       },
-      location: {
-        address: validated.data.address || "",
-        latitude: validated.data.latitude,
-        longitude: validated.data.longitude,
-      },
+      online_menu_active: validated.data.onlineMenuEnabled,
+      seo_visible: validated.data.seoIndexingEnabled,
       online_menu: {
         enabled: validated.data.onlineMenuEnabled,
         seo_indexing: validated.data.seoIndexingEnabled,
@@ -222,10 +219,16 @@ export async function updateGeneralSettings(
       },
     };
 
-    // Update tenant name if business name changed
+    // Update tenant name, currency, and address if changed
     const updateData: any = { settings: updatedSettings };
     if (validated.data.businessName !== tenant?.name) {
       updateData.name = validated.data.businessName;
+    }
+    if (validated.data.currency !== tenant?.currency) {
+      updateData.currency = validated.data.currency;
+    }
+    if (validated.data.address !== tenant?.address) {
+      updateData.address = validated.data.address || null;
     }
 
     // Update tenant
@@ -285,7 +288,7 @@ export async function getGeneralSettings(): Promise<{
     // Get tenant data
     const { data: tenant, error } = await supabase
       .from("tenants")
-      .select("id, name, slug, settings")
+      .select("id, name, slug, settings, address, country_code, legal_name, tax_id, currency")
       .eq("id", profile.tenant_id)
       .single();
 
@@ -298,22 +301,37 @@ export async function getGeneralSettings(): Promise<{
       ? JSON.parse(tenant.settings)
       : tenant.settings || {};
 
+    // Get tax label for country
+    let taxLabel = "Vergi Numarası";
+    if (tenant.country_code) {
+      const { data: language } = await supabase
+        .from("languages")
+        .select("tax_identifier_label")
+        .eq("code", tenant.country_code.toLowerCase())
+        .single();
+      if (language?.tax_identifier_label) {
+        taxLabel = language.tax_identifier_label;
+      }
+    }
+
     return {
       success: true,
       data: {
         businessName: tenant.name || "",
-        currency: settings.currency || "TRY",
+        currency: tenant.currency || settings.currency || "TRY",
         systemLanguage: settings.system_language || "tr",
         subdomain: tenant.slug || "",
         logoUrl: settings.logo_url || "",
+        legalName: tenant.legal_name || "",
+        address: tenant.address || settings.location?.address || "",
+        countryCode: tenant.country_code || "",
+        taxId: tenant.tax_id || "",
+        taxLabel: taxLabel,
         instagram: settings.social_media?.instagram || "",
         facebook: settings.social_media?.facebook || "",
         twitter: settings.social_media?.twitter || "",
         tripadvisor: settings.social_media?.tripadvisor || "",
         website: settings.social_media?.website || "",
-        address: settings.location?.address || "",
-        latitude: settings.location?.latitude,
-        longitude: settings.location?.longitude,
         onlineMenuEnabled: settings.online_menu?.enabled || false,
         seoIndexingEnabled: settings.online_menu?.seo_indexing || false,
         menuLanguages: settings.online_menu?.languages || [],
@@ -371,6 +389,44 @@ export async function getAvailableLanguages(
     };
   } catch (error: any) {
     console.error("Error in getAvailableLanguages:", error);
+    return { success: false, error: error?.message || "Bir hata oluştu" };
+  }
+}
+
+/**
+ * Get tax identifier label for a country code
+ */
+export async function getTaxIdentifierLabel(
+  countryCode: string
+): Promise<{
+  success: boolean;
+  label?: string;
+  error?: string;
+}> {
+  try {
+    if (!countryCode) {
+      return { success: false, error: "Ülke kodu gereklidir" };
+    }
+
+    const supabase = await createClient();
+
+    const { data: language, error } = await supabase
+      .from("languages")
+      .select("tax_identifier_label")
+      .eq("code", countryCode.toLowerCase())
+      .single();
+
+    if (error) {
+      console.error("Error fetching tax identifier label:", error);
+      return { success: false, error: "Vergi etiketi alınamadı" };
+    }
+
+    return {
+      success: true,
+      label: language?.tax_identifier_label || "Vergi Numarası",
+    };
+  } catch (error: any) {
+    console.error("Error in getTaxIdentifierLabel:", error);
     return { success: false, error: error?.message || "Bir hata oluştu" };
   }
 }

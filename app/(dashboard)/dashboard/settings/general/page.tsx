@@ -17,7 +17,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { CheckCircle2, XCircle, AlertTriangle, Upload, Save, Instagram, Facebook, Twitter, ExternalLink, MapPin } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { CheckCircle2, XCircle, AlertTriangle, Upload, Save, Instagram, Facebook, Twitter, ExternalLink, MapPin, Lock, Info } from "lucide-react";
 import {
   getGeneralSettings,
   updateGeneralSettings,
@@ -39,8 +48,6 @@ const formSchema = z.object({
   tripadvisor: z.string().optional(),
   website: z.string().optional(),
   address: z.string().optional(),
-  latitude: z.number().optional(),
-  longitude: z.number().optional(),
   onlineMenuEnabled: z.boolean(),
   seoIndexingEnabled: z.boolean(),
   menuLanguages: z.array(z.string()),
@@ -78,6 +85,11 @@ export default function GeneralSettingsPage() {
   const [availableLanguages, setAvailableLanguages] = useState<Array<{ code: string; name: string; flag_path: string }>>([]);
   const [currentSystemLanguage, setCurrentSystemLanguage] = useState("tr");
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [legalName, setLegalName] = useState<string>("");
+  const [taxId, setTaxId] = useState<string>("");
+  const [taxLabel, setTaxLabel] = useState<string>("Vergi Numarası");
+  const [subdomainLocked, setSubdomainLocked] = useState(true);
+  const [subdomainUnlockDialogOpen, setSubdomainUnlockDialogOpen] = useState(false);
 
   const {
     register,
@@ -150,11 +162,14 @@ export default function GeneralSettingsPage() {
         setValue("tripadvisor", settings.tripadvisor || "");
         setValue("website", settings.website || "");
         setValue("address", settings.address || "");
-        if (settings.latitude) setValue("latitude", settings.latitude);
-        if (settings.longitude) setValue("longitude", settings.longitude);
         setValue("onlineMenuEnabled", settings.onlineMenuEnabled);
         setValue("seoIndexingEnabled", settings.seoIndexingEnabled);
         setValue("menuLanguages", settings.menuLanguages || []);
+        
+        // Set legal info (read-only)
+        setLegalName(settings.legalName || "");
+        setTaxId(settings.taxId || "");
+        setTaxLabel(settings.taxLabel || "Vergi Numarası");
 
         // Load languages with current system language
         if (languagesResult.success) {
@@ -502,6 +517,38 @@ export default function GeneralSettingsPage() {
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Yasal Bilgiler (Read-Only) */}
+              <div className="space-y-4 pt-4 border-t">
+                <div className="flex items-start gap-3 p-4 bg-muted/50 rounded-lg">
+                  <Info className="h-5 w-5 text-muted-foreground mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm text-muted-foreground">
+                      Bu bilgileri değiştirmek için Müşteri Temsilcisi ile iletişime geçin.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="legal_name">Yasal İsim</Label>
+                  <Input
+                    id="legal_name"
+                    value={legalName}
+                    disabled
+                    className="bg-muted"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="tax_id">{taxLabel}</Label>
+                  <Input
+                    id="tax_id"
+                    value={taxId}
+                    disabled
+                    className="bg-muted"
+                  />
+                </div>
+              </div>
             </CardContent>
           </Card>
 
@@ -517,22 +564,34 @@ export default function GeneralSettingsPage() {
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-muted-foreground">https://</span>
                   <div className="flex-1 space-y-2">
-                    <Input
-                      id="subdomain"
-                      {...register("subdomain")}
-                      placeholder="muradsteakhouse"
-                      className={
-                        subdomainStatus === "available"
-                          ? "border-green-500 focus-visible:ring-green-500"
-                          : subdomainStatus === "taken"
-                          ? "border-red-500 focus-visible:ring-red-500"
-                          : ""
-                      }
-                      onChange={(e) => {
-                        const value = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "");
-                        setValue("subdomain", value, { shouldDirty: true });
-                      }}
-                    />
+                    <div className="relative">
+                      <Input
+                        id="subdomain"
+                        {...register("subdomain")}
+                        placeholder="muradsteakhouse"
+                        disabled={subdomainLocked}
+                        className={
+                          subdomainStatus === "available"
+                            ? "border-green-500 focus-visible:ring-green-500"
+                            : subdomainStatus === "taken"
+                            ? "border-red-500 focus-visible:ring-red-500"
+                            : ""
+                        }
+                        onChange={(e) => {
+                          const value = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "");
+                          setValue("subdomain", value, { shouldDirty: true });
+                        }}
+                      />
+                      {subdomainLocked && (
+                        <button
+                          type="button"
+                          onClick={() => setSubdomainUnlockDialogOpen(true)}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded"
+                        >
+                          <Lock className="h-4 w-4 text-muted-foreground" />
+                        </button>
+                      )}
+                    </div>
                     {subdomainStatus === "checking" && (
                       <p className="text-sm text-muted-foreground">Kontrol ediliyor...</p>
                     )}
@@ -572,6 +631,36 @@ export default function GeneralSettingsPage() {
                   </div>
                 </div>
               )}
+
+              {/* Unlock Dialog */}
+              <Dialog open={subdomainUnlockDialogOpen} onOpenChange={setSubdomainUnlockDialogOpen}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Subdomain Değiştirme Onayı</DialogTitle>
+                    <DialogDescription>
+                      Adresi değiştirmek mevcut QR kodlarınızı geçersiz kılar. Devam etmek istediğinizden emin misiniz?
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setSubdomainUnlockDialogOpen(false)}
+                    >
+                      İptal
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        setSubdomainLocked(false);
+                        setSubdomainUnlockDialogOpen(false);
+                      }}
+                    >
+                      Devam Et
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </CardContent>
           </Card>
 
@@ -651,11 +740,11 @@ export default function GeneralSettingsPage() {
             </CardContent>
           </Card>
 
-          {/* BÖLÜM 4: Adres & Harita */}
+          {/* BÖLÜM 4: Adres */}
           <Card>
             <CardHeader>
-              <CardTitle>Adres & Harita</CardTitle>
-              <CardDescription>İşletme konumu ve adres bilgileri</CardDescription>
+              <CardTitle>Adres</CardTitle>
+              <CardDescription>İşletme adres bilgileri (İleride çok şubeli firmalar için)</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -669,42 +758,6 @@ export default function GeneralSettingsPage() {
                   onChange={(e) => setValue("address", e.target.value, { shouldDirty: true })}
                 />
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="latitude">Enlem (Latitude)</Label>
-                  <Input
-                    id="latitude"
-                    type="number"
-                    step="any"
-                    {...register("latitude", { valueAsNumber: true })}
-                    placeholder="40.7128"
-                    onChange={(e) => {
-                      const value = e.target.value ? parseFloat(e.target.value) : undefined;
-                      setValue("latitude", value, { shouldDirty: true });
-                    }}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="longitude">Boylam (Longitude)</Label>
-                  <Input
-                    id="longitude"
-                    type="number"
-                    step="any"
-                    {...register("longitude", { valueAsNumber: true })}
-                    placeholder="-74.0060"
-                    onChange={(e) => {
-                      const value = e.target.value ? parseFloat(e.target.value) : undefined;
-                      setValue("longitude", value, { shouldDirty: true });
-                    }}
-                  />
-                </div>
-              </div>
-
-              <Button type="button" variant="outline" className="w-full">
-                <MapPin className="h-4 w-4 mr-2" />
-                Konumu Haritada İşaretle (Yakında)
-              </Button>
             </CardContent>
           </Card>
 

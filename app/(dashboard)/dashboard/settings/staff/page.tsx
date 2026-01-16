@@ -77,7 +77,7 @@ export default async function StaffPage() {
   const userRole = (profile.role || "").trim().toLowerCase();
   const isAdmin = userRole === "tenant_admin";
 
-  // Get staff members (tenant_users joined with profiles)
+  // Get staff members (tenant_users with profiles)
   const { data: tenantUsers } = await supabase
     .from("tenant_users")
     .select("id, user_id, role, is_active")
@@ -87,7 +87,7 @@ export default async function StaffPage() {
   // Get user IDs
   const userIds = tenantUsers?.map((tu) => tu.user_id) || [];
 
-  // Get profiles for these users
+  // Get profiles for these users with full_name
   let profilesMap: Record<string, any> = {};
   if (userIds.length > 0) {
     const { data: profiles } = await supabase
@@ -110,7 +110,11 @@ export default async function StaffPage() {
       user_id: tu.user_id,
       role: tu.role as StaffMember["role"],
       is_active: tu.is_active,
-      profile: profilesMap[tu.user_id] || null,
+      profile: profilesMap[tu.user_id] ? {
+        full_name: profilesMap[tu.user_id].full_name,
+        email: profilesMap[tu.user_id].email,
+        avatar_url: profilesMap[tu.user_id].avatar_url,
+      } : null,
     })) || [];
 
   return (

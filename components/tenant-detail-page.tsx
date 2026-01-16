@@ -29,6 +29,14 @@ import { Tenant, Subscription, HardwareInventory, CatalogProduct } from "@/lib/t
 import { AlertCircle, Save, Lock, Mail, Package, ArrowLeft, Plus, Edit } from "lucide-react";
 import Link from "next/link";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { getAvailableLanguages, getTaxIdentifierLabel } from "@/app/actions/tenant-general-settings";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -63,6 +71,10 @@ const generalInfoSchema = z.object({
   contact_phone: z.string().optional().nullable(),
   contact_email: z.string().email("Geçerli bir email adresi giriniz").optional().nullable(),
   contact_address: z.string().optional().nullable(),
+  address: z.string().optional().nullable(),
+  country_code: z.string().optional().nullable(),
+  legal_name: z.string().optional().nullable(),
+  tax_id: z.string().optional().nullable(),
 });
 
 const subscriptionSchema = z.object({
@@ -111,6 +123,8 @@ export function TenantDetailPage({ tenantId, data }: TenantDetailPageProps) {
   const [hardwareProducts, setHardwareProducts] = useState<CatalogProduct[]>([]);
   const [availableAssets, setAvailableAssets] = useState<any[]>([]);
   const [productAddons, setProductAddons] = useState<any[]>([]);
+  const [availableCountries, setAvailableCountries] = useState<Array<{ code: string; name: string; flag_path: string }>>([]);
+  const [taxLabel, setTaxLabel] = useState<string>("Vergi Numarası");
 
   // General Info Form
   const generalForm = useForm<z.infer<typeof generalInfoSchema>>({
@@ -121,8 +135,42 @@ export function TenantDetailPage({ tenantId, data }: TenantDetailPageProps) {
       contact_phone: tenant.contact_phone || "",
       contact_email: tenant.contact_email || "",
       contact_address: tenant.contact_address || "",
+      address: (tenant as any).address || "",
+      country_code: (tenant as any).country_code || "",
+      legal_name: (tenant as any).legal_name || "",
+      tax_id: (tenant as any).tax_id || "",
     },
   });
+
+  const countryCode = generalForm.watch("country_code");
+
+  // Load available countries on mount
+  useEffect(() => {
+    async function loadCountries() {
+      const result = await getAvailableLanguages("tr");
+      if (result.success && result.data) {
+        setAvailableCountries(result.data);
+      }
+    }
+    loadCountries();
+  }, []);
+
+  // Update tax label when country changes
+  useEffect(() => {
+    async function updateTaxLabel() {
+      if (countryCode) {
+        const result = await getTaxIdentifierLabel(countryCode);
+        if (result.success && result.label) {
+          setTaxLabel(result.label);
+        } else {
+          setTaxLabel("Vergi Numarası");
+        }
+      } else {
+        setTaxLabel("Vergi Numarası");
+      }
+    }
+    updateTaxLabel();
+  }, [countryCode]);
 
   // New Subscription Form
   const newSubscriptionForm = useForm<z.infer<typeof newSubscriptionSchema>>({
@@ -472,11 +520,64 @@ export function TenantDetailPage({ tenantId, data }: TenantDetailPageProps) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="contact_address">Adres</Label>
+                  <Label htmlFor="contact_address">İletişim Adresi</Label>
                   <Input
                     id="contact_address"
                     {...generalForm.register("contact_address")}
-                    placeholder="Tam Adres"
+                    placeholder="İletişim Adresi"
+                  />
+                </div>
+
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="address">Adres</Label>
+                  <textarea
+                    id="address"
+                    {...generalForm.register("address")}
+                    placeholder="Tam adres bilgisi"
+                    rows={3}
+                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="country_code">Ülke</Label>
+                  <Select
+                    value={generalForm.watch("country_code") || ""}
+                    onValueChange={(value) => {
+                      generalForm.setValue("country_code", value || null, { shouldValidate: true });
+                    }}
+                  >
+                    <SelectTrigger id="country_code">
+                      <SelectValue placeholder="Ülke seçin" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px] overflow-y-auto">
+                      {availableCountries.map((country) => (
+                        <SelectItem key={country.code} value={country.code}>
+                          <div className="flex items-center gap-2">
+                            <img src={country.flag_path} alt={country.name} className="w-5 h-3.5" />
+                            <span>{country.name}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="legal_name">Yasal İsim</Label>
+                  <Input
+                    id="legal_name"
+                    {...generalForm.register("legal_name")}
+                    placeholder="Yasal firma adı"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="tax_id">{taxLabel}</Label>
+                  <Input
+                    id="tax_id"
+                    {...generalForm.register("tax_id")}
+                    placeholder={taxLabel}
                   />
                 </div>
 

@@ -14,6 +14,10 @@ const createTenantSchema = z.object({
   admin_email: z.string().email("Geçerli bir email adresi giriniz"),
   admin_password: z.string().min(6, "Şifre en az 6 karakter olmalıdır"),
   contact_phone: z.string().optional().nullable(),
+  address: z.string().optional().nullable(),
+  country_code: z.string().optional().nullable(),
+  legal_name: z.string().optional().nullable(),
+  tax_id: z.string().optional().nullable(),
 });
 
 /**
@@ -166,6 +170,10 @@ export async function createTenant(formData: FormData) {
       admin_email: formData.get("admin_email") as string,
       admin_password: formData.get("admin_password") as string,
       contact_phone: formData.get("contact_phone") as string || null,
+      address: formData.get("address") as string || null,
+      country_code: formData.get("country_code") as string || null,
+      legal_name: formData.get("legal_name") as string || null,
+      tax_id: formData.get("tax_id") as string || null,
     };
 
     const validatedData = createTenantSchema.parse(data);
@@ -224,6 +232,10 @@ export async function createTenant(formData: FormData) {
           slug: validatedData.slug,
           contact_phone: validatedData.contact_phone,
           contact_email: validatedData.admin_email,
+          address: validatedData.address,
+          country_code: validatedData.country_code,
+          legal_name: validatedData.legal_name,
+          tax_id: validatedData.tax_id,
           status: "active",
         })
         .select()
