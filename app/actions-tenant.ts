@@ -14,7 +14,7 @@ const tenantUpdateSchema = z.object({
   contact_address: z.string().optional().nullable(),
   address: z.string().optional().nullable(),
   country_code: z.string().optional().nullable(),
-  legal_name: z.string().optional().nullable(),
+  system_language_code: z.string().optional().nullable(),
   tax_id: z.string().optional().nullable(),
 });
 
@@ -68,7 +68,7 @@ export async function updateTenantGeneralInfo(
       contact_address: formData.get("contact_address") as string || null,
       address: formData.get("address") as string || null,
       country_code: formData.get("country_code") as string || null,
-      legal_name: formData.get("legal_name") as string || null,
+      system_language_code: formData.get("system_language_code") as string || null,
       tax_id: formData.get("tax_id") as string || null,
     };
 

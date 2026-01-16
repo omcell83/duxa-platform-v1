@@ -16,7 +16,7 @@ const createTenantSchema = z.object({
   contact_phone: z.string().optional().nullable(),
   address: z.string().optional().nullable(),
   country_code: z.string().optional().nullable(),
-  legal_name: z.string().optional().nullable(),
+  system_language_code: z.string().optional().nullable(),
   tax_id: z.string().optional().nullable(),
 });
 
@@ -172,7 +172,7 @@ export async function createTenant(formData: FormData) {
       contact_phone: formData.get("contact_phone") as string || null,
       address: formData.get("address") as string || null,
       country_code: formData.get("country_code") as string || null,
-      legal_name: formData.get("legal_name") as string || null,
+      system_language_code: formData.get("system_language_code") as string || null,
       tax_id: formData.get("tax_id") as string || null,
     };
 
@@ -234,7 +234,7 @@ export async function createTenant(formData: FormData) {
           contact_email: validatedData.admin_email,
           address: validatedData.address,
           country_code: validatedData.country_code,
-          legal_name: validatedData.legal_name,
+          system_language_code: validatedData.system_language_code,
           tax_id: validatedData.tax_id,
           status: "active",
         })

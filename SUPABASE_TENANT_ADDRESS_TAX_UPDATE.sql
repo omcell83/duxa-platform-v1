@@ -34,13 +34,17 @@ UPDATE public.languages SET tax_identifier_label = 'VAT Number' WHERE code = 'lu
 UPDATE public.languages SET tax_identifier_label = 'VAT Number' WHERE code = 'ie';
 UPDATE public.languages SET tax_identifier_label = 'VAT Number' WHERE code = 'bg';
 
--- 3. tenants Tablosu Revizyonu: address ve country_code sütunları ekle
+-- 3. tenants Tablosu Revizyonu: address, country_code, system_language_code sütunları ekle
 ALTER TABLE public.tenants 
 ADD COLUMN IF NOT EXISTS address TEXT,
 ADD COLUMN IF NOT EXISTS country_code TEXT,
-ADD COLUMN IF NOT EXISTS legal_name TEXT,
+ADD COLUMN IF NOT EXISTS system_language_code TEXT,
 ADD COLUMN IF NOT EXISTS tax_id TEXT,
 ADD COLUMN IF NOT EXISTS currency TEXT DEFAULT 'TRY';
+
+-- 4. legal_name sütununu kaldır (commercial_name zaten var)
+ALTER TABLE public.tenants 
+DROP COLUMN IF EXISTS legal_name;
 
 -- Not: Mevcut tenants için country_code varsayılan değer olarak 'tr' atanabilir (opsiyonel)
 -- UPDATE public.tenants SET country_code = 'tr' WHERE country_code IS NULL;

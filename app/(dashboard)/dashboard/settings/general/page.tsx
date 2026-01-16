@@ -85,9 +85,9 @@ export default function GeneralSettingsPage() {
   const [availableLanguages, setAvailableLanguages] = useState<Array<{ code: string; name: string; flag_path: string }>>([]);
   const [currentSystemLanguage, setCurrentSystemLanguage] = useState("tr");
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [legalName, setLegalName] = useState<string>("");
   const [taxId, setTaxId] = useState<string>("");
   const [taxLabel, setTaxLabel] = useState<string>("Vergi Numarası");
+  const [commercialName, setCommercialName] = useState<string>("");
   const [subdomainLocked, setSubdomainLocked] = useState(true);
   const [subdomainUnlockDialogOpen, setSubdomainUnlockDialogOpen] = useState(false);
 
@@ -167,7 +167,7 @@ export default function GeneralSettingsPage() {
         setValue("menuLanguages", settings.menuLanguages || []);
         
         // Set legal info (read-only)
-        setLegalName(settings.legalName || "");
+        setCommercialName(settings.commercialName || "");
         setTaxId(settings.taxId || "");
         setTaxLabel(settings.taxLabel || "Vergi Numarası");
 
@@ -530,10 +530,10 @@ export default function GeneralSettingsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="legal_name">Yasal İsim</Label>
+                  <Label htmlFor="commercial_name">Yasal İsim</Label>
                   <Input
-                    id="legal_name"
-                    value={legalName}
+                    id="commercial_name"
+                    value={commercialName}
                     disabled
                     className="bg-muted"
                   />

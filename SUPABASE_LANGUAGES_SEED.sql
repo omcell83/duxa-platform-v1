@@ -88,8 +88,8 @@ INSERT INTO public.languages (code, flag_path, is_active, translations) VALUES
 -- Luxembourg / Lüksemburgca
 ('lu', '/flags/lu.svg', true, '{"tr": "Lüksemburgca", "en": "Luxembourgish", "de": "Luxemburgisch", "me": "Luksemburški", "ru": "Люксембургский", "ar": "اللوكسمبورغية", "lu": "Lëtzebuergesch"}'::jsonb),
 
--- Montenegro / Karadağca
-('me', '/flags/me.svg', true, '{"tr": "Karadağca", "en": "Montenegrin", "de": "Montenegrinisch", "me": "Crnogorski", "ru": "Черногорский", "ar": "الجبل الأسود", "me": "Crnogorski"}'::jsonb),
+-- Montenegro / Karadağ
+('me', '/flags/me.svg', true, '{"tr": "Karadağ", "en": "Montenegro", "de": "Montenegro", "me": "Crna Gora", "ru": "Черногория", "ar": "الجبل الأسود", "me": "Crna Gora"}'::jsonb),
 
 -- Netherlands / Hollandaca
 ('nl', '/flags/nl.svg', true, '{"tr": "Hollandaca", "en": "Dutch", "de": "Niederländisch", "me": "Holandski", "ru": "Голландский", "ar": "الهولندية", "nl": "Nederlands"}'::jsonb),

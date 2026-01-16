@@ -73,7 +73,7 @@ const generalInfoSchema = z.object({
   contact_address: z.string().optional().nullable(),
   address: z.string().optional().nullable(),
   country_code: z.string().optional().nullable(),
-  legal_name: z.string().optional().nullable(),
+  system_language_code: z.string().optional().nullable(),
   tax_id: z.string().optional().nullable(),
 });
 
@@ -125,6 +125,8 @@ export function TenantDetailPage({ tenantId, data }: TenantDetailPageProps) {
   const [productAddons, setProductAddons] = useState<any[]>([]);
   const [availableCountries, setAvailableCountries] = useState<Array<{ code: string; name: string; flag_path: string }>>([]);
   const [taxLabel, setTaxLabel] = useState<string>("Vergi Numarası");
+  const countryCode = generalForm.watch("country_code");
+  const systemLanguageCode = generalForm.watch("system_language_code");
 
   // General Info Form
   const generalForm = useForm<z.infer<typeof generalInfoSchema>>({
@@ -137,12 +139,10 @@ export function TenantDetailPage({ tenantId, data }: TenantDetailPageProps) {
       contact_address: tenant.contact_address || "",
       address: (tenant as any).address || "",
       country_code: (tenant as any).country_code || "",
-      legal_name: (tenant as any).legal_name || "",
+      system_language_code: (tenant as any).system_language_code || "",
       tax_id: (tenant as any).tax_id || "",
     },
   });
-
-  const countryCode = generalForm.watch("country_code");
 
   // Load available countries on mount
   useEffect(() => {
@@ -564,12 +564,27 @@ export function TenantDetailPage({ tenantId, data }: TenantDetailPageProps) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="legal_name">Yasal İsim</Label>
-                  <Input
-                    id="legal_name"
-                    {...generalForm.register("legal_name")}
-                    placeholder="Yasal firma adı"
-                  />
+                  <Label htmlFor="system_language_code">Sistem Dili</Label>
+                  <Select
+                    value={generalForm.watch("system_language_code") || ""}
+                    onValueChange={(value) => {
+                      generalForm.setValue("system_language_code", value || null, { shouldValidate: true });
+                    }}
+                  >
+                    <SelectTrigger id="system_language_code">
+                      <SelectValue placeholder="Sistem dili seçin" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px] overflow-y-auto">
+                      {availableCountries.map((country) => (
+                        <SelectItem key={country.code} value={country.code}>
+                          <div className="flex items-center gap-2">
+                            <img src={country.flag_path} alt={country.name} className="w-5 h-3.5" />
+                            <span>{country.name}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">

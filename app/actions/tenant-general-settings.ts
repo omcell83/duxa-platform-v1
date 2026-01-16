@@ -219,7 +219,7 @@ export async function updateGeneralSettings(
       },
     };
 
-    // Update tenant name, currency, and address if changed
+    // Update tenant name, currency, address, and system_language_code if changed
     const updateData: any = { settings: updatedSettings };
     if (validated.data.businessName !== tenant?.name) {
       updateData.name = validated.data.businessName;
@@ -229,6 +229,16 @@ export async function updateGeneralSettings(
     }
     if (validated.data.address !== tenant?.address) {
       updateData.address = validated.data.address || null;
+    }
+    // System language is stored in both settings and tenant table for quick access
+    if (validated.data.systemLanguage) {
+      updatedSettings.system_language = validated.data.systemLanguage;
+      updateData.settings = updatedSettings;
+      // Also update tenant.system_language_code
+      const currentSystemLang = (tenant as any)?.system_language_code || settings.system_language || "tr";
+      if (validated.data.systemLanguage !== currentSystemLang) {
+        updateData.system_language_code = validated.data.systemLanguage;
+      }
     }
 
     // Update tenant
@@ -288,7 +298,7 @@ export async function getGeneralSettings(): Promise<{
     // Get tenant data
     const { data: tenant, error } = await supabase
       .from("tenants")
-      .select("id, name, slug, settings, address, country_code, legal_name, tax_id, currency")
+      .select("id, name, slug, settings, address, country_code, system_language_code, commercial_name, tax_id, currency")
       .eq("id", profile.tenant_id)
       .single();
 
@@ -319,11 +329,11 @@ export async function getGeneralSettings(): Promise<{
       data: {
         businessName: tenant.name || "",
         currency: tenant.currency || settings.currency || "TRY",
-        systemLanguage: settings.system_language || "tr",
+        systemLanguage: tenant.system_language_code || settings.system_language || "tr",
         subdomain: tenant.slug || "",
         logoUrl: settings.logo_url || "",
-        legalName: tenant.legal_name || "",
-        address: tenant.address || settings.location?.address || "",
+        commercialName: tenant.commercial_name || "",
+        address: tenant.address || "",
         countryCode: tenant.country_code || "",
         taxId: tenant.tax_id || "",
         taxLabel: taxLabel,

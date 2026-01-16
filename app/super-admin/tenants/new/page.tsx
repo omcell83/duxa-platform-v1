@@ -33,7 +33,7 @@ const createTenantSchema = z.object({
   contact_phone: z.string().optional().nullable(),
   address: z.string().optional().nullable(),
   country_code: z.string().optional().nullable(),
-  legal_name: z.string().optional().nullable(),
+  system_language_code: z.string().optional().nullable(),
   tax_id: z.string().optional().nullable(),
 });
 
@@ -65,13 +65,14 @@ export default function NewTenantPage() {
       contact_phone: "",
       address: "",
       country_code: "",
-      legal_name: "",
+      system_language_code: "",
       tax_id: "",
     },
   });
 
   const businessName = watch("name");
   const countryCode = watch("country_code");
+  const systemLanguageCode = watch("system_language_code");
 
   // Load available countries on mount
   useEffect(() => {
@@ -284,17 +285,32 @@ export default function NewTenantPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="legal_name">Yasal İsim</Label>
-                  <Input
-                    id="legal_name"
-                    {...register("legal_name")}
-                    placeholder="Yasal firma adı"
+                  <Label htmlFor="system_language_code">Sistem Dili</Label>
+                  <Select
+                    value={watch("system_language_code") || ""}
+                    onValueChange={(value) => {
+                      setValue("system_language_code", value || null, { shouldValidate: true });
+                    }}
                     disabled={loading}
-                  />
+                  >
+                    <SelectTrigger id="system_language_code">
+                      <SelectValue placeholder="Sistem dili seçin" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px] overflow-y-auto">
+                      {availableCountries.map((country) => (
+                        <SelectItem key={country.code} value={country.code}>
+                          <div className="flex items-center gap-2">
+                            <img src={country.flag_path} alt={country.name} className="w-5 h-3.5" />
+                            <span>{country.name}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="tax_id">{taxLabel} *</Label>
+                  <Label htmlFor="tax_id">{taxLabel}</Label>
                   <Input
                     id="tax_id"
                     {...register("tax_id")}
