@@ -490,7 +490,7 @@ export default function GeneralSettingsPage() {
                   <SelectTrigger id="systemLanguage">
                     <SelectValue placeholder="Yönetici dili seçin" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-h-[300px] overflow-y-auto">
                     {availableLanguages.map((lang) => (
                       <SelectItem key={lang.code} value={lang.code}>
                         <div className="flex items-center gap-2">

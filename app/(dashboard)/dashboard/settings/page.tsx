@@ -1,19 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { Clock, Users, Building2 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Link from "next/link";
 
 export default function SettingsPage() {
-  const router = useRouter();
-
-  // Redirect to general settings by default
-  useEffect(() => {
-    router.replace("/dashboard/settings/general");
-  }, [router]);
-
   return (
     <div className="bg-background min-h-full p-6">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -66,10 +57,6 @@ export default function SettingsPage() {
               </CardHeader>
             </Card>
           </Link>
-        </div>
-
-        <div className="text-center py-4 text-muted-foreground text-sm">
-          Genel ayarlar sayfasına yönlendiriliyorsunuz...
         </div>
       </div>
     </div>
