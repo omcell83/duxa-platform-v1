@@ -95,26 +95,22 @@ export default async function StaffPage() {
   // Get staff members with profiles using server action
   const staffResult = await getStaffWithProfiles(profile.tenant_id);
 
-  if (!staffResult.success) {
-    return (
-      <div className="bg-background min-h-full p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center py-12 text-muted-foreground">
-            {staffResult.error || "Personel listesi alınamadı"}
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Initialize staff members array - even if there's an error, show empty list
+  let staffMembers: StaffMember[] = [];
 
-  // Map the result to StaffMember interface
-  const staffMembers: StaffMember[] = (staffResult.data || []).map((member) => ({
-    id: member.id,
-    user_id: member.user_id,
-    role: member.role as StaffMember["role"],
-    is_active: member.is_active,
-    profile: member.profile,
-  }));
+  if (staffResult.success && staffResult.data) {
+    // Map the result to StaffMember interface
+    staffMembers = staffResult.data.map((member) => ({
+      id: member.id,
+      user_id: member.user_id,
+      role: member.role as StaffMember["role"],
+      is_active: member.is_active,
+      profile: member.profile,
+    }));
+  } else if (staffResult.error) {
+    // Log error but don't fail completely
+    console.error("Error getting staff:", staffResult.error);
+  }
 
   return (
     <div className="bg-background min-h-full p-6">

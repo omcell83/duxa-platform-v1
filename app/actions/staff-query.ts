@@ -45,15 +45,42 @@ export async function getStaffWithProfiles(tenantId: number): Promise<{
     // Get user IDs - keep as UUID format
     const userIds = validTenantUsers.map((tu) => tu.user_id);
 
-    // Get profiles - use .in() with UUID array
-    const { data: profiles, error: profilesError } = await supabase
+    // Get profiles - try .in() first, if that fails try individual queries
+    let profiles: any[] = [];
+    
+    // Convert user IDs to string array to ensure proper UUID handling
+    const userIdsString = userIds.map((id) => String(id));
+    
+    const { data: profilesData, error: profilesError } = await supabase
       .from("profiles")
       .select("id, full_name, email, avatar_url")
-      .in("id", userIds);
+      .in("id", userIdsString);
 
     if (profilesError) {
-      console.error("Error fetching profiles:", profilesError);
-      return { success: false, error: "Profiles alınamadı" };
+      console.error("Error fetching profiles with .in():", profilesError);
+      console.error("Profile error code:", profilesError.code);
+      console.error("Profile error message:", profilesError.message);
+      
+      // Fallback: Try fetching profiles one by one
+      console.log("Attempting fallback: fetching profiles individually...");
+      const profilePromises = userIds.map(async (userId) => {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("id, full_name, email, avatar_url")
+          .eq("id", userId)
+          .single();
+        if (error) {
+          console.error(`Error fetching profile for ${userId}:`, error);
+          return null;
+        }
+        return data;
+      });
+      
+      const profileResults = await Promise.all(profilePromises);
+      profiles = profileResults.filter((p) => p !== null && p !== undefined);
+      console.log(`Fallback: Found ${profiles.length} profiles out of ${userIds.length} user IDs`);
+    } else {
+      profiles = profilesData || [];
     }
 
     // Create a Map for fast lookup - normalize UUIDs to lowercase strings
@@ -61,7 +88,7 @@ export async function getStaffWithProfiles(tenantId: number): Promise<{
     
     if (profiles && profiles.length > 0) {
       for (const p of profiles) {
-        if (p.id) {
+        if (p && p.id) {
           // Normalize UUID to lowercase string for consistent matching
           const normalizedId = String(p.id).toLowerCase().trim();
           profilesMap.set(normalizedId, {
