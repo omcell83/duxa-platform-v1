@@ -31,6 +31,7 @@ interface StaffMember {
 
 const roleLabels: Record<string, string> = {
   owner: "Sahip",
+  tenant_admin: "Yönetici",
   manager: "Yönetici",
   staff: "Personel",
   kitchen: "Mutfak",

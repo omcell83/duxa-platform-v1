@@ -25,12 +25,12 @@ export async function getStaffWithProfiles(tenantId: number): Promise<{
     const supabase = await createClient();
 
     // Get profiles directly for this tenant
-    // Filter out super_admin role (system admins should not appear in staff list)
+    // List all profiles that have the same tenant_id as the logged-in user
+    // This includes all roles: owner, tenant_admin, manager, staff, kitchen, courier
     const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
       .select("id, full_name, email, avatar_url, role, is_active, tenant_id")
-      .eq("tenant_id", tenantId)
-      .neq("role", "super_admin") // Exclude super_admin from staff list
+      .eq("tenant_id", tenantId) // Get all profiles with the same tenant_id
       .order("created_at", { ascending: false });
 
     if (profilesError) {
