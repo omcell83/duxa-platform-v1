@@ -31,9 +31,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 
 interface StaffMember {
-  id: string; // Changed from number to string (UUID from profiles.id)
+  id: number;
   user_id: string;
-  role: "owner" | "manager" | "staff" | "kitchen" | "courier" | "tenant_admin";
+  role: "owner" | "manager" | "staff" | "kitchen" | "courier";
   is_active: boolean;
   profile: {
     full_name: string | null;
@@ -43,9 +43,9 @@ interface StaffMember {
 }
 
 interface StaffActionsProps {
-  tenantUserId: string; // Deprecated: kept for backwards compatibility, use userId instead
-  userId: string; // Profile ID (UUID from profiles.id)
-  currentRole: "owner" | "manager" | "staff" | "kitchen" | "courier" | "tenant_admin";
+  tenantUserId: number;
+  userId: string;
+  currentRole: "owner" | "manager" | "staff" | "kitchen" | "courier";
   isCurrentUser: boolean;
   isTenantAdmin: boolean;
   isSuperAdmin: boolean;
@@ -77,8 +77,8 @@ const roleColors: Record<string, "default" | "secondary" | "outline"> = {
 };
 
 export function StaffActions({
-  tenantUserId, // Deprecated: kept for backwards compatibility
-  userId, // Use this instead of tenantUserId
+  tenantUserId,
+  userId,
   currentRole,
   isCurrentUser,
   isTenantAdmin,
@@ -99,7 +99,7 @@ export function StaffActions({
     setLoading(true);
     try {
       const formData = new FormData();
-      formData.append("userId", String(userId)); // Changed from tenantUserId to userId
+      formData.append("tenantUserId", tenantUserId.toString());
       formData.append("role", selectedRole);
 
       const result = await updateStaffRole(formData);
@@ -130,7 +130,7 @@ export function StaffActions({
     setLoading(true);
     try {
       const formData = new FormData();
-      formData.append("userId", String(userId)); // Changed from tenantUserId to userId
+      formData.append("tenantUserId", tenantUserId.toString());
 
       const result = await removeStaffAccess(formData);
 
@@ -159,7 +159,7 @@ export function StaffActions({
     setLoading(true);
     try {
       const formData = new FormData();
-      formData.append("userId", String(userId)); // Changed from tenantUserId to userId (profile.id)
+      formData.append("tenantUserId", tenantUserId.toString());
 
       const result = await deleteStaff(formData);
 

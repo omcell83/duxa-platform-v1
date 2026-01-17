@@ -18,9 +18,9 @@ import { UserPlus, Users } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface StaffMember {
-  id: string; // Changed from number to string (UUID from profiles.id)
+  id: number;
   user_id: string;
-  role: "owner" | "manager" | "staff" | "kitchen" | "courier" | "tenant_admin";
+  role: "owner" | "manager" | "staff" | "kitchen" | "courier";
   is_active: boolean;
   profile: {
     full_name: string | null;
@@ -31,7 +31,6 @@ interface StaffMember {
 
 const roleLabels: Record<string, string> = {
   owner: "Sahip",
-  tenant_admin: "Yönetici",
   manager: "Yönetici",
   staff: "Personel",
   kitchen: "Mutfak",
@@ -75,9 +74,9 @@ export default async function StaffPage() {
     );
   }
 
-  // Check if user is owner, tenant_admin or super_admin
+  // Check if user is tenant_admin or super_admin
   const userRole = (profile.role || "").trim().toLowerCase();
-  const isAdmin = userRole === "owner" || userRole === "tenant_admin" || userRole === "super_admin";
+  const isAdmin = userRole === "tenant_admin" || userRole === "super_admin";
   const isTenantAdmin = userRole === "tenant_admin";
   const isSuperAdmin = userRole === "super_admin";
 
@@ -102,11 +101,11 @@ export default async function StaffPage() {
   if (staffResult.success && staffResult.data) {
     // Map the result to StaffMember interface
     staffMembers = staffResult.data.map((member) => ({
-      id: String(member.id), // Ensure id is string
-      user_id: String(member.user_id), // Ensure user_id is string
+      id: member.id,
+      user_id: member.user_id,
       role: member.role as StaffMember["role"],
       is_active: member.is_active,
-      profile: member.profile || null,
+      profile: member.profile,
     }));
   } else if (staffResult.error) {
     // Log error but don't fail completely
@@ -224,7 +223,7 @@ export default async function StaffPage() {
                         {isAdmin && (
                           <TableCell className="text-right">
                             <StaffActions
-                              tenantUserId={member.user_id}
+                              tenantUserId={member.id}
                               userId={member.user_id}
                               currentRole={member.role}
                               isCurrentUser={isCurrentUser}

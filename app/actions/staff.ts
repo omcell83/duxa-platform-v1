@@ -11,16 +11,16 @@ const inviteStaffSchema = z.object({
 });
 
 const updateRoleSchema = z.object({
-  userId: z.string().min(1, "Kullanıcı ID gereklidir"),
+  tenantUserId: z.number().min(1),
   role: z.enum(["owner", "manager", "staff", "kitchen", "courier"]),
 });
 
 const removeAccessSchema = z.object({
-  userId: z.string().min(1, "Kullanıcı ID gereklidir"),
+  tenantUserId: z.number().min(1),
 });
 
 const deleteStaffSchema = z.object({
-  userId: z.string().min(1, "Kullanıcı ID gereklidir"),
+  tenantUserId: z.number().min(1),
 });
 
 export async function inviteStaff(formData: FormData) {
@@ -71,7 +71,7 @@ export async function inviteStaff(formData: FormData) {
     // Check if user exists in profiles by email
     const { data: existingProfile } = await supabase
       .from("profiles")
-      .select("id, full_name, tenant_id, role")
+      .select("id, full_name")
       .eq("email", validated.data.email)
       .single();
 
@@ -79,44 +79,47 @@ export async function inviteStaff(formData: FormData) {
       return { error: "Bu email adresine kayıtlı kullanıcı bulunamadı" };
     }
 
-    // Check if user already belongs to this tenant
-    if (existingProfile.tenant_id === profile.tenant_id) {
-      // Update existing profile: role and full_name
-      const updateData: any = {
-        role: validated.data.role,
-        is_active: true,
-      };
-      if (validated.data.fullName && existingProfile.full_name !== validated.data.fullName) {
-        updateData.full_name = validated.data.fullName;
-      }
-
-      const { error } = await supabase
+    // Update full_name if provided
+    if (validated.data.fullName && existingProfile.full_name !== validated.data.fullName) {
+      await supabase
         .from("profiles")
-        .update(updateData)
+        .update({ full_name: validated.data.fullName })
         .eq("id", existingProfile.id);
+    }
+
+    // Check if user is already in tenant_users
+    const { data: existingTenantUser } = await supabase
+      .from("tenant_users")
+      .select("id")
+      .eq("tenant_id", profile.tenant_id)
+      .eq("user_id", existingProfile.id)
+      .single();
+
+    if (existingTenantUser) {
+      // Update existing record
+      const { error } = await supabase
+        .from("tenant_users")
+        .update({
+          role: validated.data.role,
+          is_active: true,
+        })
+        .eq("id", existingTenantUser.id);
 
       if (error) {
-        console.error("Error updating profile:", error);
+        console.error("Error updating tenant_user:", error);
         return { error: "Personel güncellenirken bir hata oluştu" };
       }
     } else {
-      // User belongs to different tenant - update tenant_id, role, and full_name
-      const updateData: any = {
+      // Insert new record
+      const { error } = await supabase.from("tenant_users").insert({
         tenant_id: profile.tenant_id,
+        user_id: existingProfile.id,
         role: validated.data.role,
         is_active: true,
-      };
-      if (validated.data.fullName) {
-        updateData.full_name = validated.data.fullName;
-      }
-
-      const { error } = await supabase
-        .from("profiles")
-        .update(updateData)
-        .eq("id", existingProfile.id);
+      });
 
       if (error) {
-        console.error("Error updating profile:", error);
+        console.error("Error inserting tenant_user:", error);
         return { error: "Personel eklenirken bir hata oluştu" };
       }
     }
@@ -159,37 +162,31 @@ export async function updateStaffRole(formData: FormData) {
 
     const isTenantAdmin = userRole === "tenant_admin";
 
-    // Validate - userId is now string (profile.id)
-    const userId = formData.get("userId") as string;
+    // Validate
+    const tenantUserId = parseInt(formData.get("tenantUserId") as string);
     const role = formData.get("role") as string;
 
-    const validated = updateRoleSchema.safeParse({ userId, role });
+    const validated = updateRoleSchema.safeParse({ tenantUserId, role });
 
     if (!validated.success) {
       return { error: "Geçersiz veri" };
     }
 
-    // Don't allow updating own role
-    if (validated.data.userId === session.user.id) {
-      return { error: "Kendi rolünüzü değiştiremezsiniz" };
-    }
-
-    // Check if user belongs to this tenant
-    const { data: targetProfile } = await supabase
-      .from("profiles")
-      .select("id, tenant_id, role")
-      .eq("id", validated.data.userId)
+    // Check if tenant_user belongs to this tenant
+    const { data: tenantUser } = await supabase
+      .from("tenant_users")
+      .select("user_id")
+      .eq("id", validated.data.tenantUserId)
       .eq("tenant_id", profile.tenant_id)
       .single();
 
-    if (!targetProfile) {
-      return { error: "Personel bulunamadı veya bu işletmeye ait değil" };
+    if (!tenantUser) {
+      return { error: "Personel bulunamadı" };
     }
 
-    // Don't allow changing super_admin or tenant_admin roles (only super_admin can do this)
-    const targetRole = (targetProfile.role || "").trim().toLowerCase();
-    if (targetRole === "super_admin" || (targetRole === "tenant_admin" && isTenantAdmin)) {
-      return { error: "Bu rolü değiştirme yetkiniz bulunmamaktadır" };
+    // Don't allow updating own role
+    if (tenantUser.user_id === session.user.id) {
+      return { error: "Kendi rolünüzü değiştiremezsiniz" };
     }
 
     // Tenant admin can only set manager, staff, kitchen, courier roles
@@ -197,11 +194,11 @@ export async function updateStaffRole(formData: FormData) {
       return { error: "Bu rolü atama yetkiniz bulunmamaktadır" };
     }
 
-    // Update role in profiles
+    // Update role
     const { error } = await supabase
-      .from("profiles")
+      .from("tenant_users")
       .update({ role: validated.data.role })
-      .eq("id", validated.data.userId);
+      .eq("id", validated.data.tenantUserId);
 
     if (error) {
       console.error("Error updating role:", error);
@@ -244,43 +241,37 @@ export async function removeStaffAccess(formData: FormData) {
       return { error: "Sadece yöneticiler erişim kaldırabilir" };
     }
 
-    // Validate - userId is now string (profile.id)
-    const userId = formData.get("userId") as string;
+    // Validate
+    const tenantUserId = parseInt(formData.get("tenantUserId") as string);
 
-    const validated = removeAccessSchema.safeParse({ userId });
+    const validated = removeAccessSchema.safeParse({ tenantUserId });
 
     if (!validated.success) {
       return { error: "Geçersiz veri" };
     }
 
-    // Don't allow removing own access
-    if (validated.data.userId === session.user.id) {
-      return { error: "Kendi erişiminizi kaldıramazsınız" };
-    }
-
-    // Check if user belongs to this tenant
-    const { data: targetProfile } = await supabase
-      .from("profiles")
-      .select("id, tenant_id, role")
-      .eq("id", validated.data.userId)
+    // Check if tenant_user belongs to this tenant
+    const { data: tenantUser } = await supabase
+      .from("tenant_users")
+      .select("user_id")
+      .eq("id", validated.data.tenantUserId)
       .eq("tenant_id", profile.tenant_id)
       .single();
 
-    if (!targetProfile) {
-      return { error: "Personel bulunamadı veya bu işletmeye ait değil" };
+    if (!tenantUser) {
+      return { error: "Personel bulunamadı" };
     }
 
-    // Don't allow deactivating super_admin or tenant_admin (only super_admin can do this)
-    const targetRole = (targetProfile.role || "").trim().toLowerCase();
-    if (targetRole === "super_admin" || (targetRole === "tenant_admin" && userRole === "tenant_admin")) {
-      return { error: "Bu kullanıcının erişimini kaldırma yetkiniz bulunmamaktadır" };
+    // Don't allow removing own access
+    if (tenantUser.user_id === session.user.id) {
+      return { error: "Kendi erişiminizi kaldıramazsınız" };
     }
 
-    // Soft delete: set is_active to false in profiles
+    // Soft delete: set is_active to false
     const { error } = await supabase
-      .from("profiles")
+      .from("tenant_users")
       .update({ is_active: false })
-      .eq("id", validated.data.userId);
+      .eq("id", validated.data.tenantUserId);
 
     if (error) {
       console.error("Error removing access:", error);
@@ -323,45 +314,37 @@ export async function deleteStaff(formData: FormData) {
       return { error: "Sadece yöneticiler personel silebilir" };
     }
 
-    // Validate - userId is now string (profile.id)
-    const userId = formData.get("userId") as string;
+    // Validate
+    const tenantUserId = parseInt(formData.get("tenantUserId") as string);
 
-    const validated = deleteStaffSchema.safeParse({ userId });
+    const validated = deleteStaffSchema.safeParse({ tenantUserId });
 
     if (!validated.success) {
       return { error: "Geçersiz veri" };
     }
 
-    // Don't allow deleting own account
-    if (validated.data.userId === session.user.id) {
-      return { error: "Kendi hesabınızı silemezsiniz" };
-    }
-
-    // Check if user belongs to this tenant
-    const { data: targetProfile } = await supabase
-      .from("profiles")
-      .select("id, tenant_id, role")
-      .eq("id", validated.data.userId)
+    // Check if tenant_user belongs to this tenant
+    const { data: tenantUser } = await supabase
+      .from("tenant_users")
+      .select("user_id")
+      .eq("id", validated.data.tenantUserId)
       .eq("tenant_id", profile.tenant_id)
       .single();
 
-    if (!targetProfile) {
-      return { error: "Personel bulunamadı veya bu işletmeye ait değil" };
+    if (!tenantUser) {
+      return { error: "Personel bulunamadı" };
     }
 
-    // Don't allow deleting super_admin or tenant_admin (only super_admin can do this)
-    const targetRole = (targetProfile.role || "").trim().toLowerCase();
-    if (targetRole === "super_admin" || (targetRole === "tenant_admin" && userRole === "tenant_admin")) {
-      return { error: "Bu kullanıcıyı silme yetkiniz bulunmamaktadır" };
+    // Don't allow deleting own account
+    if (tenantUser.user_id === session.user.id) {
+      return { error: "Kendi hesabınızı silemezsiniz" };
     }
 
-    // Hard delete: remove tenant_id (but keep profile for auth.users reference)
-    // Actually, we should set tenant_id to null instead of deleting the profile
-    // because profile.id references auth.users.id
+    // Hard delete: remove from tenant_users
     const { error } = await supabase
-      .from("profiles")
-      .update({ tenant_id: null, is_active: false })
-      .eq("id", validated.data.userId);
+      .from("tenant_users")
+      .delete()
+      .eq("id", validated.data.tenantUserId);
 
     if (error) {
       console.error("Error deleting staff:", error);

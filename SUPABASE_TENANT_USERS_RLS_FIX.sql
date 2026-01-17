@@ -1,10 +1,3 @@
--- DEPRECATED: This file is no longer needed
--- The tenant_users table has been removed from the codebase.
--- All user roles are now managed directly in the profiles table.
--- 
--- This file is kept for historical reference only.
--- DO NOT RUN THIS SQL - it refers to a table that should no longer be used.
-
 -- TENANT_USERS RLS FIX - Service Role Full Access
 -- Bu SQL kodu tenant_users tablosu için Service Role'e tam yetki verir
 -- RLS politikalarını bypass eder ve admin işlemlerinin sorunsuz çalışmasını sağlar
@@ -15,15 +8,15 @@
 -- SELECT * FROM pg_policies WHERE tablename = 'tenant_users';
 
 -- Önce mevcut politikayı sil (varsa)
--- DROP POLICY IF EXISTS "Service Role Full Access" ON "public"."tenant_users";
+DROP POLICY IF EXISTS "Service Role Full Access" ON "public"."tenant_users";
 
 -- Service Role için tam yetki politikası oluştur
--- CREATE POLICY "Service Role Full Access" 
--- ON "public"."tenant_users"
--- AS PERMISSIVE FOR ALL
--- TO service_role
--- USING (true)
--- WITH CHECK (true);
+CREATE POLICY "Service Role Full Access" 
+ON "public"."tenant_users"
+AS PERMISSIVE FOR ALL
+TO service_role
+USING (true)
+WITH CHECK (true);
 
 -- Not: Bu politika service_role kullanıcısının (SUPABASE_SERVICE_ROLE_KEY ile bağlanan)
 -- tenant_users tablosunda tüm işlemleri (SELECT, INSERT, UPDATE, DELETE) yapmasına izin verir.

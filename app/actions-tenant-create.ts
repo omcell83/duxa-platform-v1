@@ -257,15 +257,14 @@ export async function createTenant(formData: FormData) {
 
       createdTenantId = tenantData.id;
 
-      // Step 3: Create profile with owner role and tenant_id (using adminClient to bypass RLS)
-      // Note: Owner role is set here, no need for separate tenant_users table
+      // Step 3: Create profile with tenant_admin role and tenant_id (using adminClient to bypass RLS)
       const { error: profileError } = await adminClient
         .from("profiles")
         .insert({
           id: createdUserId,
           email: validatedData.admin_email,
           full_name: validatedData.admin_full_name,
-          role: "owner", // Set owner role directly in profiles
+          role: "tenant_admin",
           tenant_id: createdTenantId,
           is_active: true,
         });
@@ -294,11 +293,66 @@ export async function createTenant(formData: FormData) {
         return { success: false, error: `Profil oluşturulamadı: ${profileError.message}` };
       }
 
+      // Step 4: Link user to tenant in tenant_users table (using adminClient to bypass RLS)
+      const { error: tenantUserError } = await adminClient
+        .from("tenant_users")
+        .insert({
+          tenant_id: createdTenantId,
+          user_id: createdUserId,
+          role: "owner",
+          is_active: true,
+        });
+
+      if (tenantUserError) {
+        // Rollback: Delete profile, tenant and user
+        if (createdUserId) {
+          try {
+            const { error: deleteError } = await adminClient
+              .from("profiles")
+              .delete()
+              .eq("id", createdUserId);
+            if (deleteError) console.error("Rollback: Error deleting profile:", deleteError);
+          } catch (e) {
+            console.error("Rollback: Exception deleting profile:", e);
+          }
+        }
+        if (createdTenantId) {
+          try {
+            const { error: deleteError } = await adminClient
+              .from("tenants")
+              .delete()
+              .eq("id", createdTenantId);
+            if (deleteError) console.error("Rollback: Error deleting tenant:", deleteError);
+          } catch (e) {
+            console.error("Rollback: Exception deleting tenant:", e);
+          }
+        }
+        if (createdUserId) {
+          try {
+            const { error: deleteError } = await adminClient.auth.admin.deleteUser(createdUserId);
+            if (deleteError) console.error("Rollback: Error deleting auth user:", deleteError);
+          } catch (e) {
+            console.error("Rollback: Exception deleting auth user:", e);
+          }
+        }
+        return { success: false, error: `Tenant kullanıcı bağlantısı oluşturulamadı: ${tenantUserError.message}` };
+      }
+
       revalidatePath("/super-admin/tenants");
       return { success: true, tenantId: createdTenantId, userId: createdUserId };
     } catch (error: any) {
       // Rollback on any error - use adminClient to bypass RLS
       if (createdUserId) {
+        // Delete tenant_user if exists (must be first due to foreign key constraints)
+        try {
+          const { error: deleteError } = await adminClient
+            .from("tenant_users")
+            .delete()
+            .eq("user_id", createdUserId);
+          if (deleteError) console.error("Rollback: Error deleting tenant_user:", deleteError);
+        } catch (e) {
+          console.error("Rollback: Exception deleting tenant_user:", e);
+        }
         // Delete profile if exists
         try {
           const { error: deleteError } = await adminClient

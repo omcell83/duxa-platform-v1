@@ -313,32 +313,27 @@ CREATE TABLE IF NOT EXISTS invoices (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 17. Tenant Users tablosu (DEPRECATED - Artık kullanılmıyor)
--- NOT: tenant_users tablosu kod tabanından kaldırılmıştır.
--- Tüm kullanıcı rolleri ve tenant ilişkileri artık profiles tablosunda yönetilmektedir.
--- Bu tabloyu oluşturmak istiyorsanız, migration dosyasını olduğu gibi bırakın.
--- Ancak kod tabanında bu tablo kullanılmamaktadır.
---
--- CREATE TABLE IF NOT EXISTS tenant_users (
---   id BIGSERIAL PRIMARY KEY,
---   tenant_id BIGINT NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
---   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
---   role TEXT NOT NULL CHECK (role IN ('owner', 'manager', 'staff', 'kitchen', 'courier')),
---   is_active BOOLEAN DEFAULT true,
---   created_at TIMESTAMPTZ DEFAULT NOW(),
---   updated_at TIMESTAMPTZ DEFAULT NOW(),
---   UNIQUE(tenant_id, user_id) -- Bir kullanıcı aynı tenant'a birden fazla kez eklenemez
--- );
+-- 17. Tenant Users tablosu (Personel yönetimi)
+CREATE TABLE IF NOT EXISTS tenant_users (
+  id BIGSERIAL PRIMARY KEY,
+  tenant_id BIGINT NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  role TEXT NOT NULL CHECK (role IN ('owner', 'manager', 'staff', 'kitchen', 'courier')),
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(tenant_id, user_id) -- Bir kullanıcı aynı tenant'a birden fazla kez eklenemez
+);
 
 -- 18. Invoices için indexler
 CREATE INDEX IF NOT EXISTS idx_invoices_tenant_id ON invoices(tenant_id);
 CREATE INDEX IF NOT EXISTS idx_invoices_status ON invoices(tenant_id, status);
 CREATE INDEX IF NOT EXISTS idx_invoices_created_at ON invoices(tenant_id, created_at DESC);
 
--- 19. Tenant Users için indexler (DEPRECATED - Artık kullanılmıyor)
--- CREATE INDEX IF NOT EXISTS idx_tenant_users_tenant_id ON tenant_users(tenant_id);
--- CREATE INDEX IF NOT EXISTS idx_tenant_users_user_id ON tenant_users(user_id);
--- CREATE INDEX IF NOT EXISTS idx_tenant_users_active ON tenant_users(tenant_id, is_active) WHERE is_active = true;
+-- 19. Tenant Users için indexler
+CREATE INDEX IF NOT EXISTS idx_tenant_users_tenant_id ON tenant_users(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_tenant_users_user_id ON tenant_users(user_id);
+CREATE INDEX IF NOT EXISTS idx_tenant_users_active ON tenant_users(tenant_id, is_active) WHERE is_active = true;
 
 -- 20. Invoices için RLS
 ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;
@@ -355,43 +350,43 @@ CREATE POLICY "System can insert invoices"
   ON invoices FOR INSERT
   WITH CHECK (true); -- Sistem tarafından oluşturulacak
 
--- 21. Tenant Users için RLS (DEPRECATED - Artık kullanılmıyor)
--- ALTER TABLE tenant_users ENABLE ROW LEVEL SECURITY;
---
--- CREATE POLICY "Tenant users can view their own tenant_users"
---   ON tenant_users FOR SELECT
---   USING (
---     tenant_id IN (
---       SELECT tenant_id FROM profiles WHERE id = auth.uid()
---     )
---   );
---
--- CREATE POLICY "Tenant admins can insert tenant_users"
---   ON tenant_users FOR INSERT
---   WITH CHECK (
---     tenant_id IN (
---       SELECT tenant_id FROM profiles WHERE id = auth.uid() AND role IN ('tenant_admin', 'staff')
---     )
---   );
---
--- CREATE POLICY "Tenant admins can update tenant_users"
---   ON tenant_users FOR UPDATE
---   USING (
---     tenant_id IN (
---       SELECT tenant_id FROM profiles WHERE id = auth.uid() AND role IN ('tenant_admin', 'staff')
---     )
---   );
---
--- CREATE POLICY "Tenant admins can delete tenant_users"
---   ON tenant_users FOR DELETE
---   USING (
---     tenant_id IN (
---       SELECT tenant_id FROM profiles WHERE id = auth.uid() AND role IN ('tenant_admin', 'staff')
---     )
---   );
+-- 21. Tenant Users için RLS
+ALTER TABLE tenant_users ENABLE ROW LEVEL SECURITY;
 
--- 22. Tenant Users için updated_at trigger (DEPRECATED - Artık kullanılmıyor)
--- CREATE TRIGGER update_tenant_users_updated_at
---   BEFORE UPDATE ON tenant_users
---   FOR EACH ROW
---   EXECUTE FUNCTION update_updated_at_column();
+CREATE POLICY "Tenant users can view their own tenant_users"
+  ON tenant_users FOR SELECT
+  USING (
+    tenant_id IN (
+      SELECT tenant_id FROM profiles WHERE id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Tenant admins can insert tenant_users"
+  ON tenant_users FOR INSERT
+  WITH CHECK (
+    tenant_id IN (
+      SELECT tenant_id FROM profiles WHERE id = auth.uid() AND role IN ('tenant_admin', 'staff')
+    )
+  );
+
+CREATE POLICY "Tenant admins can update tenant_users"
+  ON tenant_users FOR UPDATE
+  USING (
+    tenant_id IN (
+      SELECT tenant_id FROM profiles WHERE id = auth.uid() AND role IN ('tenant_admin', 'staff')
+    )
+  );
+
+CREATE POLICY "Tenant admins can delete tenant_users"
+  ON tenant_users FOR DELETE
+  USING (
+    tenant_id IN (
+      SELECT tenant_id FROM profiles WHERE id = auth.uid() AND role IN ('tenant_admin', 'staff')
+    )
+  );
+
+-- 22. Tenant Users için updated_at trigger
+CREATE TRIGGER update_tenant_users_updated_at
+  BEFORE UPDATE ON tenant_users
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();

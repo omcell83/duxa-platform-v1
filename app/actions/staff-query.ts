@@ -3,13 +3,12 @@
 import { createClient } from "@/lib/supabase-server";
 
 /**
- * Get staff members from profiles table for a tenant
- * This server action fetches staff directly from profiles table
+ * Get staff members with profiles for a tenant
  */
 export async function getStaffWithProfiles(tenantId: number): Promise<{
   success: boolean;
   data?: Array<{
-    id: string;
+    id: number;
     user_id: string;
     role: string;
     is_active: boolean;
@@ -17,55 +16,48 @@ export async function getStaffWithProfiles(tenantId: number): Promise<{
       full_name: string | null;
       email: string;
       avatar_url: string | null;
-    };
+    } | null;
   }>;
   error?: string;
 }> {
   try {
     const supabase = await createClient();
 
-    // Get profiles directly for this tenant
-    // List all profiles that have the same tenant_id as the logged-in user
-    // This includes all roles: owner, tenant_admin, manager, staff, kitchen, courier
-    const { data: profiles, error: profilesError } = await supabase
-      .from("profiles")
-      .select("id, full_name, email, avatar_url, role, is_active, tenant_id")
-      .eq("tenant_id", tenantId) // Get all profiles with the same tenant_id
+    const { data: tenantUsers, error } = await supabase
+      .from("tenant_users")
+      .select(`
+        id,
+        user_id,
+        role,
+        is_active,
+        profiles:user_id (
+          full_name,
+          email,
+          avatar_url
+        )
+      `)
+      .eq("tenant_id", tenantId)
       .order("created_at", { ascending: false });
 
-    if (profilesError) {
-      console.error("Error fetching profiles:", profilesError);
-      console.error("Profile error details:", {
-        code: profilesError.code,
-        message: profilesError.message,
-        details: profilesError.details,
-        hint: profilesError.hint,
-      });
-      return { success: false, error: "Profiles alınamadı" };
+    if (error) {
+      console.error("Error fetching staff:", error);
+      return { success: false, error: "Personel listesi alınamadı" };
     }
 
-    console.log("Staff query result:", {
-      tenantId,
-      profilesCount: profiles?.length || 0,
-      profiles: profiles?.map(p => ({ id: p.id, email: p.email, role: p.role, tenant_id: p.tenant_id })),
-    });
-
-    if (!profiles || profiles.length === 0) {
-      console.log("No profiles found for tenant_id:", tenantId);
+    if (!tenantUsers || tenantUsers.length === 0) {
       return { success: true, data: [] };
     }
 
-    // Map profiles to staff members format
-    const staffMembers = profiles.map((p) => ({
-      id: p.id, // Use profile id instead of tenant_user id
-      user_id: p.id, // user_id is same as profile id
-      role: p.role || "staff",
-      is_active: p.is_active ?? true,
-      profile: {
-        full_name: p.full_name || null,
-        email: p.email || "",
-        avatar_url: p.avatar_url || null,
-      },
+    const staffMembers = tenantUsers.map((tu: any) => ({
+      id: tu.id,
+      user_id: tu.user_id,
+      role: tu.role,
+      is_active: tu.is_active,
+      profile: tu.profiles ? {
+        full_name: tu.profiles.full_name || null,
+        email: tu.profiles.email || "",
+        avatar_url: tu.profiles.avatar_url || null,
+      } : null,
     }));
 
     return { success: true, data: staffMembers };

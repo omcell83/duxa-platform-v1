@@ -101,18 +101,18 @@ export async function updateTenantGeneralInfo(
 
     if (shouldUpdateOwner) {
       try {
-        // Find tenant owner from profiles table
-        const { data: ownerProfile, error: ownerProfileError } = await supabase
-          .from("profiles")
-          .select("id")
+        // Find tenant owner from tenant_users table
+        const { data: tenantUser, error: tenantUserError } = await supabase
+          .from("tenant_users")
+          .select("user_id")
           .eq("tenant_id", tenantId)
           .eq("role", "owner")
           .single();
 
-        if (ownerProfileError || !ownerProfile) {
-          console.warn("Tenant owner not found, skipping owner sync:", ownerProfileError?.message);
+        if (tenantUserError || !tenantUser) {
+          console.warn("Tenant owner not found, skipping owner sync:", tenantUserError?.message);
         } else {
-          const ownerUserId = ownerProfile.id;
+          const ownerUserId = tenantUser.user_id;
 
           // Prepare update data for profiles
           const profileUpdateData: any = {};
