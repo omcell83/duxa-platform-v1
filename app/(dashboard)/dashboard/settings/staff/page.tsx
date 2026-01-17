@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
+import { getStaffWithProfiles } from "@/app/actions/staff-query";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import {
   Table,
@@ -91,64 +92,29 @@ export default async function StaffPage() {
     );
   }
 
-  // Get staff members (tenant_users)
-  const { data: tenantUsers, error: tenantUsersError } = await supabase
-    .from("tenant_users")
-    .select("id, user_id, role, is_active")
-    .eq("tenant_id", profile.tenant_id)
-    .order("created_at", { ascending: false });
+  // Get staff members with profiles using server action
+  const staffResult = await getStaffWithProfiles(profile.tenant_id);
 
-  if (tenantUsersError) {
-    console.error("Error fetching tenant_users:", tenantUsersError);
+  if (!staffResult.success) {
+    return (
+      <div className="bg-background min-h-full p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center py-12 text-muted-foreground">
+            {staffResult.error || "Personel listesi alınamadı"}
+          </div>
+        </div>
+      </div>
+    );
   }
 
-  // Filter out any tenant_users without user_id
-  const validTenantUsers = tenantUsers?.filter((tu) => tu.user_id) || [];
-
-  // Get user IDs from tenant_users
-  const userIds = validTenantUsers.map((tu) => tu.user_id);
-
-  // Get profiles for these users
-  let profilesMap: Record<string, any> = {};
-  if (userIds.length > 0) {
-    // Query profiles using the user_id values from tenant_users
-    const { data: profiles, error: profilesError } = await supabase
-      .from("profiles")
-      .select("id, full_name, email, avatar_url")
-      .in("id", userIds);
-
-    if (profilesError) {
-      console.error("Error fetching profiles:", profilesError);
-    }
-
-    if (profiles && profiles.length > 0) {
-      // Create a map using profile id as key
-      profilesMap = profiles.reduce((acc, p) => {
-        if (p.id) {
-          acc[p.id] = {
-            full_name: p.full_name || null,
-            email: p.email || null,
-            avatar_url: p.avatar_url || null,
-          };
-        }
-        return acc;
-      }, {} as Record<string, any>);
-    }
-  }
-
-  // Combine data - match tenant_users.user_id with profiles.id
-  const staffMembers: StaffMember[] = validTenantUsers.map((tu) => {
-    // Find matching profile by user_id
-    const profileData = profilesMap[tu.user_id] || null;
-    
-    return {
-      id: tu.id,
-      user_id: tu.user_id,
-      role: tu.role as StaffMember["role"],
-      is_active: tu.is_active,
-      profile: profileData,
-    };
-  });
+  // Map the result to StaffMember interface
+  const staffMembers: StaffMember[] = (staffResult.data || []).map((member) => ({
+    id: member.id,
+    user_id: member.user_id,
+    role: member.role as StaffMember["role"],
+    is_active: member.is_active,
+    profile: member.profile,
+  }));
 
   return (
     <div className="bg-background min-h-full p-6">
@@ -161,7 +127,12 @@ export default async function StaffPage() {
               İşletmenizdeki personelleri yönetin ve yeni personel davet edin
             </p>
           </div>
-          {isAdmin && <StaffInviteDialog />}
+          {isAdmin && (
+            <StaffInviteDialog 
+              isTenantAdmin={isTenantAdmin}
+              isSuperAdmin={isSuperAdmin}
+            />
+          )}
         </div>
 
         {/* Staff List */}
@@ -183,7 +154,10 @@ export default async function StaffPage() {
                   Henüz hiç personel eklenmemiş
                 </p>
                 {isAdmin && (
-                  <StaffInviteDialog>
+                  <StaffInviteDialog 
+                    isTenantAdmin={isTenantAdmin}
+                    isSuperAdmin={isSuperAdmin}
+                  >
                     <Button className="gap-2">
                       <UserPlus className="h-4 w-4" />
                       İlk Personeli Davet Et
