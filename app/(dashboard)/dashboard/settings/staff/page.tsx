@@ -26,6 +26,7 @@ interface StaffMember {
     full_name: string | null;
     email: string;
     avatar_url: string | null;
+    phone: string | null;
   } | null;
 }
 

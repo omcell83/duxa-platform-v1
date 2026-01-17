@@ -16,6 +16,7 @@ export async function getStaffWithProfiles(tenantId: number): Promise<{
       full_name: string | null;
       email: string;
       avatar_url: string | null;
+      phone: string | null;
     } | null;
   }>;
   error?: string;
@@ -30,10 +31,11 @@ export async function getStaffWithProfiles(tenantId: number): Promise<{
         user_id,
         role,
         is_active,
-        profiles:user_id (
+        profiles:profiles!tenant_users_profiles_fkey (
           full_name,
           email,
-          avatar_url
+          avatar_url,
+          phone
         )
       `)
       .eq("tenant_id", tenantId)
@@ -57,6 +59,7 @@ export async function getStaffWithProfiles(tenantId: number): Promise<{
         full_name: tu.profiles.full_name || null,
         email: tu.profiles.email || "",
         avatar_url: tu.profiles.avatar_url || null,
+        phone: tu.profiles.phone || null,
       } : null,
     }));
 
