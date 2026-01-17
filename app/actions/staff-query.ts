@@ -3,13 +3,13 @@
 import { createClient } from "@/lib/supabase-server";
 
 /**
- * Get staff members with profiles for a tenant
- * This server action ensures proper UUID matching between tenant_users and profiles
+ * Get staff members from profiles table for a tenant
+ * This server action fetches staff directly from profiles table
  */
 export async function getStaffWithProfiles(tenantId: number): Promise<{
   success: boolean;
   data?: Array<{
-    id: number;
+    id: string;
     user_id: string;
     role: string;
     is_active: boolean;
@@ -17,117 +17,43 @@ export async function getStaffWithProfiles(tenantId: number): Promise<{
       full_name: string | null;
       email: string;
       avatar_url: string | null;
-    } | null;
+    };
   }>;
   error?: string;
 }> {
   try {
     const supabase = await createClient();
 
-    // Get tenant_users
-    const { data: tenantUsers, error: tenantUsersError } = await supabase
-      .from("tenant_users")
-      .select("id, user_id, role, is_active")
+    // Get profiles directly for this tenant
+    // Filter out super_admin role (system admins should not appear in staff list)
+    const { data: profiles, error: profilesError } = await supabase
+      .from("profiles")
+      .select("id, full_name, email, avatar_url, role, is_active, tenant_id")
       .eq("tenant_id", tenantId)
+      .neq("role", "super_admin") // Exclude super_admin from staff list
       .order("created_at", { ascending: false });
 
-    if (tenantUsersError) {
-      console.error("Error fetching tenant_users:", tenantUsersError);
-      return { success: false, error: "Tenant users alınamadı" };
+    if (profilesError) {
+      console.error("Error fetching profiles:", profilesError);
+      return { success: false, error: "Profiles alınamadı" };
     }
 
-    const validTenantUsers = tenantUsers?.filter((tu) => tu.user_id) || [];
-
-    if (validTenantUsers.length === 0) {
+    if (!profiles || profiles.length === 0) {
       return { success: true, data: [] };
     }
 
-    // Get user IDs - keep as UUID format
-    const userIds = validTenantUsers.map((tu) => tu.user_id);
-
-    // Get profiles - try multiple approaches
-    let profiles: any[] = [];
-    
-    // Strategy 1: Try .in() with UUID array directly (works for UUID types)
-    const { data: profilesData, error: profilesError } = await supabase
-      .from("profiles")
-      .select("id, full_name, email, avatar_url")
-      .in("id", userIds); // Keep as UUID array, not string
-
-    if (profilesError) {
-      console.error("Error fetching profiles with .in() (UUID):", profilesError);
-      console.error("Profile error code:", profilesError.code);
-      console.error("Profile error message:", profilesError.message);
-      
-      // Strategy 2: Try .in() with string array
-      console.log("Attempting fallback: trying .in() with string array...");
-      const userIdsString = userIds.map((id) => String(id));
-      const { data: profilesData2, error: profilesError2 } = await supabase
-        .from("profiles")
-        .select("id, full_name, email, avatar_url")
-        .in("id", userIdsString);
-      
-      if (profilesError2) {
-        console.error("Error fetching profiles with .in() (string):", profilesError2);
-        
-        // Strategy 3: Fallback to individual queries (slower but reliable)
-        console.log("Attempting final fallback: fetching profiles individually...");
-        const profilePromises = userIds.map(async (userId) => {
-          const { data, error } = await supabase
-            .from("profiles")
-            .select("id, full_name, email, avatar_url")
-            .eq("id", userId)
-            .single();
-          if (error) {
-            console.error(`Error fetching profile for ${userId}:`, error);
-            return null;
-          }
-          return data;
-        });
-        
-        const profileResults = await Promise.all(profilePromises);
-        profiles = profileResults.filter((p) => p !== null && p !== undefined);
-        console.log(`Fallback: Found ${profiles.length} profiles out of ${userIds.length} user IDs`);
-      } else {
-        profiles = profilesData2 || [];
-        console.log(`String array .in() worked: Found ${profiles.length} profiles`);
-      }
-    } else {
-      profiles = profilesData || [];
-      console.log(`UUID array .in() worked: Found ${profiles.length} profiles`);
-    }
-
-    // Create a Map for fast lookup - normalize UUIDs to lowercase strings
-    const profilesMap = new Map<string, { full_name: string | null; email: string; avatar_url: string | null }>();
-    
-    if (profiles && profiles.length > 0) {
-      for (const p of profiles) {
-        if (p && p.id) {
-          // Normalize UUID to lowercase string for consistent matching
-          const normalizedId = String(p.id).toLowerCase().trim();
-          profilesMap.set(normalizedId, {
-            full_name: p.full_name || null,
-            email: p.email || "",
-            avatar_url: p.avatar_url || null,
-          });
-        }
-      }
-    }
-
-    // Combine data - normalize both UUIDs for matching
-    const staffMembers = validTenantUsers.map((tu) => {
-      // Normalize user_id to lowercase string for matching
-      const normalizedUserId = String(tu.user_id).toLowerCase().trim();
-      const profileData = profilesMap.get(normalizedUserId) || null;
-      
-      return {
-        id: tu.id,
-        user_id: tu.user_id,
-        role: tu.role,
-        is_active: tu.is_active,
-        profile: profileData,
-      };
-    });
+    // Map profiles to staff members format
+    const staffMembers = profiles.map((p) => ({
+      id: p.id, // Use profile id instead of tenant_user id
+      user_id: p.id, // user_id is same as profile id
+      role: p.role || "staff",
+      is_active: p.is_active ?? true,
+      profile: {
+        full_name: p.full_name || null,
+        email: p.email || "",
+        avatar_url: p.avatar_url || null,
+      },
+    }));
 
     return { success: true, data: staffMembers };
   } catch (error: any) {

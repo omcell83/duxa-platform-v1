@@ -31,9 +31,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 
 interface StaffMember {
-  id: number;
+  id: string; // Changed from number to string (UUID from profiles.id)
   user_id: string;
-  role: "owner" | "manager" | "staff" | "kitchen" | "courier";
+  role: "owner" | "manager" | "staff" | "kitchen" | "courier" | "tenant_admin";
   is_active: boolean;
   profile: {
     full_name: string | null;
@@ -43,9 +43,9 @@ interface StaffMember {
 }
 
 interface StaffActionsProps {
-  tenantUserId: number;
+  tenantUserId: string; // Changed from number to string (profile.id)
   userId: string;
-  currentRole: "owner" | "manager" | "staff" | "kitchen" | "courier";
+  currentRole: "owner" | "manager" | "staff" | "kitchen" | "courier" | "tenant_admin";
   isCurrentUser: boolean;
   isTenantAdmin: boolean;
   isSuperAdmin: boolean;
@@ -99,7 +99,7 @@ export function StaffActions({
     setLoading(true);
     try {
       const formData = new FormData();
-      formData.append("tenantUserId", tenantUserId.toString());
+      formData.append("tenantUserId", String(tenantUserId)); // tenantUserId is now string
       formData.append("role", selectedRole);
 
       const result = await updateStaffRole(formData);
@@ -130,7 +130,7 @@ export function StaffActions({
     setLoading(true);
     try {
       const formData = new FormData();
-      formData.append("tenantUserId", tenantUserId.toString());
+      formData.append("tenantUserId", String(tenantUserId)); // tenantUserId is now string
 
       const result = await removeStaffAccess(formData);
 
@@ -159,7 +159,7 @@ export function StaffActions({
     setLoading(true);
     try {
       const formData = new FormData();
-      formData.append("tenantUserId", tenantUserId.toString());
+      formData.append("tenantUserId", String(tenantUserId)); // tenantUserId is now string (profile.id)
 
       const result = await deleteStaff(formData);
 

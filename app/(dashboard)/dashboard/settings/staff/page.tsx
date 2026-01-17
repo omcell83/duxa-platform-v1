@@ -18,9 +18,9 @@ import { UserPlus, Users } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface StaffMember {
-  id: number;
+  id: string; // Changed from number to string (UUID from profiles.id)
   user_id: string;
-  role: "owner" | "manager" | "staff" | "kitchen" | "courier";
+  role: "owner" | "manager" | "staff" | "kitchen" | "courier" | "tenant_admin";
   is_active: boolean;
   profile: {
     full_name: string | null;
@@ -101,11 +101,11 @@ export default async function StaffPage() {
   if (staffResult.success && staffResult.data) {
     // Map the result to StaffMember interface
     staffMembers = staffResult.data.map((member) => ({
-      id: member.id,
-      user_id: member.user_id,
+      id: String(member.id), // Ensure id is string
+      user_id: String(member.user_id), // Ensure user_id is string
       role: member.role as StaffMember["role"],
       is_active: member.is_active,
-      profile: member.profile,
+      profile: member.profile || null,
     }));
   } else if (staffResult.error) {
     // Log error but don't fail completely
