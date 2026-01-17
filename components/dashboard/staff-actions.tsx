@@ -43,8 +43,8 @@ interface StaffMember {
 }
 
 interface StaffActionsProps {
-  tenantUserId: string; // Changed from number to string (profile.id)
-  userId: string;
+  tenantUserId: string; // Deprecated: kept for backwards compatibility, use userId instead
+  userId: string; // Profile ID (UUID from profiles.id)
   currentRole: "owner" | "manager" | "staff" | "kitchen" | "courier" | "tenant_admin";
   isCurrentUser: boolean;
   isTenantAdmin: boolean;
@@ -77,8 +77,8 @@ const roleColors: Record<string, "default" | "secondary" | "outline"> = {
 };
 
 export function StaffActions({
-  tenantUserId,
-  userId,
+  tenantUserId, // Deprecated: kept for backwards compatibility
+  userId, // Use this instead of tenantUserId
   currentRole,
   isCurrentUser,
   isTenantAdmin,
@@ -99,7 +99,7 @@ export function StaffActions({
     setLoading(true);
     try {
       const formData = new FormData();
-      formData.append("tenantUserId", String(tenantUserId)); // tenantUserId is now string
+      formData.append("userId", String(userId)); // Changed from tenantUserId to userId
       formData.append("role", selectedRole);
 
       const result = await updateStaffRole(formData);
@@ -130,7 +130,7 @@ export function StaffActions({
     setLoading(true);
     try {
       const formData = new FormData();
-      formData.append("tenantUserId", String(tenantUserId)); // tenantUserId is now string
+      formData.append("userId", String(userId)); // Changed from tenantUserId to userId
 
       const result = await removeStaffAccess(formData);
 
@@ -159,7 +159,7 @@ export function StaffActions({
     setLoading(true);
     try {
       const formData = new FormData();
-      formData.append("tenantUserId", String(tenantUserId)); // tenantUserId is now string (profile.id)
+      formData.append("userId", String(userId)); // Changed from tenantUserId to userId (profile.id)
 
       const result = await deleteStaff(formData);
 

@@ -223,7 +223,7 @@ export default async function StaffPage() {
                         {isAdmin && (
                           <TableCell className="text-right">
                             <StaffActions
-                              tenantUserId={member.id}
+                              tenantUserId={member.user_id}
                               userId={member.user_id}
                               currentRole={member.role}
                               isCurrentUser={isCurrentUser}
