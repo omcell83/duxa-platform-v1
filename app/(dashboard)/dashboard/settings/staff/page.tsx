@@ -102,12 +102,16 @@ export default async function StaffPage() {
     console.error("Error fetching tenant_users:", tenantUsersError);
   }
 
-  // Get user IDs
-  const userIds = tenantUsers?.map((tu) => tu.user_id) || [];
+  // Filter out any tenant_users without user_id
+  const validTenantUsers = tenantUsers?.filter((tu) => tu.user_id) || [];
+
+  // Get user IDs from tenant_users
+  const userIds = validTenantUsers.map((tu) => tu.user_id);
 
   // Get profiles for these users
   let profilesMap: Record<string, any> = {};
   if (userIds.length > 0) {
+    // Query profiles using the user_id values from tenant_users
     const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
       .select("id, full_name, email, avatar_url")
@@ -117,30 +121,34 @@ export default async function StaffPage() {
       console.error("Error fetching profiles:", profilesError);
     }
 
-    if (profiles) {
+    if (profiles && profiles.length > 0) {
+      // Create a map using profile id as key
       profilesMap = profiles.reduce((acc, p) => {
-        acc[p.id] = p;
+        if (p.id) {
+          acc[p.id] = {
+            full_name: p.full_name || null,
+            email: p.email || null,
+            avatar_url: p.avatar_url || null,
+          };
+        }
         return acc;
       }, {} as Record<string, any>);
     }
   }
 
-  // Combine data
-  const staffMembers: StaffMember[] =
-    tenantUsers?.map((tu) => {
-      const profileData = profilesMap[tu.user_id];
-      return {
-        id: tu.id,
-        user_id: tu.user_id,
-        role: tu.role as StaffMember["role"],
-        is_active: tu.is_active,
-        profile: profileData ? {
-          full_name: profileData.full_name,
-          email: profileData.email,
-          avatar_url: profileData.avatar_url,
-        } : null,
-      };
-    }) || [];
+  // Combine data - match tenant_users.user_id with profiles.id
+  const staffMembers: StaffMember[] = validTenantUsers.map((tu) => {
+    // Find matching profile by user_id
+    const profileData = profilesMap[tu.user_id] || null;
+    
+    return {
+      id: tu.id,
+      user_id: tu.user_id,
+      role: tu.role as StaffMember["role"],
+      is_active: tu.is_active,
+      profile: profileData,
+    };
+  });
 
   return (
     <div className="bg-background min-h-full p-6">
