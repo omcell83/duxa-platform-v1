@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
-import { getStaffWithProfiles } from "@/app/actions/staff-query";
+import { getTenantStaff } from "@/app/actions/staff-query";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import {
   Table,
@@ -93,8 +93,8 @@ export default async function StaffPage() {
     );
   }
 
-  // Get staff members with profiles using server action
-  const staffResult = await getStaffWithProfiles(profile.tenant_id);
+  // Get staff members with profiles using server action (with RLS bypass)
+  const staffResult = await getTenantStaff(profile.tenant_id);
 
   // Initialize staff members array - even if there's an error, show empty list
   let staffMembers: StaffMember[] = [];
