@@ -45,42 +45,56 @@ export async function getStaffWithProfiles(tenantId: number): Promise<{
     // Get user IDs - keep as UUID format
     const userIds = validTenantUsers.map((tu) => tu.user_id);
 
-    // Get profiles - try .in() first, if that fails try individual queries
+    // Get profiles - try multiple approaches
     let profiles: any[] = [];
     
-    // Convert user IDs to string array to ensure proper UUID handling
-    const userIdsString = userIds.map((id) => String(id));
-    
+    // Strategy 1: Try .in() with UUID array directly (works for UUID types)
     const { data: profilesData, error: profilesError } = await supabase
       .from("profiles")
       .select("id, full_name, email, avatar_url")
-      .in("id", userIdsString);
+      .in("id", userIds); // Keep as UUID array, not string
 
     if (profilesError) {
-      console.error("Error fetching profiles with .in():", profilesError);
+      console.error("Error fetching profiles with .in() (UUID):", profilesError);
       console.error("Profile error code:", profilesError.code);
       console.error("Profile error message:", profilesError.message);
       
-      // Fallback: Try fetching profiles one by one
-      console.log("Attempting fallback: fetching profiles individually...");
-      const profilePromises = userIds.map(async (userId) => {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("id, full_name, email, avatar_url")
-          .eq("id", userId)
-          .single();
-        if (error) {
-          console.error(`Error fetching profile for ${userId}:`, error);
-          return null;
-        }
-        return data;
-      });
+      // Strategy 2: Try .in() with string array
+      console.log("Attempting fallback: trying .in() with string array...");
+      const userIdsString = userIds.map((id) => String(id));
+      const { data: profilesData2, error: profilesError2 } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, avatar_url")
+        .in("id", userIdsString);
       
-      const profileResults = await Promise.all(profilePromises);
-      profiles = profileResults.filter((p) => p !== null && p !== undefined);
-      console.log(`Fallback: Found ${profiles.length} profiles out of ${userIds.length} user IDs`);
+      if (profilesError2) {
+        console.error("Error fetching profiles with .in() (string):", profilesError2);
+        
+        // Strategy 3: Fallback to individual queries (slower but reliable)
+        console.log("Attempting final fallback: fetching profiles individually...");
+        const profilePromises = userIds.map(async (userId) => {
+          const { data, error } = await supabase
+            .from("profiles")
+            .select("id, full_name, email, avatar_url")
+            .eq("id", userId)
+            .single();
+          if (error) {
+            console.error(`Error fetching profile for ${userId}:`, error);
+            return null;
+          }
+          return data;
+        });
+        
+        const profileResults = await Promise.all(profilePromises);
+        profiles = profileResults.filter((p) => p !== null && p !== undefined);
+        console.log(`Fallback: Found ${profiles.length} profiles out of ${userIds.length} user IDs`);
+      } else {
+        profiles = profilesData2 || [];
+        console.log(`String array .in() worked: Found ${profiles.length} profiles`);
+      }
     } else {
       profiles = profilesData || [];
+      console.log(`UUID array .in() worked: Found ${profiles.length} profiles`);
     }
 
     // Create a Map for fast lookup - normalize UUIDs to lowercase strings
