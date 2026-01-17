@@ -93,6 +93,7 @@ export default function SuperAdminSettingsPage() {
             <p className="text-sm text-muted-foreground">Yedekleme ayarları buraya eklenecek.</p>
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   );
