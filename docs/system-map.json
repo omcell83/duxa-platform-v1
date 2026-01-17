@@ -1,0 +1,452 @@
+{
+  "files": [
+    {
+      "path": "app/layout.tsx",
+      "description": "Ana uygulama layout bileşeni. Tüm sayfaları sarmalayan kök layout.",
+      "type": "layout"
+    },
+    {
+      "path": "app/globals.css",
+      "description": "Global CSS stilleri ve Tailwind yapılandırması.",
+      "type": "style"
+    },
+    {
+      "path": "app/(marketing)/page.tsx",
+      "description": "Ana karşılama sayfası (Landing Page). Pazarlama ana sayfası.",
+      "type": "page"
+    },
+    {
+      "path": "app/(marketing)/about/page.tsx",
+      "description": "Hakkımızda sayfası.",
+      "type": "page"
+    },
+    {
+      "path": "app/(marketing)/contact/page.tsx",
+      "description": "İletişim sayfası.",
+      "type": "page"
+    },
+    {
+      "path": "app/(marketing)/legal/page.tsx",
+      "description": "Yasal bilgiler ve gizlilik politikası sayfası.",
+      "type": "page"
+    },
+    {
+      "path": "app/login/page.tsx",
+      "description": "Kullanıcı giriş sayfası.",
+      "type": "page"
+    },
+    {
+      "path": "app/login/forgot-password/page.tsx",
+      "description": "Şifre unutma sayfası.",
+      "type": "page"
+    },
+    {
+      "path": "app/login/update-password/page.tsx",
+      "description": "Şifre güncelleme sayfası.",
+      "type": "page"
+    },
+    {
+      "path": "app/auth/callback/route.ts",
+      "description": "OAuth callback route handler. Supabase auth callback'i işler.",
+      "type": "route"
+    },
+    {
+      "path": "app/(dashboard)/dashboard/page.tsx",
+      "description": "Tenant dashboard ana sayfası. Günlük istatistikler ve özet bilgiler.",
+      "type": "page"
+    },
+    {
+      "path": "app/(dashboard)/dashboard/layout.tsx",
+      "description": "Dashboard layout bileşeni. Sidebar ve header içerir.",
+      "type": "layout"
+    },
+    {
+      "path": "app/(dashboard)/dashboard/menu/page.tsx",
+      "description": "Menü görüntüleme sayfası.",
+      "type": "page"
+    },
+    {
+      "path": "app/(dashboard)/dashboard/orders/page.tsx",
+      "description": "Sipariş yönetim sayfası.",
+      "type": "page"
+    },
+    {
+      "path": "app/(dashboard)/dashboard/design/page.tsx",
+      "description": "Tasarım ayarları sayfası.",
+      "type": "page"
+    },
+    {
+      "path": "app/(dashboard)/dashboard/kiosk/page.tsx",
+      "description": "Kiosk yönetim sayfası.",
+      "type": "page"
+    },
+    {
+      "path": "app/(dashboard)/dashboard/billing/page.tsx",
+      "description": "Faturalama ve ödeme sayfası.",
+      "type": "page"
+    },
+    {
+      "path": "app/(dashboard)/dashboard/change-password/page.tsx",
+      "description": "Şifre değiştirme sayfası.",
+      "type": "page"
+    },
+    {
+      "path": "app/(dashboard)/dashboard/settings/page.tsx",
+      "description": "Ayarlar ana sayfası. Alt ayar sayfalarına navigasyon sağlar.",
+      "type": "page"
+    },
+    {
+      "path": "app/(dashboard)/dashboard/settings/general/page.tsx",
+      "description": "Genel ayarlar sayfası. Subdomain, online menu, SEO ayarları.",
+      "type": "page"
+    },
+    {
+      "path": "app/(dashboard)/dashboard/settings/business-identity/page.tsx",
+      "description": "İşletme kimliği ayarları. Logo, işletme adı, para birimi, sistem dili.",
+      "type": "page"
+    },
+    {
+      "path": "app/(dashboard)/dashboard/settings/hours/page.tsx",
+      "description": "Çalışma saatleri ayarları sayfası.",
+      "type": "page"
+    },
+    {
+      "path": "app/(dashboard)/dashboard/settings/invoices/page.tsx",
+      "description": "Faturalar listesi sayfası.",
+      "type": "page"
+    },
+    {
+      "path": "app/(dashboard)/dashboard/settings/staff/page.tsx",
+      "description": "Personel yönetim sayfası. Personel listesi, ekleme, düzenleme, silme.",
+      "type": "page"
+    },
+    {
+      "path": "app/(dashboard)/menu-builder/page.tsx",
+      "description": "Menü oluşturucu sayfası. Kategori ve ürün yönetimi.",
+      "type": "page"
+    },
+    {
+      "path": "app/(dashboard)/settings/page.tsx",
+      "description": "Eski ayarlar sayfası (redirect için).",
+      "type": "page"
+    },
+    {
+      "path": "app/(kiosk)/kiosk/page.tsx",
+      "description": "Kiosk ekranı. Müşteri self-servis menü.",
+      "type": "page"
+    },
+    {
+      "path": "app/(kiosk)/kitchen/page.tsx",
+      "description": "Mutfak ekranı. Sipariş hazırlama ve takip.",
+      "type": "page"
+    },
+    {
+      "path": "app/(pos)/pos/page.tsx",
+      "description": "POS (Point of Sale) sayfası. Fiziksel satış noktası ekranı.",
+      "type": "page"
+    },
+    {
+      "path": "app/super-admin/layout.tsx",
+      "description": "Super Admin layout bileşeni. Super admin sidebar ve header içerir.",
+      "type": "layout"
+    },
+    {
+      "path": "app/super-admin/page.tsx",
+      "description": "Super Admin ana sayfası.",
+      "type": "page"
+    },
+    {
+      "path": "app/super-admin/dashboard/page.tsx",
+      "description": "Super Admin dashboard sayfası. Sistem geneli istatistikler.",
+      "type": "page"
+    },
+    {
+      "path": "app/super-admin/tenants/page.tsx",
+      "description": "Tenant listesi sayfası. Tüm işletmeleri görüntüleme ve yönetme.",
+      "type": "page"
+    },
+    {
+      "path": "app/super-admin/tenants/new/page.tsx",
+      "description": "Yeni tenant oluşturma sayfası.",
+      "type": "page"
+    },
+    {
+      "path": "app/super-admin/tenants/[id]/page.tsx",
+      "description": "Tenant detay sayfası. Tek bir işletmenin detaylı bilgileri ve düzenleme.",
+      "type": "page"
+    },
+    {
+      "path": "app/super-admin/inventory/page.tsx",
+      "description": "Donanım envanter yönetim sayfası.",
+      "type": "page"
+    },
+    {
+      "path": "app/super-admin/translations/page.tsx",
+      "description": "Çeviri yönetim sayfası. Dil ve çeviri içerik yönetimi.",
+      "type": "page"
+    },
+    {
+      "path": "app/super-admin/settings/page.tsx",
+      "description": "Super Admin ayarlar sayfası.",
+      "type": "page"
+    },
+    {
+      "path": "app/actions/auth.ts",
+      "description": "Kimlik doğrulama server actions. Login, logout, session yönetimi.",
+      "type": "action"
+    },
+    {
+      "path": "app/actions/staff.ts",
+      "description": "Personel yönetimi server actions. Personel ekleme, rol güncelleme, silme.",
+      "type": "action"
+    },
+    {
+      "path": "app/actions/staff-query.ts",
+      "description": "Personel sorgulama server action. Tenant'a ait personelleri getirir.",
+      "type": "action"
+    },
+    {
+      "path": "app/actions/business-identity.ts",
+      "description": "İşletme kimliği server actions. Logo, işletme adı, para birimi, sistem dili.",
+      "type": "action"
+    },
+    {
+      "path": "app/actions/tenant-general-settings.ts",
+      "description": "Tenant genel ayarlar server actions. Subdomain, online menu, SEO ayarları.",
+      "type": "action"
+    },
+    {
+      "path": "app/actions/tenant-settings.ts",
+      "description": "Tenant ayarlar server actions. Çalışma saatleri ve diğer ayarlar.",
+      "type": "action"
+    },
+    {
+      "path": "app/actions/tenant-management.ts",
+      "description": "Tenant yönetimi server actions. Tenant CRUD işlemleri.",
+      "type": "action"
+    },
+    {
+      "path": "app/actions/tenant-create.ts",
+      "description": "Tenant oluşturma server action. Yeni işletme ve admin kullanıcı oluşturma.",
+      "type": "action"
+    },
+    {
+      "path": "app/actions/invoices.ts",
+      "description": "Fatura server actions. Fatura listesi ve yönetimi.",
+      "type": "action"
+    },
+    {
+      "path": "app/actions/user-settings.ts",
+      "description": "Kullanıcı ayarları server actions. Profil güncelleme, şifre değiştirme.",
+      "type": "action"
+    },
+    {
+      "path": "lib/supabase-server.ts",
+      "description": "Sunucu taraflı Supabase istemcisi. Server components ve server actions için.",
+      "type": "utility"
+    },
+    {
+      "path": "lib/supabase-browser.ts",
+      "description": "Tarayıcı taraflı Supabase istemcisi. Client components için.",
+      "type": "utility"
+    },
+    {
+      "path": "lib/supabase.ts",
+      "description": "Genel Supabase istemci utility.",
+      "type": "utility"
+    },
+    {
+      "path": "lib/image-upload.ts",
+      "description": "Resim yükleme utility. Supabase storage'a resim yükleme işlemleri.",
+      "type": "utility"
+    },
+    {
+      "path": "lib/utils.ts",
+      "description": "Genel utility fonksiyonları. cn() helper ve diğer yardımcı fonksiyonlar.",
+      "type": "utility"
+    },
+    {
+      "path": "lib/types.ts",
+      "description": "TypeScript tip tanımlamaları.",
+      "type": "type"
+    },
+    {
+      "path": "components/dashboard/sidebar.tsx",
+      "description": "Dashboard sidebar bileşeni. Navigasyon menüsü.",
+      "type": "component"
+    },
+    {
+      "path": "components/dashboard/header.tsx",
+      "description": "Dashboard header bileşeni. Üst menü ve kullanıcı bilgileri.",
+      "type": "component"
+    },
+    {
+      "path": "components/dashboard/staff-actions.tsx",
+      "description": "Personel işlemleri bileşeni. Rol düzenleme, erişim kaldırma, silme dialogları.",
+      "type": "component"
+    },
+    {
+      "path": "components/dashboard/staff-invite-dialog.tsx",
+      "description": "Personel davet dialog bileşeni. Yeni personel ekleme formu.",
+      "type": "component"
+    },
+    {
+      "path": "components/super-admin/sidebar.tsx",
+      "description": "Super Admin sidebar bileşeni.",
+      "type": "component"
+    },
+    {
+      "path": "components/super-admin/header.tsx",
+      "description": "Super Admin header bileşeni.",
+      "type": "component"
+    },
+    {
+      "path": "middleware.ts",
+      "description": "Next.js middleware. Auth kontrolü ve route koruması.",
+      "type": "middleware"
+    },
+    {
+      "path": "db/schema.ts",
+      "description": "Drizzle ORM şema tanımlamaları.",
+      "type": "schema"
+    }
+  ],
+  "routes": [
+    {
+      "url": "https://duxa.pro/",
+      "description": "Ana karşılama sayfası (Landing Page)."
+    },
+    {
+      "url": "https://duxa.pro/about",
+      "description": "Hakkımızda sayfası."
+    },
+    {
+      "url": "https://duxa.pro/contact",
+      "description": "İletişim sayfası."
+    },
+    {
+      "url": "https://duxa.pro/legal",
+      "description": "Yasal bilgiler ve gizlilik politikası."
+    },
+    {
+      "url": "https://duxa.pro/login",
+      "description": "Kullanıcı giriş ekranı."
+    },
+    {
+      "url": "https://duxa.pro/login/forgot-password",
+      "description": "Şifre unutma sayfası."
+    },
+    {
+      "url": "https://duxa.pro/login/update-password",
+      "description": "Şifre güncelleme sayfası."
+    },
+    {
+      "url": "https://duxa.pro/dashboard",
+      "description": "Tenant dashboard ana sayfası. Günlük istatistikler ve özet."
+    },
+    {
+      "url": "https://duxa.pro/dashboard/menu",
+      "description": "Menü görüntüleme sayfası."
+    },
+    {
+      "url": "https://duxa.pro/dashboard/orders",
+      "description": "Sipariş yönetim sayfası."
+    },
+    {
+      "url": "https://duxa.pro/dashboard/design",
+      "description": "Tasarım ayarları sayfası."
+    },
+    {
+      "url": "https://duxa.pro/dashboard/kiosk",
+      "description": "Kiosk yönetim sayfası."
+    },
+    {
+      "url": "https://duxa.pro/dashboard/billing",
+      "description": "Faturalama ve ödeme sayfası."
+    },
+    {
+      "url": "https://duxa.pro/dashboard/change-password",
+      "description": "Şifre değiştirme sayfası."
+    },
+    {
+      "url": "https://duxa.pro/dashboard/settings",
+      "description": "Ayarlar ana sayfası."
+    },
+    {
+      "url": "https://duxa.pro/dashboard/settings/general",
+      "description": "Genel ayarlar sayfası. Subdomain, online menu, SEO."
+    },
+    {
+      "url": "https://duxa.pro/dashboard/settings/business-identity",
+      "description": "İşletme kimliği ayarları. Logo, işletme adı, para birimi, sistem dili."
+    },
+    {
+      "url": "https://duxa.pro/dashboard/settings/hours",
+      "description": "Çalışma saatleri ayarları."
+    },
+    {
+      "url": "https://duxa.pro/dashboard/settings/invoices",
+      "description": "Faturalar listesi."
+    },
+    {
+      "url": "https://duxa.pro/dashboard/settings/staff",
+      "description": "Personel yönetim sayfası. Personel listesi ve yönetimi."
+    },
+    {
+      "url": "https://duxa.pro/menu-builder",
+      "description": "Menü oluşturucu. Kategori ve ürün yönetimi."
+    },
+    {
+      "url": "https://duxa.pro/kiosk",
+      "description": "Kiosk ekranı. Müşteri self-servis menü."
+    },
+    {
+      "url": "https://duxa.pro/kitchen",
+      "description": "Mutfak ekranı. Sipariş hazırlama ve takip."
+    },
+    {
+      "url": "https://duxa.pro/pos",
+      "description": "POS (Point of Sale) ekranı. Fiziksel satış noktası."
+    },
+    {
+      "url": "https://duxa.pro/super-admin",
+      "description": "Super Admin ana sayfası."
+    },
+    {
+      "url": "https://duxa.pro/super-admin/dashboard",
+      "description": "Super Admin dashboard. Sistem geneli istatistikler."
+    },
+    {
+      "url": "https://duxa.pro/super-admin/tenants",
+      "description": "Tenant listesi. Tüm işletmeleri görüntüleme ve yönetme."
+    },
+    {
+      "url": "https://duxa.pro/super-admin/tenants/new",
+      "description": "Yeni tenant oluşturma sayfası."
+    },
+    {
+      "url": "https://duxa.pro/super-admin/tenants/[id]",
+      "description": "Tenant detay sayfası. Tek bir işletmenin detaylı bilgileri ve düzenleme."
+    },
+    {
+      "url": "https://duxa.pro/super-admin/inventory",
+      "description": "Donanım envanter yönetimi."
+    },
+    {
+      "url": "https://duxa.pro/super-admin/translations",
+      "description": "Çeviri yönetim sayfası. Dil ve çeviri içerik yönetimi."
+    },
+    {
+      "url": "https://duxa.pro/super-admin/settings",
+      "description": "Super Admin ayarlar sayfası."
+    },
+    {
+      "url": "https://duxa.pro/super-admin/documentation/files",
+      "description": "Dosya ağacı görüntüleme sayfası. Tüm dosyaların listesi ve açıklamaları."
+    },
+    {
+      "url": "https://duxa.pro/super-admin/documentation/routes",
+      "description": "Site haritası görüntüleme sayfası. Tüm route'ların listesi."
+    }
+  ]
+}

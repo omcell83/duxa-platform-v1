@@ -55,3 +55,23 @@ Prioritize STABILITY, SECURITY, and TYPE SAFETY over speed.
 - **Layout Integrity:** Every new page (`page.tsx`) or layout (`layout.tsx`) must explicitly set `bg-background` in its outer container to prevent "transparent page" issues.
 - **Variable Mapping Awareness:** Do not overwrite CSS variables in `globals.css`. If a color looks wrong, check the mapping between Tailus variables (`--color-white`) and Shadcn variables (`--background`), but do not hardcode colors in the component.
 - **Dark Mode Compliance:** When writing classes, assume the background might be dark. e.g., never write `text-black` (it disappears in dark mode), always write `text-foreground`.
+
+## 7. DOCUMENTATION MAINTENANCE PROTOCOL (LIVING DOCS)
+
+You are responsible for maintaining the project's living documentation in `docs/system-map.json`.
+
+**TRIGGER:** Whenever you create a new file, delete a file, or significantly change the functionality of an existing file/page.
+
+**ACTION:** You MUST update `docs/system-map.json` immediately after the code change.
+
+**RULES FOR UPDATING:**
+1.  **For Files (`files` array):**
+    * If a new file is created, add its `path`, `type` (page, component, server-action, utility, hook), and a concise `description` of what it does.
+    * If a file is modified significantly, update its `description` to reflect the new logic.
+    * If a file is deleted, remove it from the array.
+
+2.  **For Routes (`routes` array):**
+    * If a new `page.tsx` creates a visible URL route, add the full URL (e.g., `https://duxa.pro/dashboard/new-page`) and a user-centric description.
+    * Never hide the full URL protocol or domain.
+
+**CRITICAL:** Do not ask the user if they want to update the docs. Just do it as part of the task. Keep the descriptions short but technical enough for a developer to understand.
