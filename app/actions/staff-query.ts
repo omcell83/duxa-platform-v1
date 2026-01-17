@@ -35,10 +35,23 @@ export async function getStaffWithProfiles(tenantId: number): Promise<{
 
     if (profilesError) {
       console.error("Error fetching profiles:", profilesError);
+      console.error("Profile error details:", {
+        code: profilesError.code,
+        message: profilesError.message,
+        details: profilesError.details,
+        hint: profilesError.hint,
+      });
       return { success: false, error: "Profiles alınamadı" };
     }
 
+    console.log("Staff query result:", {
+      tenantId,
+      profilesCount: profiles?.length || 0,
+      profiles: profiles?.map(p => ({ id: p.id, email: p.email, role: p.role, tenant_id: p.tenant_id })),
+    });
+
     if (!profiles || profiles.length === 0) {
+      console.log("No profiles found for tenant_id:", tenantId);
       return { success: true, data: [] };
     }
 

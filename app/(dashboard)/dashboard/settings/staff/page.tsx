@@ -75,9 +75,9 @@ export default async function StaffPage() {
     );
   }
 
-  // Check if user is tenant_admin or super_admin
+  // Check if user is owner, tenant_admin or super_admin
   const userRole = (profile.role || "").trim().toLowerCase();
-  const isAdmin = userRole === "tenant_admin" || userRole === "super_admin";
+  const isAdmin = userRole === "owner" || userRole === "tenant_admin" || userRole === "super_admin";
   const isTenantAdmin = userRole === "tenant_admin";
   const isSuperAdmin = userRole === "super_admin";
 
