@@ -73,27 +73,49 @@ export default async function StaffPage() {
     );
   }
 
-  // Check if user is tenant_admin
+  // Check if user is tenant_admin or super_admin
   const userRole = (profile.role || "").trim().toLowerCase();
-  const isAdmin = userRole === "tenant_admin";
+  const isAdmin = userRole === "tenant_admin" || userRole === "super_admin";
+  const isTenantAdmin = userRole === "tenant_admin";
+  const isSuperAdmin = userRole === "super_admin";
 
-  // Get staff members (tenant_users with profiles)
-  const { data: tenantUsers } = await supabase
+  if (!isAdmin) {
+    return (
+      <div className="bg-background min-h-full p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center py-12 text-muted-foreground">
+            Bu sayfaya erişim yetkiniz bulunmamaktadır
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Get staff members (tenant_users)
+  const { data: tenantUsers, error: tenantUsersError } = await supabase
     .from("tenant_users")
     .select("id, user_id, role, is_active")
     .eq("tenant_id", profile.tenant_id)
     .order("created_at", { ascending: false });
 
+  if (tenantUsersError) {
+    console.error("Error fetching tenant_users:", tenantUsersError);
+  }
+
   // Get user IDs
   const userIds = tenantUsers?.map((tu) => tu.user_id) || [];
 
-  // Get profiles for these users with full_name
+  // Get profiles for these users
   let profilesMap: Record<string, any> = {};
   if (userIds.length > 0) {
-    const { data: profiles } = await supabase
+    const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
       .select("id, full_name, email, avatar_url")
       .in("id", userIds);
+
+    if (profilesError) {
+      console.error("Error fetching profiles:", profilesError);
+    }
 
     if (profiles) {
       profilesMap = profiles.reduce((acc, p) => {
@@ -105,17 +127,20 @@ export default async function StaffPage() {
 
   // Combine data
   const staffMembers: StaffMember[] =
-    tenantUsers?.map((tu) => ({
-      id: tu.id,
-      user_id: tu.user_id,
-      role: tu.role as StaffMember["role"],
-      is_active: tu.is_active,
-      profile: profilesMap[tu.user_id] ? {
-        full_name: profilesMap[tu.user_id].full_name,
-        email: profilesMap[tu.user_id].email,
-        avatar_url: profilesMap[tu.user_id].avatar_url,
-      } : null,
-    })) || [];
+    tenantUsers?.map((tu) => {
+      const profileData = profilesMap[tu.user_id];
+      return {
+        id: tu.id,
+        user_id: tu.user_id,
+        role: tu.role as StaffMember["role"],
+        is_active: tu.is_active,
+        profile: profileData ? {
+          full_name: profileData.full_name,
+          email: profileData.email,
+          avatar_url: profileData.avatar_url,
+        } : null,
+      };
+    }) || [];
 
   return (
     <div className="bg-background min-h-full p-6">
@@ -221,8 +246,12 @@ export default async function StaffPage() {
                           <TableCell className="text-right">
                             <StaffActions
                               tenantUserId={member.id}
+                              userId={member.user_id}
                               currentRole={member.role}
                               isCurrentUser={isCurrentUser}
+                              isTenantAdmin={isTenantAdmin}
+                              isSuperAdmin={isSuperAdmin}
+                              staffMember={member}
                             />
                           </TableCell>
                         )}

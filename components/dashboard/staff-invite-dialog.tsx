@@ -26,9 +26,31 @@ import { UserPlus } from "lucide-react";
 
 interface StaffInviteDialogProps {
   children?: React.ReactNode;
+  isTenantAdmin?: boolean;
+  isSuperAdmin?: boolean;
 }
 
-export function StaffInviteDialog({ children }: StaffInviteDialogProps) {
+const roleLabels: Record<string, string> = {
+  owner: "Sahip",
+  manager: "Yönetici",
+  staff: "Personel",
+  kitchen: "Mutfak",
+  courier: "Kurye",
+};
+
+const roleDescriptions: Record<string, string> = {
+  owner: "Tüm yetkilere sahiptir. İşletme ayarlarını yönetebilir, tüm personelleri yönetebilir.",
+  manager: "İşletme yönetimi yapabilir, personel ekleyebilir ve siparişleri yönetebilir.",
+  staff: "Siparişleri alabilir ve müşteri hizmetleri sağlayabilir.",
+  kitchen: "Sadece mutfak siparişlerini görebilir ve hazırlayabilir.",
+  courier: "Sadece paket servisi isteyen siparişleri görebilir. Diğer alanlarda yetkisi yoktur.",
+};
+
+export function StaffInviteDialog({ 
+  children, 
+  isTenantAdmin = false,
+  isSuperAdmin = false 
+}: StaffInviteDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -36,6 +58,11 @@ export function StaffInviteDialog({ children }: StaffInviteDialogProps) {
     role: "staff" as "owner" | "manager" | "staff" | "kitchen" | "courier",
     fullName: "",
   });
+
+  // Get available roles based on user type
+  const availableRoles = isTenantAdmin
+    ? ["manager", "staff", "kitchen", "courier"]
+    : ["owner", "manager", "staff", "kitchen", "courier"];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,13 +150,23 @@ export function StaffInviteDialog({ children }: StaffInviteDialogProps) {
                   <SelectValue placeholder="Rol seçin" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="owner">Sahip</SelectItem>
-                  <SelectItem value="manager">Yönetici</SelectItem>
-                  <SelectItem value="staff">Personel</SelectItem>
-                  <SelectItem value="kitchen">Mutfak</SelectItem>
-                  <SelectItem value="courier">Kurye</SelectItem>
+                  {availableRoles.map((role) => (
+                    <SelectItem key={role} value={role}>
+                      {roleLabels[role]}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
+              {formData.role && (
+                <div className="mt-2 p-3 bg-muted rounded-md">
+                  <p className="text-xs font-medium text-foreground mb-1">
+                    {roleLabels[formData.role]} Rolü:
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {roleDescriptions[formData.role]}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>
