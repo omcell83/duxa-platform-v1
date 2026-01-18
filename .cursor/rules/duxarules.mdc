@@ -1,4 +1,6 @@
-
+---
+alwaysApply: true
+---
 # DUXA PLATFORM - SECURITY & CODING MANIFESTO
 
 You are creating a high-security, offline-first restaurant SaaS called "Duxa".
@@ -76,23 +78,8 @@ You are responsible for maintaining the project's living documentation in `docs/
 
 **CRITICAL:** Do not ask the user if they want to update the docs. Just do it as part of the task. Keep the descriptions short but technical enough for a developer to understand.
 
-# DATABASE INTEGRITY PROTOCOL
+# DATABASE TOOL PROTOCOL
 
-You act as a Database Guard. You must ensure code matches the database schema.
+You have access to the Supabase database via MCP.
 
-**REFERENCE FILE:** `docs/database-schema.md`
-
-**RULES:**
-1.  **Before writing any Supabase query (select, insert, update):**
-    * You MUST read `docs/database-schema.md`.
-    * Check if the columns you are trying to access exist in that file.
-    * Check if the relationships (Foreign Keys) exist.
-
-2.  **If a column is MISSING in the schema:**
-    * Tell the user: "The column `X` does not exist in `docs/database-schema.md`."
-    * Provide the SQL query to add this column.
-    * Ask the user to run the SQL.
-    * You MUST update `docs/database-schema.md` to include the new column/table.
-    * Only THEN proceed to write the Typescript/Next.js code.
-
-**NEVER assume a column exists without checking the schema file first.**
+**RULE:** Before writing any SQL query or Supabase code, ALWAYS use the MCP tool to inspect the current table schema. Do not guess column names.

@@ -11,6 +11,27 @@ import {
 } from "@/components/ui/table";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { QuickActions } from "@/components/super-admin/dashboard/quick-actions";
+import { RecentActivity } from "@/components/super-admin/dashboard/recent-activity";
+import { DashboardSearchBar } from "@/components/super-admin/dashboard/search-bar";
+
+interface Tenant {
+  id: string;
+  name: string;
+  commercial_name: string | null;
+  contact_phone: string | null;
+  contact_email: string | null;
+}
+
+interface Subscription {
+  id: string;
+  tenant_id: string;
+  payment_date: string | null;
+  payment_status: string;
+  payment_amount: number | null;
+  contract_price: number | null;
+  tenants?: Tenant | null;
+}
 
 async function getDashboardStats() {
   const supabase = await createClient();
@@ -32,7 +53,7 @@ async function getDashboardStats() {
     .select("payment_amount")
     .eq("payment_status", "paid");
 
-  const totalRevenue = subscriptions?.reduce((sum, sub) => {
+  const totalRevenue = subscriptions?.reduce((sum: number, sub: { payment_amount: number | null }) => {
     return sum + (sub.payment_amount || 0);
   }, 0) || 0;
 
@@ -43,7 +64,7 @@ async function getDashboardStats() {
   };
 }
 
-async function getUpcomingPayments() {
+async function getUpcomingPayments(): Promise<Subscription[]> {
   const supabase = await createClient();
 
   // Ödemesi yaklaşan işletmeler (payment_status = 'pending' veya 'overdue' ve payment_date yakın)
@@ -61,7 +82,7 @@ async function getUpcomingPayments() {
     .gte("payment_date", thirtyDaysAgo.toISOString().split("T")[0])
     .lte("payment_date", thirtyDaysFromNow.toISOString().split("T")[0])
     .order("payment_date", { ascending: true })
-    .limit(10);
+    .limit(5); // Reduced limit to 5 for cleaner dashboard
 
   if (subscriptionsError || !subscriptions || subscriptions.length === 0) {
     return [];
@@ -71,7 +92,8 @@ async function getUpcomingPayments() {
   const tenantIds = subscriptions.map((sub) => sub.tenant_id).filter(Boolean);
 
   if (tenantIds.length === 0) {
-    return subscriptions.map((sub) => ({ ...sub, tenants: null }));
+    // Cast to Subscription[] to handle the missing tenants property
+    return subscriptions as unknown as Subscription[];
   }
 
   // Tenants'ı çek
@@ -82,14 +104,14 @@ async function getUpcomingPayments() {
 
   if (tenantsError) {
     console.error("Error fetching tenants:", tenantsError);
-    return subscriptions.map((sub) => ({ ...sub, tenants: null }));
+    return subscriptions as unknown as Subscription[];
   }
 
   // Subscriptions ile tenants'ı birleştir
   return subscriptions.map((sub) => ({
     ...sub,
     tenants: tenants?.find((t) => t.id === sub.tenant_id) || null,
-  }));
+  })) as Subscription[];
 }
 
 export default async function SuperAdminDashboardPage() {
@@ -101,6 +123,7 @@ export default async function SuperAdminDashboardPage() {
     return new Intl.NumberFormat("tr-TR", {
       style: "currency",
       currency: "TRY",
+      maximumFractionDigits: 0,
     }).format(amount);
   };
 
@@ -126,10 +149,15 @@ export default async function SuperAdminDashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">Sistem genel bakış ve istatistikler</p>
+      {/* Page Header and Search */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground mt-1">Sistem genel bakış ve istatistikler</p>
+        </div>
+        <div className="w-full md:w-auto">
+          <DashboardSearchBar />
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -174,103 +202,103 @@ export default async function SuperAdminDashboardPage() {
         </Card>
       </div>
 
-      {/* Ödemesi Yaklaşan İşletmeler */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Ödemesi Yaklaşan İşletmeler</CardTitle>
-          <CardDescription>
-            Son 30 gün içinde ödeme tarihi olan bekleyen ödemeler
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {upcomingPayments.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              Yaklaşan ödeme bulunmuyor.
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>İşletme Adı</TableHead>
-                  <TableHead>Yasal İsim</TableHead>
-                  <TableHead>Ödeme Tarihi</TableHead>
-                  <TableHead>Kalan Gün</TableHead>
-                  <TableHead>Ödeme Tutarı</TableHead>
-                  <TableHead>Durum</TableHead>
-                  <TableHead className="text-right">İşlem</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {upcomingPayments.map((subscription: any) => {
-                  const tenant = subscription.tenants;
-                  const daysUntil = getDaysUntil(subscription.payment_date);
-                  const isOverdue = subscription.payment_status === "overdue";
+      {/* Quick Actions and Activity Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          {/* Ödemesi Yaklaşan İşletmeler */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Ödemesi Yaklaşan İşletmeler</CardTitle>
+              <CardDescription>
+                Yaklaşan ödemeler ve gecikmeler
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {upcomingPayments.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  Yaklaşan ödeme bulunmuyor.
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>İşletme</TableHead>
+                        <TableHead>Tarih</TableHead>
+                        <TableHead>Tutar</TableHead>
+                        <TableHead>Durum</TableHead>
+                        <TableHead className="text-right">İşlem</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {upcomingPayments.map((subscription) => {
+                        const tenant = subscription.tenants;
+                        const daysUntil = getDaysUntil(subscription.payment_date);
+                        const isOverdue = subscription.payment_status === "overdue";
 
-                  return (
-                    <TableRow key={subscription.id}>
-                      <TableCell className="font-medium">
-                        {tenant?.name || "-"}
-                      </TableCell>
-                      <TableCell>{tenant?.commercial_name || "-"}</TableCell>
-                      <TableCell>
-                        {formatDate(subscription.payment_date)}
-                      </TableCell>
-                      <TableCell>
-                        {daysUntil !== null ? (
-                          <span
-                            className={
-                              isOverdue
-                                ? "text-destructive font-semibold"
-                                : daysUntil <= 7
-                                ? "text-secondary font-semibold"
-                                : "text-muted-foreground"
-                            }
-                          >
-                            {isOverdue
-                              ? `${Math.abs(daysUntil)} gün gecikmiş`
-                              : `${daysUntil} gün`}
-                          </span>
-                        ) : (
-                          "-"
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {formatCurrency(
-                          subscription.payment_amount || subscription.contract_price || 0
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            isOverdue
-                              ? "bg-destructive/10 text-destructive"
-                              : subscription.payment_status === "pending"
-                              ? "bg-secondary/10 text-secondary"
-                              : "bg-muted text-muted-foreground"
-                          }`}
-                        >
-                          {isOverdue
-                            ? "Gecikmiş"
-                            : subscription.payment_status === "pending"
-                            ? "Bekliyor"
-                            : subscription.payment_status}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Link href={`/super-admin/tenants/${tenant?.id}`}>
-                          <Button variant="outline" size="sm">
-                            Detay
-                          </Button>
-                        </Link>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+                        return (
+                          <TableRow key={subscription.id}>
+                            <TableCell className="font-medium">
+                              <div className="flex flex-col">
+                                <span>{tenant?.name || "-"}</span>
+                                <span className="text-xs text-muted-foreground">{tenant?.commercial_name}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex flex-col">
+                                <span>{formatDate(subscription.payment_date)}</span>
+                                {daysUntil !== null && (
+                                  <span className={`text-xs ${isOverdue ? "text-destructive" : "text-muted-foreground"}`}>
+                                    {isOverdue ? `${Math.abs(daysUntil)} gün gecikmiş` : `${daysUntil} gün kaldı`}
+                                  </span>
+                                )}
+                              </div>
+                            </TableCell>
+
+                            <TableCell>
+                              {formatCurrency(
+                                subscription.payment_amount || subscription.contract_price || 0
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <span
+                                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${isOverdue
+                                  ? "bg-destructive/10 text-destructive"
+                                  : subscription.payment_status === "pending"
+                                    ? "bg-secondary/10 text-secondary"
+                                    : "bg-muted text-muted-foreground"
+                                  }`}
+                              >
+                                {isOverdue
+                                  ? "Gecikmiş"
+                                  : subscription.payment_status === "pending"
+                                    ? "Bekliyor"
+                                    : subscription.payment_status}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Link href={`/super-admin/tenants/${tenant?.id}`}>
+                                <Button variant="ghost" size="sm">
+                                  Detay
+                                </Button>
+                              </Link>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="space-y-6">
+          <QuickActions />
+          <RecentActivity />
+        </div>
+      </div>
     </div>
   );
 }
