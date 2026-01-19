@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -79,13 +79,25 @@ export function UserActionsMenu({ user }: UserActionsMenuProps) {
         }
     }
 
+    const [is2FAEnabled, setIs2FAEnabled] = useState(user.is_2fa_required || false);
+
+    // Sync state if user prop changes (e.g. after revalidation)
+    useEffect(() => {
+        setIs2FAEnabled(user.is_2fa_required || false);
+    }, [user.is_2fa_required]);
+
     async function handle2FAToggle(checked: boolean) {
+        // Optimistic update
+        const previousState = is2FAEnabled;
+        setIs2FAEnabled(checked);
+
         try {
             await toggleUser2FA(user.id, checked);
             toast.success(`2FA zorunluluğu ${checked ? 'açıldı' : 'kapatıldı'}.`);
         } catch (e: any) {
+            // Revert on error
+            setIs2FAEnabled(previousState);
             toast.error(e.message);
-            // Revert UI state if needed, but this is executed via menu switch usually or dialog
         }
     }
 
@@ -193,7 +205,7 @@ export function UserActionsMenu({ user }: UserActionsMenuProps) {
                             <p className="text-sm text-muted-foreground">Kullanıcı girişinde 2FA zorunlu olsun mu?</p>
                         </div>
                         <Switch
-                            checked={user.is_2fa_required || false}
+                            checked={is2FAEnabled}
                             onCheckedChange={handle2FAToggle}
                         />
                     </div>

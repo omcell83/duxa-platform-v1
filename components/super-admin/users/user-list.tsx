@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Table,
     TableBody,
@@ -35,7 +35,11 @@ interface UserListProps {
 
 export function UserList({ initialUsers }: UserListProps) {
     const [searchTerm, setSearchTerm] = useState("");
-    const [users] = useState<UserProfile[]>(initialUsers);
+    const [users, setUsers] = useState<UserProfile[]>(initialUsers);
+
+    useEffect(() => {
+        setUsers(initialUsers);
+    }, [initialUsers]);
 
     // Simple robust search
     const filteredUsers = users.filter((user) =>
