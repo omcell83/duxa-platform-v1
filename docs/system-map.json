@@ -1,4 +1,47 @@
 {
+  "_README": "BU DOSYA HEM CANLI SISTEM TARAFINDAN OKUNUR HEM DE AI AJANI ICIN MIMARI HARITADIR. YAPISINI BOZMAYIN.",
+  "project_meta": {
+    "name": "Duxa Platform",
+    "version": "1.0.0",
+    "status": "Phase 1 - Hospitality Focus (Restaurants/Cafes)",
+    "description": "Offline-first SaaS + Hardware ecosystem. Hybrid architecture (Cloud + Local).",
+    "primary_language": "Turkish (Default), Multi-language support required."
+  },
+  "core_philosophy": {
+    "offline_first": "Kiosks/POS must run 100% offline via Local SQLite, syncing to Supabase when online.",
+    "hardware_bond": "We act as both hardware vendor and software provider.",
+    "zero_build_errors": "Strict TypeScript, no 'any' types, verified imports."
+  },
+  "modules_structure": {
+    "marketing_site": {
+      "desc": "Public facing pages (Landing, Pricing, Legal).",
+      "tech": "Next.js SSR"
+    },
+    "customer_admin": {
+      "desc": "Restaurant Owner Dashboard (Menu Builder, Stats, Staff Mgmt).",
+      "features": [
+        "Setup Wizard",
+        "Menu Builder (CRUD)",
+        "Upsell Logic",
+        "QR Generator"
+      ]
+    },
+    "super_admin": {
+      "desc": "Internal Duxa Management.",
+      "features": [
+        "Tenant Oversight",
+        "Hardware Registry",
+        "Global Stats",
+        "Documentation"
+      ]
+    },
+    "operational_apps": {
+      "kiosk": "Self-service ordering (Offline capable).",
+      "kitchen": "Order display system (KDS).",
+      "pos": "Cashier operations.",
+      "web_menu": "QR Code ordering for customers (Mobile Web)."
+    }
+  },
   "files": [
     {
       "path": "app/layout.tsx",
@@ -191,6 +234,11 @@
       "type": "Page"
     },
     {
+      "path": "app/super-admin/settings/security/page.tsx",
+      "description": "Güvenlik ayarları sayfası. Parola politikaları ve erişim kontrolleri.",
+      "type": "Page"
+    },
+    {
       "path": "app/super-admin/documentation/layout.tsx",
       "description": "Dokümantasyon layout bileşeni. Super admin erişim kontrolü sağlar.",
       "type": "Layout"
@@ -248,6 +296,11 @@
     {
       "path": "app/actions/user-settings.ts",
       "description": "Kullanıcı ayarları server actions. Profil güncelleme, şifre değiştirme.",
+      "type": "Server Action"
+    },
+    {
+      "path": "app/actions/system-settings.ts",
+      "description": "Sistem ayarları server actions. Güvenlik ve yapılandırma ayarları yönetimi.",
       "type": "Server Action"
     },
     {
@@ -338,6 +391,11 @@
     {
       "path": "components/super-admin/sidebar.tsx",
       "description": "Super Admin sidebar bileşeni. Super admin navigasyon menüsü.",
+      "type": "Component"
+    },
+    {
+      "path": "components/super-admin/settings/security-form.tsx",
+      "description": "Güvenlik ayarları formu. Zod validasyonlu güvenlik konfigürasyon formu.",
       "type": "Component"
     },
     {
@@ -601,6 +659,11 @@
       "type": "Migration"
     },
     {
+      "path": "SUPABASE_SYSTEM_SETTINGS_SETUP.sql",
+      "description": "Sistem ayarları tablosu kurulum SQL. Global ayarlar ve güvenlik politikaları.",
+      "type": "Migration"
+    },
+    {
       "path": "gönderme.bat",
       "description": "Batch script dosyası. Otomatik işlemler için Windows batch script.",
       "type": "Script"
@@ -739,6 +802,10 @@
     {
       "url": "https://duxa.pro/super-admin/settings",
       "description": "Super Admin ayarlar sayfası. Sistem ayarları ve dokümantasyon erişimi."
+    },
+    {
+      "url": "https://duxa.pro/super-admin/settings/security",
+      "description": "Güvenlik ayarları sayfası. Parola politikaları, 2FA ve sistem güvenlik yapılandırması."
     },
     {
       "url": "https://duxa.pro/super-admin/documentation/files",

@@ -54,45 +54,47 @@ export default function SuperAdminSettingsPage() {
       <div>
         <h2 className="text-xl font-semibold text-foreground mb-4">Sistem Ayarları</h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Email Ayarları</CardTitle>
-            <CardDescription>SMTP konfigürasyonu</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">Email ayarları buraya eklenecek.</p>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Email Ayarları</CardTitle>
+              <CardDescription>SMTP konfigürasyonu</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">Email ayarları buraya eklenecek.</p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Güvenlik</CardTitle>
-            <CardDescription>Güvenlik ayarları</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">Güvenlik ayarları buraya eklenecek.</p>
-          </CardContent>
-        </Card>
+          <Link href="/super-admin/settings/security">
+            <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full">
+              <CardHeader>
+                <CardTitle>Güvenlik</CardTitle>
+                <CardDescription>Güvenlik ayarları</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">Parola politikaları, 2FA ve erişim kontrolleri.</p>
+              </CardContent>
+            </Card>
+          </Link>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Genel Ayarlar</CardTitle>
-            <CardDescription>Sistem genel ayarları</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">Genel ayarlar buraya eklenecek.</p>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Genel Ayarlar</CardTitle>
+              <CardDescription>Sistem genel ayarları</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">Genel ayarlar buraya eklenecek.</p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Yedekleme</CardTitle>
-            <CardDescription>Veritabanı yedekleme</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">Yedekleme ayarları buraya eklenecek.</p>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Yedekleme</CardTitle>
+              <CardDescription>Veritabanı yedekleme</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">Yedekleme ayarları buraya eklenecek.</p>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
