@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Settings, FileText, Route, BookOpen } from "lucide-react";
+import { Settings, FileText, Route, BookOpen, Users } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -67,11 +67,37 @@ export default function SuperAdminSettingsPage() {
           <Link href="/super-admin/settings/security">
             <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full">
               <CardHeader>
-                <CardTitle>Güvenlik</CardTitle>
-                <CardDescription>Güvenlik ayarları</CardDescription>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/10 rounded-md">
+                    <Settings className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle>Güvenlik</CardTitle>
+                    <CardDescription>Güvenlik ayarları</CardDescription>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">Parola politikaları, 2FA ve erişim kontrolleri.</p>
+                <p className="text-sm text-muted-foreground">Parola politikaları ve erişim kontrolleri.</p>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/super-admin/settings/users">
+            <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/10 rounded-md">
+                    <Users className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle>Personel / Kullanıcı</CardTitle>
+                    <CardDescription>Yetkili kullanıcı yönetimi</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">Admin, Manager ve Personel hesapları.</p>
               </CardContent>
             </Card>
           </Link>

@@ -44,7 +44,7 @@ export async function middleware(request: NextRequest) {
   const isSuperAdminRoute = pathname.startsWith('/super-admin');
   const isDashboardRoute = pathname.startsWith('/dashboard');
   const isAppRoute = pathname.startsWith('/menu-builder') || pathname.startsWith('/settings');
-  const isPublicRoute = 
+  const isPublicRoute =
     pathname.startsWith('/about') ||
     pathname.startsWith('/contact') ||
     pathname.startsWith('/legal') ||
@@ -74,7 +74,7 @@ export async function middleware(request: NextRequest) {
   // User is logged in - get profile with role
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, is_active, must_change_password')
+    .select('role, is_active, must_change_password, is_2fa_required')
     .eq('id', session.user.id)
     .single();
 
@@ -112,6 +112,24 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
+  // 2FA Enforcement Check
+  // Check if profile requires 2FA and if user has enrolled factors
+  const is2FASetupPage = pathname.endsWith('/two-factor-setup');
+
+  // Only check for authenticated users who are active and don't need password change
+  if ((profile as any)?.is_2fa_required) {
+    const { data: factors } = await supabase.auth.mfa.listFactors();
+    // check if any factor is verified (totp)
+    const hasFactor = factors?.all?.some(f => f.status === 'verified');
+
+    if (!hasFactor) {
+      if (!is2FASetupPage && !isLoginPage && !isAuthCallback) {
+        const base = userRole === 'super_admin' ? '/super-admin' : '/dashboard';
+        return NextResponse.redirect(new URL(`${base}/two-factor-setup`, request.url));
+      }
+    }
+  }
+
   // User is on login/forgot password pages but already logged in - redirect
   if (isLoginPage || isForgotPasswordPage) {
     // If must change password, redirect to change password page
@@ -121,15 +139,15 @@ export async function middleware(request: NextRequest) {
 
     // Check if there's a redirect parameter in the URL
     const redirectParam = request.nextUrl.searchParams.get('redirect');
-    
+
     // Prevent infinite redirect loop - don't redirect to login page
     if (redirectParam && redirectParam.startsWith('/') && redirectParam !== '/login') {
       // Validate that the redirect path matches user's role
       const isRedirectSuperAdmin = redirectParam.startsWith('/super-admin');
       const isRedirectDashboard = redirectParam.startsWith('/dashboard');
-      const isRedirectAppRoute = redirectParam.startsWith('/menu-builder') || 
-                                 redirectParam.startsWith('/settings');
-      
+      const isRedirectAppRoute = redirectParam.startsWith('/menu-builder') ||
+        redirectParam.startsWith('/settings');
+
       // Super admin can access super-admin routes
       if (isRedirectSuperAdmin && userRole === 'super_admin') {
         return NextResponse.redirect(new URL(redirectParam, request.url));
@@ -144,7 +162,7 @@ export async function middleware(request: NextRequest) {
       }
       // If redirect doesn't match role, fall through to default redirect
     }
-    
+
     // Default redirect based on role
     if (userRole === 'super_admin') {
       return NextResponse.redirect(new URL('/super-admin/dashboard', request.url));

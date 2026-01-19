@@ -214,31 +214,6 @@ export function SecuritySettingsForm({ initialSettings }: SecuritySettingsFormPr
                             />
                         </div>
 
-                        <FormField
-                            control={form.control}
-                            name="two_factor_enforced"
-                            render={({ field }) => (
-                                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm bg-muted/20">
-                                    <div className="space-y-0.5">
-                                        <FormLabel className="flex items-center gap-2 text-base">
-                                            <ShieldAlert className="h-4 w-4 text-orange-500" />
-                                            İki Faktörlü Doğrulama (2FA) Zorunluluğu
-                                        </FormLabel>
-                                        <FormDescription>
-                                            Tüm yönetici hesapları için 2FA kullanımını zorunlu tutar.
-                                            <br />
-                                            <span className="text-xs text-orange-600 font-medium">Dikkat: Bu ayarı açmak, 2FA kurmamış yöneticilerin giriş yapmasını engelleyebilir.</span>
-                                        </FormDescription>
-                                    </div>
-                                    <FormControl>
-                                        <Switch
-                                            checked={field.value}
-                                            onCheckedChange={field.onChange}
-                                        />
-                                    </FormControl>
-                                </FormItem>
-                            )}
-                        />
                     </CardContent>
                 </Card>
 

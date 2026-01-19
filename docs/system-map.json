@@ -239,6 +239,11 @@
       "type": "Page"
     },
     {
+      "path": "app/super-admin/settings/users/page.tsx",
+      "description": "Kullanıcı/Personel yönetim sayfası. Süper admin, owner ve diğer yetkili kullanıcıların listesi ve yönetimi.",
+      "type": "Page"
+    },
+    {
       "path": "app/super-admin/documentation/layout.tsx",
       "description": "Dokümantasyon layout bileşeni. Super admin erişim kontrolü sağlar.",
       "type": "Layout"
@@ -291,6 +296,11 @@
     {
       "path": "app/actions/invoices.ts",
       "description": "Fatura server actions. Fatura listesi ve yönetimi.",
+      "type": "Server Action"
+    },
+    {
+      "path": "app/actions/user-management.ts",
+      "description": "Süper admin kullanıcı yönetimi server actions. Kullanıcı oluşturma, düzenleme, silme ve 2FA yönetimi.",
       "type": "Server Action"
     },
     {
@@ -396,6 +406,21 @@
     {
       "path": "components/super-admin/settings/security-form.tsx",
       "description": "Güvenlik ayarları formu. Zod validasyonlu güvenlik konfigürasyon formu.",
+      "type": "Component"
+    },
+    {
+      "path": "components/super-admin/users/add-user-modal.tsx",
+      "description": "Kullanıcı ekleme modalı. Yeni personel/kullanıcı ekleme formu.",
+      "type": "Component"
+    },
+    {
+      "path": "components/super-admin/users/user-actions-menu.tsx",
+      "description": "Kullanıcı aksiyon menüsü. Silme, düzenleme, şifre belirleme ve 2FA işlemleri.",
+      "type": "Component"
+    },
+    {
+      "path": "components/super-admin/users/user-list.tsx",
+      "description": "Kullanıcı listesi bileşeni. Filtrelenebilir kullanıcı tablosu.",
       "type": "Component"
     },
     {
@@ -806,6 +831,10 @@
     {
       "url": "https://duxa.pro/super-admin/settings/security",
       "description": "Güvenlik ayarları sayfası. Parola politikaları, 2FA ve sistem güvenlik yapılandırması."
+    },
+    {
+      "url": "https://duxa.pro/super-admin/settings/users",
+      "description": "Kullanıcı yönetim sayfası. Personel listesi ve yönetimi."
     },
     {
       "url": "https://duxa.pro/super-admin/documentation/files",
