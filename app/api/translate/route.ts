@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 
 // Translation provider types
-type TranslationProvider = "google" | "azure" | "deepl" | "openai" | "gemini";
+type TranslationProvider = "mymemory" | "azure" | "deepl" | "openai" | "gemini";
 
 interface TranslationRequest {
     sourceData: Record<string, any>;
@@ -11,45 +11,27 @@ interface TranslationRequest {
     apiKey?: string;
 }
 
-interface TranslationProgress {
-    path: string;
-    source: string;
-    translated: string;
-}
-
 // Language mappings
 const LANGUAGE_NAMES: Record<string, string> = {
-    en: "English",
-    de: "German",
-    fr: "French",
-    lb: "Luxembourgish",
-    tr: "Turkish",
-    me: "Montenegrin",
-    mt: "Maltese",
-    ru: "Russian",
+    en: "English", de: "German", fr: "French", lb: "Luxembourgish",
+    tr: "Turkish", me: "Montenegrin", mt: "Maltese", ru: "Russian",
 };
 
-const GOOGLE_LANG_CODES: Record<string, string> = {
+const LANG_CODES: Record<string, string> = {
     en: "en", de: "de", fr: "fr", lb: "lb", tr: "tr", me: "sr", mt: "mt", ru: "ru",
 };
 
 // Batch configurations
-const BATCH_SIZE_SHORT = 50; // For Google/Azure (short texts)
-const BATCH_SIZE_LONG = 10;  // For AI providers (long texts)
+const BATCH_SIZE_SHORT = 30;
+const BATCH_SIZE_LONG = 10;
 const DELAY_BETWEEN_BATCHES = 500;
 
-/**
- * Hybrid translation system with multiple providers
- */
 export async function POST(request: NextRequest) {
     try {
         const { sourceData, targetLanguage, provider, apiKey }: TranslationRequest = await request.json();
 
         if (!sourceData || !targetLanguage || !provider) {
-            return NextResponse.json(
-                { error: "Missing required parameters" },
-                { status: 400 }
-            );
+            return NextResponse.json({ error: "Missing required parameters" }, { status: 400 });
         }
 
         const targetLangName = LANGUAGE_NAMES[targetLanguage] || targetLanguage;
@@ -68,25 +50,15 @@ export async function POST(request: NextRequest) {
 
         const translations = new Map<string, string>();
 
-        // Translate short texts with Google/Azure (fast and cheap)
+        // Translate short texts with MyMemory (free, reliable)
         if (shortTexts.length > 0) {
-            const shortTranslations = await translateBatch(
-                shortTexts,
-                targetLanguage,
-                "google", // Always use Google for short texts
-                undefined
-            );
+            const shortTranslations = await translateBatch(shortTexts, targetLanguage, "mymemory", undefined);
             shortTranslations.forEach((value, key) => translations.set(key, value));
         }
 
         // Translate long texts with selected AI provider
         if (longTexts.length > 0) {
-            const longTranslations = await translateBatch(
-                longTexts,
-                targetLanguage,
-                provider,
-                apiKey
-            );
+            const longTranslations = await translateBatch(longTexts, targetLanguage, provider, apiKey);
             longTranslations.forEach((value, key) => translations.set(key, value));
         }
 
@@ -96,16 +68,10 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(translatedData);
     } catch (error: any) {
         console.error("Translation error:", error);
-        return NextResponse.json(
-            { error: error.message || "Translation failed" },
-            { status: 500 }
-        );
+        return NextResponse.json({ error: error.message || "Translation failed" }, { status: 500 });
     }
 }
 
-/**
- * Collects all string values and categorizes them as short or long
- */
 function collectStrings(
     obj: any,
     currentPath: string,
@@ -113,7 +79,6 @@ function collectStrings(
 ): void {
     if (typeof obj === "string") {
         if (obj.trim() !== "" && /[a-zA-Z]/.test(obj)) {
-            // Categorize: Long if > 50 chars or contains marketing keywords
             const isLong = obj.length > 50 || isMarketingContent(currentPath);
             result.push({ path: currentPath, text: obj, isLong });
         }
@@ -135,25 +100,11 @@ function collectStrings(
     }
 }
 
-/**
- * Determines if content is marketing/creative content
- */
 function isMarketingContent(path: string): boolean {
-    const marketingPaths = [
-        "seo.",
-        "marketing.",
-        "carousel.",
-        "description",
-        "welcomeDesc",
-        "features.",
-        "blog.",
-    ];
+    const marketingPaths = ["seo.", "marketing.", "carousel.", "description", "welcomeDesc", "features.", "blog."];
     return marketingPaths.some(p => path.includes(p));
 }
 
-/**
- * Translates a batch of items using the specified provider
- */
 async function translateBatch(
     items: Array<{ path: string; text: string; isLong: boolean }>,
     targetLang: string,
@@ -161,7 +112,7 @@ async function translateBatch(
     apiKey?: string
 ): Promise<Map<string, string>> {
     const translations = new Map<string, string>();
-    const batchSize = provider === "google" || provider === "azure" ? BATCH_SIZE_SHORT : BATCH_SIZE_LONG;
+    const batchSize = provider === "mymemory" ? BATCH_SIZE_SHORT : BATCH_SIZE_LONG;
 
     for (let i = 0; i < items.length; i += batchSize) {
         const batch = items.slice(i, i + batchSize);
@@ -194,9 +145,6 @@ async function translateBatch(
     return translations;
 }
 
-/**
- * Translates texts using the specified provider
- */
 async function translateWithProvider(
     texts: string[],
     targetLang: string,
@@ -204,8 +152,8 @@ async function translateWithProvider(
     apiKey?: string
 ): Promise<string[]> {
     switch (provider) {
-        case "google":
-            return translateWithGoogle(texts, targetLang);
+        case "mymemory":
+            return translateWithMyMemory(texts, targetLang);
         case "azure":
             return translateWithAzure(texts, targetLang, apiKey);
         case "deepl":
@@ -220,26 +168,37 @@ async function translateWithProvider(
 }
 
 /**
- * Google Translate (Free, unlimited)
+ * MyMemory Translation API (Free, 1000 words/day per IP)
  */
-async function translateWithGoogle(
-    texts: string[],
-    targetLang: string
-): Promise<string[]> {
+async function translateWithMyMemory(texts: string[], targetLang: string): Promise<string[]> {
     const results: string[] = [];
 
     for (const text of texts) {
         try {
-            const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${GOOGLE_LANG_CODES[targetLang]}&dt=t&q=${encodeURIComponent(text)}`;
+            if (!text || text.trim().length < 2) {
+                results.push(text);
+                continue;
+            }
+
+            const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|${LANG_CODES[targetLang]}`;
+
             const response = await fetch(url);
+            if (!response.ok) {
+                results.push(text);
+                continue;
+            }
+
             const data = await response.json();
 
-            if (data && data[0] && data[0][0] && data[0][0][0]) {
-                results.push(data[0][0][0]);
+            if (data?.responseData?.translatedText) {
+                results.push(data.responseData.translatedText);
             } else {
                 results.push(text);
             }
+
+            await new Promise(resolve => setTimeout(resolve, 200));
         } catch (error) {
+            console.error(`MyMemory translation error:`, error);
             results.push(text);
         }
     }
@@ -247,17 +206,8 @@ async function translateWithGoogle(
     return results;
 }
 
-/**
- * Azure Translator (2M chars/month free)
- */
-async function translateWithAzure(
-    texts: string[],
-    targetLang: string,
-    apiKey?: string
-): Promise<string[]> {
-    if (!apiKey) {
-        throw new Error("Azure API key required");
-    }
+async function translateWithAzure(texts: string[], targetLang: string, apiKey?: string): Promise<string[]> {
+    if (!apiKey) throw new Error("Azure API key required");
 
     const response = await fetch(
         `https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=${targetLang}`,
@@ -275,17 +225,8 @@ async function translateWithAzure(
     return data.map((item: any) => item.translations[0].text);
 }
 
-/**
- * DeepL (500K chars/month free)
- */
-async function translateWithDeepL(
-    texts: string[],
-    targetLang: string,
-    apiKey?: string
-): Promise<string[]> {
-    if (!apiKey) {
-        throw new Error("DeepL API key required");
-    }
+async function translateWithDeepL(texts: string[], targetLang: string, apiKey?: string): Promise<string[]> {
+    if (!apiKey) throw new Error("DeepL API key required");
 
     const response = await fetch("https://api-free.deepl.com/v2/translate", {
         method: "POST",
@@ -305,17 +246,8 @@ async function translateWithDeepL(
     return data.translations.map((t: any) => t.text);
 }
 
-/**
- * OpenAI GPT (Pay per use)
- */
-async function translateWithOpenAI(
-    texts: string[],
-    targetLang: string,
-    apiKey?: string
-): Promise<string[]> {
-    if (!apiKey) {
-        throw new Error("OpenAI API key required");
-    }
+async function translateWithOpenAI(texts: string[], targetLang: string, apiKey?: string): Promise<string[]> {
+    if (!apiKey) throw new Error("OpenAI API key required");
 
     const openai = new OpenAI({ apiKey });
     const targetLangName = LANGUAGE_NAMES[targetLang];
@@ -343,8 +275,8 @@ ${texts.map((text, i) => `${i + 1}. ${text}`).join('\n')}`;
 
     const translatedText = response.choices[0]?.message?.content || "";
     const lines = translatedText.split('\n')
-        .map(line => line.replace(/^\d+\.\s*/, '').trim())
-        .filter(line => line.length > 0);
+        .map((line: string) => line.replace(/^\d+\.\s*/, '').trim())
+        .filter((line: string) => line.length > 0);
 
     while (lines.length < texts.length) {
         lines.push(texts[lines.length]);
@@ -353,17 +285,8 @@ ${texts.map((text, i) => `${i + 1}. ${text}`).join('\n')}`;
     return lines;
 }
 
-/**
- * Google Gemini (Free tier available)
- */
-async function translateWithGemini(
-    texts: string[],
-    targetLang: string,
-    apiKey?: string
-): Promise<string[]> {
-    if (!apiKey) {
-        throw new Error("Gemini API key required");
-    }
+async function translateWithGemini(texts: string[], targetLang: string, apiKey?: string): Promise<string[]> {
+    if (!apiKey) throw new Error("Gemini API key required");
 
     const targetLangName = LANGUAGE_NAMES[targetLang];
 
@@ -403,9 +326,6 @@ ${texts.map((text, i) => `${i + 1}. ${text}`).join('\n')}`;
     return lines;
 }
 
-/**
- * Reconstructs the original object structure with translated values
- */
 function reconstructObject(
     original: any,
     translations: Map<string, string>,

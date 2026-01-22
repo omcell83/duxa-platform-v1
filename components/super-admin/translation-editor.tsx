@@ -64,9 +64,9 @@ interface TranslationProvider {
 
 const PROVIDERS: TranslationProvider[] = [
     {
-        id: "google",
-        name: "Google Translate",
-        description: "Ücretsiz, hızlı (Kısa metinler için otomatik)",
+        id: "mymemory",
+        name: "MyMemory (Önerilen)",
+        description: "Ücretsiz, güvenilir (Kısa metinler için otomatik)",
         requiresKey: false,
         isFree: true,
     },
@@ -112,7 +112,7 @@ export function TranslationEditor() {
     const [sourceData, setSourceData] = useState<TranslationData>({});
     const [translations, setTranslations] = useState<Record<string, TranslationData>>({});
     const [selectedLanguage, setSelectedLanguage] = useState<string>("tr");
-    const [selectedProvider, setSelectedProvider] = useState<string>("google");
+    const [selectedProvider, setSelectedProvider] = useState<string>("mymemory");
     const [isLoading, setIsLoading] = useState(false);
     const [isTranslating, setIsTranslating] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
@@ -348,8 +348,8 @@ export function TranslationEditor() {
                             <div
                                 key={provider.id}
                                 className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${selectedProvider === provider.id
-                                        ? "border-primary bg-primary/5"
-                                        : "border-border hover:border-primary/50"
+                                    ? "border-primary bg-primary/5"
+                                    : "border-border hover:border-primary/50"
                                     }`}
                                 onClick={() => saveProviderSelection(provider.id)}
                             >

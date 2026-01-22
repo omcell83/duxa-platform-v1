@@ -1,179 +1,291 @@
-# Translation Management System
+# Hibrit Çok-Motorlu Çeviri Sistemi
 
-## Overview
-AI-powered translation management system for the Duxa platform. Supports 8 languages with automatic translation using LibreTranslate (free and open-source).
+## 🎯 Genel Bakış
 
-## Supported Languages
+Duxa platformu için geliştirilmiş profesyonel, hibrit çeviri yönetim sistemi. Kısa metinler için ücretsiz API'ler, uzun ve pazarlama metinleri için AI destekli çeviri motorları kullanır.
 
-| Language Code | Country | Language Name |
-|--------------|---------|---------------|
-| `en` | 🇬🇧 GB | İngilizce (English) |
-| `de` | 🇩🇪 DE | Almanca (German) |
-| `fr` | 🇫🇷 FR | Fransızca (French) |
-| `lb` | 🇱🇺 LU | Lüksemburgca (Luxembourgish) |
-| `tr` | 🇹🇷 TR | Türkçe (Turkish) |
-| `me` | 🇲🇪 ME | Karadağca (Montenegrin) |
-| `mt` | 🇲🇹 MT | Maltaca (Maltese) |
-| `ru` | 🇷🇺 RU | Rusça (Russian) |
+## 🚀 Özellikler
 
-## Features
+### 1. Çok Motorlu Destek
 
-### 1. **AI-Powered Translation**
-- Uses LibreTranslate API (free and open-source)
-- Automatic translation from English (source) to target languages
-- Batched processing for optimal performance
-- Rate limiting protection (50 items per batch, 1s delay)
+| Motor | Tip | Limit | En İyi Kullanım | API Key |
+|-------|-----|-------|-----------------|---------|
+| **MyMemory** | Ücretsiz | 1000 kelime/gün/IP | Kısa metinler (otomatik) | ❌ Gerekli değil |
+| **Azure Translator** | Ücretsiz | 2M karakter/ay | Genel çeviriler | ✅ Gerekli |
+| **DeepL** | Ücretsiz | 500K karakter/ay | Avrupa dilleri | ✅ Gerekli |
+| **OpenAI GPT-4** | Ücretli | Kullanım başına | Pazarlama metinleri | ✅ Gerekli |
+| **Google Gemini Pro** | Ücretsiz | Tier mevcut | AI çeviriler | ✅ Gerekli |
 
-### 2. **Translation Editor**
-- View source (English) and target translations side-by-side
-- Edit translations manually
-- Search functionality to find specific keys
-- Track edited translations with badges
-- Real-time preview
+### 2. Hibrit Akıllı Sistem
 
-### 3. **File Management**
-- Download individual language files (`de.json`, `tr.json`, etc.)
-- Bulk download all languages
-- Maintains original JSON structure
-- Proper formatting (2-space indentation)
-
-## Usage
-
-### Accessing the Translation Manager
-1. Navigate to: `https://duxa.pro/super-admin/settings`
-2. Click on **"Çeviri Yönetimi"** (Translation Management)
-
-### Translating to a New Language
-1. Select target language from dropdown
-2. Click **"AI ile Çevir"** (Translate with AI)
-3. Wait for translation to complete (progress shown in console)
-4. Review and edit translations as needed
-5. Click **"İndir"** (Download) to save the JSON file
-
-### Editing Translations
-1. Use the search bar to find specific keys
-2. Edit the translation in the textarea
-3. Changes are tracked with "Düzenlendi" badge
-4. Download the updated file when ready
-
-### Installing Translation Files
-1. Download the translated JSON file
-2. Place it in the `i18n/` directory
-3. File naming convention: `{language_code}.json`
-   - Example: `de.json`, `tr.json`, `fr.json`
-
-## Technical Details
-
-### API Endpoint
-- **URL**: `/api/translate`
-- **Method**: `POST`
-- **Request Body**:
-  ```json
-  {
-    "sourceData": { /* en.json content */ },
-    "targetLanguage": "de"
-  }
-  ```
-- **Response**: Translated JSON object
-
-### Translation Service
-- **Provider**: LibreTranslate
-- **Public Instance**: `https://libretranslate.com`
-- **Cost**: Free (open-source)
-- **Rate Limits**: Handled with batching and delays
-
-### Language Mapping
-Some languages are mapped to closest alternatives:
-- Luxembourgish (`lb`) → German (`de`)
-- Montenegrin (`me`) → Serbian (`sr`)
-- Maltese (`mt`) → English (`en`) fallback
-
-### Performance Optimization
-- **Batch Size**: 50 translations per batch
-- **Delay**: 1 second between batches
-- **Concurrent Processing**: Parallel translation within batches
-- **Progress Logging**: Console logs show translation progress
-
-## File Structure
+**Otomatik Kategorizasyon:**
 
 ```
-app/
-├── super-admin/
-│   └── settings/
-│       └── translations/
-│           └── page.tsx          # Main translation page
-├── api/
-│   └── translate/
-│       └── route.ts              # Translation API endpoint
-components/
-└── super-admin/
-    └── translation-editor.tsx    # Translation editor component
-i18n/
-├── en.json                       # Source file (English)
-├── de.json                       # German translations
-├── fr.json                       # French translations
-├── tr.json                       # Turkish translations
-└── ...                           # Other language files
+Kısa Metinler (≤50 karakter):
+├─ nav.*, common.*, buttons.*
+├─ Basit UI metinleri
+└─ → MyMemory API (Ücretsiz, Güvenilir)
+
+Uzun Metinler (>50 karakter):
+├─ marketing.*, seo.*, descriptions
+├─ Pazarlama içerikleri
+└─ → Seçilen AI Motor (Doğal, Bağlama Uygun)
 ```
 
-## Best Practices
+### 3. Akıllı Özellikler
 
-### 1. **Always Review AI Translations**
-- AI translations may not be perfect
-- Review context-specific terms (restaurant, menu items)
-- Check for cultural appropriateness
+✅ **Mevcut Çeviri Kontrolü**
+- Çeviri zaten varsa kullanıcıya sorar
+- Gereksiz API çağrıları yapılmaz
+- Maliyet optimizasyonu
 
-### 2. **Maintain Consistency**
-- Use the same terminology across all languages
-- Keep placeholders intact (e.g., `{count}`, `{name}`)
-- Preserve HTML tags and special characters
+✅ **Gerçek Zamanlı İlerleme**
+- "Çeviri başlatılıyor..."
+- "Çeviriler alınıyor..."
+- "✓ Türkçe çevirisi tamamlandı!"
 
-### 3. **Test Translations**
-- Load translated files in the application
-- Check UI for text overflow
-- Verify special characters display correctly
+✅ **API Key Yönetimi**
+- Her motor için ayrı key
+- LocalStorage'da güvenli saklama
+- Direkt API key alma linkleri
 
-### 4. **Version Control**
-- Commit translation files to Git
-- Document major translation updates
-- Track changes with meaningful commit messages
+✅ **Provider Seçim Kartları**
+- Görsel kart tasarımı
+- Ücretsiz/Ücretli badge'leri
+- Detaylı açıklamalar
 
-## Troubleshooting
+## 📋 Desteklenen Diller
 
-### Translation Fails
-- **Issue**: API returns error
-- **Solution**: Check internet connection, try again later (rate limits)
+- 🇬🇧 İngilizce (en) - Kaynak dil
+- 🇩🇪 Almanca (de)
+- 🇫🇷 Fransızca (fr)
+- 🇱🇺 Lüksemburgca (lb)
+- 🇹🇷 Türkçe (tr)
+- 🇲🇪 Karadağca (me)
+- 🇲🇹 Maltaca (mt)
+- 🇷🇺 Rusça (ru)
 
-### Missing Translations
-- **Issue**: Some keys not translated
-- **Solution**: Edit manually in the editor
+## 🎯 Kullanım Senaryoları
 
-### File Download Issues
-- **Issue**: Downloaded file is empty
-- **Solution**: Ensure translation is complete before downloading
+### Senaryo 1: Tamamen Ücretsiz (Önerilen)
+```
+Motor: MyMemory (default)
+├─ Kısa metinler: MyMemory
+└─ Uzun metinler: MyMemory
 
-### Special Characters
-- **Issue**: Characters display incorrectly
-- **Solution**: Ensure file is saved as UTF-8
+Avantajlar:
+✓ Tamamen ücretsiz
+✓ API key gerektirmez
+✓ 1000 kelime/gün limit
+✓ Çoğu kullanım için yeterli
+```
 
-## Future Enhancements
+### Senaryo 2: Hibrit Ücretsiz
+```
+Motor: DeepL veya Gemini
+├─ Kısa metinler: MyMemory (ücretsiz)
+└─ Uzun metinler: DeepL/Gemini (ücretsiz tier)
 
-- [ ] Translation memory/cache
-- [ ] Multiple translation providers
-- [ ] Automatic translation on file upload
-- [ ] Translation quality scoring
-- [ ] Collaborative translation workflow
-- [ ] Translation history/versioning
-- [ ] Glossary management for consistent terminology
+Avantajlar:
+✓ Yüksek kalite
+✓ Ücretsiz limitler içinde
+✓ Avrupa dilleri için mükemmel (DeepL)
+```
 
-## Support
+### Senaryo 3: Premium Kalite
+```
+Motor: OpenAI GPT-4
+├─ Kısa metinler: MyMemory (ücretsiz)
+└─ Uzun metinler: GPT-4 (ücretli)
 
-For issues or questions:
-1. Check console logs for errors
-2. Verify LibreTranslate API status
-3. Contact system administrator
+Avantajlar:
+✓ En yüksek kalite
+✓ Bağlama uygun çeviriler
+✓ Pazarlama metinleri için ideal
+
+Maliyet: ~$0.10-$0.20 per dil
+```
+
+## 📖 Kullanım Kılavuzu
+
+### 1. Sayfaya Erişim
+```
+https://duxa.pro/super-admin/settings/translations
+```
+
+### 2. Motor Seçimi
+1. "Çeviri Motoru Seçimi" kartından motor seçin
+2. Gerekirse API key girin
+3. "API Key Al" butonundan key alabilirsiniz
+
+### 3. Çeviri Yapma
+1. **Hedef Dil Seç**: Dropdown'dan dil seçin (örn: Türkçe)
+2. **Çevir**: "Çevir" butonuna tıklayın
+3. **Bekleyin**: İlerleme mesajlarını takip edin
+4. **Kontrol**: Tabloda çevirileri gözden geçirin
+5. **Düzenle**: Gerekirse manuel düzeltme yapın
+6. **İndir**: JSON dosyasını indirin
+
+### 4. Dosya Kurulumu
+```bash
+# İndirilen dosyaları i18n klasörüne yerleştirin
+mv tr.json i18n/tr.json
+mv de.json i18n/de.json
+# ... diğer diller
+```
+
+## 🔧 Teknik Detaylar
+
+### API Endpoints
+
+**Çeviri API:**
+```
+POST /api/translate
+Content-Type: application/json
+
+{
+  "sourceData": { /* en.json content */ },
+  "targetLanguage": "tr",
+  "provider": "mymemory",
+  "apiKey": "optional-for-paid-services"
+}
+```
+
+**Dil Dosyası API:**
+```
+GET /api/i18n/{lang}
+Response: JSON dosya içeriği
+```
+
+### Batch İşleme
+
+```typescript
+// Kısa metinler için
+BATCH_SIZE_SHORT = 30
+DELAY = 500ms
+
+// Uzun metinler için (AI)
+BATCH_SIZE_LONG = 10
+DELAY = 500ms
+```
+
+### Pazarlama İçerik Tespiti
+
+```typescript
+function isMarketingContent(path: string): boolean {
+  const marketingPaths = [
+    "seo.",
+    "marketing.",
+    "carousel.",
+    "description",
+    "welcomeDesc",
+    "features.",
+    "blog."
+  ];
+  return marketingPaths.some(p => path.includes(p));
+}
+```
+
+## 💰 Maliyet Analizi
+
+### MyMemory (Ücretsiz)
+- **Limit**: 1000 kelime/gün/IP
+- **Maliyet**: $0
+- **Toplam 7 dil**: $0
+- **Süre**: ~5-10 dakika
+
+### DeepL (Ücretsiz Tier)
+- **Limit**: 500,000 karakter/ay
+- **Maliyet**: $0 (limit içinde)
+- **Toplam 7 dil**: $0
+- **Süre**: ~3-5 dakika
+
+### OpenAI GPT-4o-mini
+- **Fiyat**: $0.150/1M input, $0.600/1M output
+- **Tahmini**: ~$0.10-$0.20 per dil
+- **Toplam 7 dil**: ~$0.70-$1.40
+- **Süre**: ~2-3 dakika
+
+## 🎨 UI Özellikleri
+
+### Tablo Görünümü
+- 4 sütun: Anahtar, Kaynak, Çeviri, Durum
+- Sayfalama: 50 öğe/sayfa
+- Arama ve filtreleme
+- Inline düzenleme
+
+### Provider Kartları
+- Görsel seçim kartları
+- Ücretsiz/Ücretli badge'leri
+- Detaylı açıklamalar
+- Aktif provider vurgusu
+
+### İlerleme Gösterimi
+- Real-time progress mesajları
+- Alert bildirimleri
+- Console logları
+
+## 🔒 Güvenlik
+
+- API key'ler sadece tarayıcıda saklanır (localStorage)
+- Sunucuya gönderilir ama kaydedilmez
+- Her kullanıcı kendi key'ini kullanır
+- HTTPS üzerinden güvenli iletişim
+
+## 📊 Çeviri Kalitesi Karşılaştırması
+
+**Örnek**: "Stop treating your menu like a static list"
+
+| Motor | Çeviri | Puan |
+|-------|--------|------|
+| MyMemory | "Menünüze statik bir liste gibi davranmayı bırakın" | 7/10 |
+| DeepL | "Menünüzü statik bir liste gibi görmeyi bırakın" | 8/10 |
+| GPT-4 | "Menünüzü artık sıradan bir liste gibi sunmayın" | 9/10 |
+
+## 🐛 Sorun Giderme
+
+### "API key required" Hatası
+**Çözüm**: Seçilen motor için API key girin
+
+### "Translation failed" Hatası
+**Çözüm**: 
+1. API key'i kontrol edin
+2. İnternet bağlantınızı kontrol edin
+3. Farklı bir motor deneyin
+
+### "Rate limit exceeded" Hatası
+**Çözüm**:
+1. Birkaç dakika bekleyin
+2. Farklı bir motor kullanın
+3. Ücretli tier'a geçin
+
+### Çeviriler Yüklenmiyor
+**Çözüm**:
+1. Tarayıcı console'unu kontrol edin
+2. `i18n/en.json` dosyasının erişilebilir olduğundan emin olun
+3. Sayfayı yenileyin
+
+## 🚀 Gelecek Geliştirmeler
+
+- [ ] Streaming çeviri (real-time updates)
+- [ ] Çeviri önbelleği (cache)
+- [ ] Toplu dil çevirisi (tüm diller tek seferde)
+- [ ] Çeviri kalite skorlaması
+- [ ] Glossary yönetimi (terim sözlüğü)
+- [ ] Çeviri geçmişi
+- [ ] Collaborative editing (çoklu kullanıcı)
+- [ ] AI çeviri önerileri
+- [ ] Otomatik düzeltme önerileri
+
+## 📞 Destek
+
+Sorun yaşarsanız:
+1. Browser console'u kontrol edin
+2. API provider'ın status sayfasını kontrol edin
+3. Sistem yöneticisine başvurun
 
 ---
 
-**Last Updated**: January 2026
-**Version**: 1.0.0
+**Son Güncelleme**: 22 Ocak 2026
+**Versiyon**: 2.0.0
+**Durum**: ✅ Production Ready
