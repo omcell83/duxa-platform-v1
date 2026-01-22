@@ -69,9 +69,9 @@ export async function getMeetingTasks(status?: 'active' | 'completed'): Promise<
  */
 export async function createMeetingTask(data: {
     title: string;
-    description?: string;
-    responsible_person_id?: string;
-    link?: string;
+    description?: string | null;
+    responsible_person_id?: string | null;
+    link?: string | null;
 }): Promise<{
     success: boolean;
     data?: MeetingTask;
@@ -144,9 +144,9 @@ export async function updateMeetingTask(
     id: string,
     data: {
         title?: string;
-        description?: string;
-        responsible_person_id?: string;
-        link?: string;
+        description?: string | null;
+        responsible_person_id?: string | null;
+        link?: string | null;
     }
 ): Promise<{
     success: boolean;
