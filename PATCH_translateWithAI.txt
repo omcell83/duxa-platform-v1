@@ -1,0 +1,108 @@
+// PATCH: Replace translateWithAI function in translation-editor.tsx
+// Find the function starting at line ~191 and replace with this:
+
+const translateWithAI = async (targetLang: string) => {
+  const provider = PROVIDERS.find((p) => p.id === selectedProvider);
+  if (!provider) return;
+
+  if (provider.requiresKey && !apiKeys[provider.id]) {
+    alert(`Lütfen önce ${provider.name} API Key girin!`);
+    return;
+  }
+
+  try {
+    setIsTranslating(true);
+    setTranslationProgress("Çeviri başlatılıyor...");
+
+    const response = await fetch("/api/translate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sourceData,
+        targetLanguage: targetLang,
+        provider: selectedProvider,
+        apiKey: apiKeys[selectedProvider],
+        existingTranslations: translations[targetLang] || {},
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Translation request failed");
+    }
+
+    const reader = response.body?.getReader();
+    const decoder = new TextDecoder();
+
+    if (!reader) {
+      throw new Error("No response stream");
+    }
+
+    let buffer = "";
+    let translatedData: any = {};
+
+    while (true) {
+      const { done, value } = await reader.read();
+
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n\n");
+      buffer = lines.pop() || "";
+
+      for (const line of lines) {
+        if (!line.trim() || !line.startsWith("data: ")) continue;
+
+        try {
+          const data = JSON.parse(line.slice(6));
+
+          switch (data.type) {
+            case "info":
+              setTranslationProgress(data.message);
+              break;
+
+            case "progress":
+              setTranslationProgress(data.message);
+              break;
+
+            case "translation":
+              // Update translation in real-time
+              setTranslations((prev) => {
+                const updated = { ...prev };
+                if (!updated[targetLang]) updated[targetLang] = {};
+                setNestedValue(updated[targetLang], data.path, data.translated);
+                return updated;
+              });
+              break;
+
+            case "complete":
+              translatedData = data.data;
+              setTranslations((prev) => ({
+                ...prev,
+                [targetLang]: translatedData,
+              }));
+
+              const langName = LANGUAGES.find((l) => l.code === targetLang)?.name;
+              setTranslationProgress(`✓ ${langName} çevirisi tamamlandı!`);
+
+              setTimeout(() => {
+                alert(`Başarılı: ${langName} çevirisi tamamlandı!`);
+                setTranslationProgress("");
+              }, 1000);
+              break;
+
+            case "error":
+              throw new Error(data.message);
+          }
+        } catch (parseError) {
+          console.error("Parse error:", parseError);
+        }
+      }
+    }
+  } catch (error: any) {
+    console.error("Translation failed:", error);
+    setTranslationProgress("");
+    alert(`Hata: ${error.message || "Çeviri başarısız oldu"}`);
+  } finally {
+    setIsTranslating(false);
+  }
+};

@@ -218,58 +218,21 @@ export function TranslationEditor() {
                     targetLanguage: targetLang,
                     provider: selectedProvider,
                     apiKey: apiKeys[selectedProvider],
-                    existingTranslations: translations[targetLang] || {},
                 }),
             });
 
             if (!response.ok) {
-                throw new Error("Translation request failed");
+                const error = await response.json();
+                throw new Error(error.error || "Translation failed");
             }
 
-            const reader = response.body?.getReader();
-            const decoder = new TextDecoder();
+            setTranslationProgress("Çeviriler alınıyor...");
+            const translatedData = await response.json();
 
-            if (!reader) {
-                throw new Error("No response stream");
-            }
-
-            let buffer = "";
-            let translatedData: any = {};
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-
-                buffer += decoder.decode(value, { stream: true });
-                const lines = buffer.split("\n\n");
-                buffer = lines.pop() || "";
-
-                for (const line of lines) {
-                    if (!line.trim() || !line.startsWith("data: ")) continue;
-
-                    try {
-                        const data = JSON.parse(line.slice(6));
-
-                        if (data.type === "info" || data.type === "progress") {
-                            setTranslationProgress(data.message);
-                        } else if (data.type === "translation") {
-                            setTranslations((prev) => {
-                                const updated = { ...prev };
-                                if (!updated[targetLang]) updated[targetLang] = {};
-                                setNestedValue(updated[targetLang], data.path, data.translated);
-                                return updated;
-                            });
-                        } else if (data.type === "complete") {
-                            translatedData = data.data;
-                            setTranslations((prev) => ({ ...prev, [targetLang]: translatedData }));
-                        } else if (data.type === "error") {
-                            throw new Error(data.message);
-                        }
-                    } catch (parseError) {
-                        console.error("Parse error:", parseError);
-                    }
-                }
-            }
+            setTranslations((prev) => ({
+                ...prev,
+                [targetLang]: translatedData,
+            }));
 
             const langName = LANGUAGES.find((l) => l.code === targetLang)?.name;
             setTranslationProgress(`✓ ${langName} çevirisi tamamlandı!`);

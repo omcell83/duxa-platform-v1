@@ -234,6 +234,11 @@
       "type": "Page"
     },
     {
+      "path": "app/super-admin/settings/meeting-tasks/page.tsx",
+      "description": "Personel toplantısı kararları ve yapılacaklar listesi sayfası. Görev takibi ve tamamlanma yönetimi.",
+      "type": "Page"
+    },
+    {
       "path": "app/super-admin/settings/security/page.tsx",
       "description": "Güvenlik ayarları sayfası. Parola politikaları ve erişim kontrolleri.",
       "type": "Page"
@@ -311,6 +316,11 @@
     {
       "path": "app/actions/invoices.ts",
       "description": "Fatura server actions. Fatura listesi ve yönetimi.",
+      "type": "Server Action"
+    },
+    {
+      "path": "app/actions/meeting-tasks.ts",
+      "description": "Personel toplantısı kararları server actions. Görev CRUD işlemleri, tamamlama ve kullanıcı listesi.",
       "type": "Server Action"
     },
     {
@@ -514,6 +524,11 @@
       "type": "Component"
     },
     {
+      "path": "components/ui/checkbox.tsx",
+      "description": "Checkbox UI bileşeni. Shadcn/ui checkbox component'i, onay kutusu.",
+      "type": "Component"
+    },
+    {
       "path": "components/ui/input.tsx",
       "description": "Input UI bileşeni. Shadcn/ui input component'i, form input alanları.",
       "type": "Component"
@@ -567,6 +582,21 @@
       "path": "components/ui/textarea.tsx",
       "description": "Textarea UI bileşeni. Shadcn/ui textarea component'i, çok satırlı metin giriş alanları.",
       "type": "Component"
+    },
+    {
+      "path": "components/ui/toast.tsx",
+      "description": "Toast UI bileşeni. Shadcn/ui toast component'i, bildirim mesajları.",
+      "type": "Component"
+    },
+    {
+      "path": "components/ui/toaster.tsx",
+      "description": "Toaster bileşeni. Toast bildirimlerini render eden container component.",
+      "type": "Component"
+    },
+    {
+      "path": "hooks/use-toast.ts",
+      "description": "Toast hook. Toast bildirimlerini yönetmek için custom React hook.",
+      "type": "Hook"
     },
     {
       "path": "middleware.ts",
@@ -856,6 +886,10 @@
     {
       "url": "https://duxa.pro/super-admin/settings/security",
       "description": "Güvenlik ayarları sayfası. Parola politikaları, 2FA ve sistem güvenlik yapılandırması."
+    },
+    {
+      "url": "https://duxa.pro/super-admin/settings/meeting-tasks",
+      "description": "Personel toplantısı kararları ve yapılacaklar listesi sayfası. Görev takibi ve tamamlanma yönetimi."
     },
     {
       "url": "https://duxa.pro/super-admin/settings/users",
