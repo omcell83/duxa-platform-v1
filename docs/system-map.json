@@ -249,6 +249,11 @@
       "type": "Page"
     },
     {
+      "path": "app/api/i18n/[lang]/route.ts",
+      "description": "i18n dosya servisi API endpoint'i. Dil JSON dosyalarını sunucu tarafından okuyup döner.",
+      "type": "API Route"
+    },
+    {
       "path": "app/api/translate/route.ts",
       "description": "Çeviri API endpoint'i. LibreTranslate kullanarak otomatik çeviri işlemleri, batch processing.",
       "type": "API Route"

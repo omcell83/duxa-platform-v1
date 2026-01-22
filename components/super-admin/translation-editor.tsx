@@ -67,7 +67,7 @@ export function TranslationEditor() {
     const loadSourceFile = async () => {
         try {
             setIsLoading(true);
-            const response = await fetch("/i18n/en.json");
+            const response = await fetch("/api/i18n/en");
             const data = await response.json();
             setSourceData(data);
 
