@@ -1,19 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { Card } from '@/components/ui/card';
-import { Plus, ExternalLink, Trash2 } from 'lucide-react';
 import {
     getMeetingTasks,
     createMeetingTask,
@@ -24,429 +11,281 @@ import {
     getEligibleUsers,
     type MeetingTask,
 } from '@/app/actions/meeting-tasks';
+import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-
-interface User {
-    id: string;
-    full_name: string;
-    email: string;
-    role: string;
-}
+import { PlusCircle, Loader2, CheckCircle2, History } from 'lucide-react';
+import { MeetingTaskItem } from './task-item';
+import { AnimatePresence, motion } from 'framer-motion';
 
 export default function MeetingTasksPage() {
     const [activeTasks, setActiveTasks] = useState<MeetingTask[]>([]);
     const [completedTasks, setCompletedTasks] = useState<MeetingTask[]>([]);
-    const [users, setUsers] = useState<User[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [users, setUsers] = useState<
+        Array<{ id: string; full_name: string; email: string; role: string }>
+    >([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isCreating, setIsCreating] = useState(false);
     const { toast } = useToast();
 
-    // Görevleri yükle
-    const loadTasks = async () => {
-        const [activeResult, completedResult, usersResult] = await Promise.all([
-            getMeetingTasks('active'),
-            getMeetingTasks('completed'),
-            getEligibleUsers(),
-        ]);
-
-        if (activeResult.success && activeResult.data) {
-            setActiveTasks(activeResult.data);
-        }
-
-        if (completedResult.success && completedResult.data) {
-            setCompletedTasks(completedResult.data);
-        }
-
-        if (usersResult.success && usersResult.data) {
-            setUsers(usersResult.data);
-        }
-
-        setLoading(false);
-    };
-
     useEffect(() => {
-        loadTasks();
+        fetchData();
     }, []);
 
-    // Yeni görev ekle
-    const handleAddTask = async () => {
-        const result = await createMeetingTask({
-            title: 'Yeni Görev',
-            description: '',
-        });
+    const fetchData = async () => {
+        setIsLoading(true);
+        try {
+            const [activeRes, completedRes, usersRes] = await Promise.all([
+                getMeetingTasks('active'),
+                getMeetingTasks('completed'),
+                getEligibleUsers(),
+            ]);
 
-        if (result.success && result.data) {
-            setActiveTasks([result.data, ...activeTasks]);
-            toast({
-                title: 'Başarılı',
-                description: 'Yeni görev eklendi',
-            });
-        } else {
-            toast({
-                title: 'Hata',
-                description: result.error || 'Görev eklenirken bir hata oluştu',
-                variant: 'destructive',
-            });
-        }
-    };
-
-    // Görev güncelle
-    const handleUpdateTask = async (
-        id: string,
-        data: {
-            title?: string;
-            description?: string;
-            responsible_person_id?: string;
-            link?: string;
-        }
-    ) => {
-        const result = await updateMeetingTask(id, data);
-
-        if (result.success && result.data) {
-            setActiveTasks(activeTasks.map((task) => (task.id === id ? result.data! : task)));
-        } else {
-            toast({
-                title: 'Hata',
-                description: result.error || 'Görev güncellenirken bir hata oluştu',
-                variant: 'destructive',
-            });
-        }
-    };
-
-    // Görev tamamla (checkbox işaretlendiğinde)
-    const handleCompleteTask = async (id: string) => {
-        const result = await completeMeetingTask(id);
-
-        if (result.success && result.data) {
-            setActiveTasks(activeTasks.map((task) => (task.id === id ? result.data! : task)));
-
-            // 2 dakika sonra completed statüsüne geç
-            setTimeout(async () => {
-                const markResult = await markTaskAsCompleted(id);
-                if (markResult.success && markResult.data) {
-                    setActiveTasks(activeTasks.filter((task) => task.id !== id));
-                    setCompletedTasks([markResult.data, ...completedTasks]);
-                }
-            }, 2 * 60 * 1000); // 2 dakika
-
-            toast({
-                title: 'Görev Tamamlandı',
-                description: '2 dakika sonra tamamlananlar listesine taşınacak',
-            });
-        } else {
-            toast({
-                title: 'Hata',
-                description: result.error || 'Görev tamamlanırken bir hata oluştu',
-                variant: 'destructive',
-            });
-        }
-    };
-
-    // Görev sil
-    const handleDeleteTask = async (id: string, isCompleted: boolean) => {
-        const result = await deleteMeetingTask(id);
-
-        if (result.success) {
-            if (isCompleted) {
-                setCompletedTasks(completedTasks.filter((task) => task.id !== id));
-            } else {
-                setActiveTasks(activeTasks.filter((task) => task.id !== id));
+            if (activeRes.success && activeRes.data) {
+                setActiveTasks(activeRes.data);
             }
-            toast({
-                title: 'Başarılı',
-                description: 'Görev silindi',
-            });
-        } else {
+            if (completedRes.success && completedRes.data) {
+                setCompletedTasks(completedRes.data);
+            }
+            if (usersRes.success && usersRes.data) {
+                setUsers(usersRes.data);
+            }
+        } catch (error) {
+            console.error('Veri yükleme hatası:', error);
             toast({
                 title: 'Hata',
-                description: result.error || 'Görev silinirken bir hata oluştu',
+                description: 'Veriler yüklenirken bir sorun oluştu.',
+                variant: 'destructive',
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleCreateTask = async () => {
+        setIsCreating(true);
+        try {
+            const res = await createMeetingTask({
+                title: '', // Boş başlıkla başla
+                description: '',
+            });
+
+            if (res.success && res.data) {
+                setActiveTasks([res.data, ...activeTasks]);
+                toast({
+                    title: 'Yeni Konu Eklendi',
+                    description: 'Lütfen görev detaylarını doldurun.',
+                });
+            } else {
+                throw new Error(res.error);
+            }
+        } catch (error: any) {
+            toast({
+                title: 'Hata',
+                description: error.message || 'Görev oluşturulamadı.',
+                variant: 'destructive',
+            });
+        } finally {
+            setIsCreating(false);
+        }
+    };
+
+    const handleUpdateTask = async (id: string, data: Partial<MeetingTask>) => {
+        // Optimistic update for UI responsiveness
+        setActiveTasks((prev) =>
+            prev.map((task) => (task.id === id ? { ...task, ...data } : task))
+        );
+
+        try {
+            const res = await updateMeetingTask(id, data);
+            if (!res.success) {
+                // Revert on failure (simple fetch for now or rigorous state management)
+                fetchData();
+                toast({
+                    title: 'Güncelleme Hatası',
+                    description: res.error,
+                    variant: 'destructive',
+                });
+            }
+        } catch (error) {
+            console.error('Update hatası:', error);
+        }
+    };
+
+    const handleCompleteTask = async (id: string) => {
+        try {
+            // 1. Mark as completed (sets completed_at)
+            const res = await completeMeetingTask(id);
+
+            if (res.success && res.data) {
+                // Update local state to show checkbox ticked immediately
+                setActiveTasks((prev) =>
+                    prev.map((t) => (t.id === id ? { ...t, completed_at: res.data!.completed_at } : t))
+                );
+
+                toast({
+                    title: 'Görev Tamamlandı',
+                    description: 'Görev 2 saniye sonra tamamlananlar listesine taşınacak.',
+                    className: "bg-green-50 border-green-200 text-green-800",
+                });
+
+                // 2. Wait 2 seconds then move to completed list
+                setTimeout(async () => {
+                    // Server update status to 'completed'
+                    await markTaskAsCompleted(id);
+
+                    // Move in UI
+                    setActiveTasks((prev) => prev.filter((t) => t.id !== id));
+                    setCompletedTasks((prev) => [res.data!, ...prev]);
+                }, 2000);
+            }
+        } catch (error) {
+            console.error('Complete task error:', error);
+            toast({
+                title: 'Hata',
+                description: 'İşlem sırasında bir hata oluştu.',
                 variant: 'destructive',
             });
         }
     };
 
-    // Geçen süreyi hesapla
-    const calculateElapsedTime = (startedAt: string | null, completedAt: string | null) => {
-        if (!startedAt) return null;
+    const handleDeleteTask = async (id: string, isCompleted: boolean) => {
+        if (!confirm('Bu görevi silmek istediğinize emin misiniz?')) return;
 
-        const start = new Date(startedAt);
-        const end = completedAt ? new Date(completedAt) : new Date();
-        const diffMs = end.getTime() - start.getTime();
-        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-        const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-
-        return { days: diffDays, hours: diffHours, isOverdue: diffDays >= 2 };
+        try {
+            const res = await deleteMeetingTask(id);
+            if (res.success) {
+                if (isCompleted) {
+                    setCompletedTasks((prev) => prev.filter((t) => t.id !== id));
+                } else {
+                    setActiveTasks((prev) => prev.filter((t) => t.id !== id));
+                }
+                toast({
+                    title: 'Silindi',
+                    description: 'Görev başarıyla silindi.',
+                });
+            } else {
+                throw new Error(res.error);
+            }
+        } catch (error: any) {
+            toast({
+                title: 'Hata',
+                description: error.message || 'Silme işlemi başarısız.',
+                variant: 'destructive',
+            });
+        }
     };
 
-    if (loading) {
+    if (isLoading) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-background">
-                <p className="text-muted-foreground">Yükleniyor...</p>
+            <div className="flex h-[50vh] w-full items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-background p-6">
-            <div className="max-w-7xl mx-auto space-y-6">
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-3xl font-bold text-foreground">Personel Toplantısı Kararları</h1>
-                        <p className="text-muted-foreground mt-1">
-                            Toplantılarda alınan kararlar ve yapılacaklar listesi
-                        </p>
-                    </div>
-                    <Button onClick={handleAddTask} className="gap-2">
-                        <Plus className="w-4 h-4" />
-                        Yeni Konu Ekle
-                    </Button>
+        <div className="container mx-auto py-8 max-w-5xl space-y-12">
+
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-border/40 pb-6">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground">Toplantı Kararları</h1>
+                    <p className="text-muted-foreground mt-1">Personel toplantılarında alınan kararları ve görevleri yönetin.</p>
                 </div>
-
-                {/* Aktif Görevler */}
-                <Card className="bg-card border-border p-6">
-                    <h2 className="text-xl font-semibold text-foreground mb-4">Aktif Görevler</h2>
-                    <div className="space-y-4">
-                        {activeTasks.length === 0 ? (
-                            <p className="text-muted-foreground text-center py-8">Henüz aktif görev yok</p>
-                        ) : (
-                            activeTasks.map((task) => {
-                                const elapsed = calculateElapsedTime(task.started_at, task.completed_at);
-                                const isChecked = !!task.completed_at;
-
-                                return (
-                                    <div
-                                        key={task.id}
-                                        className="grid grid-cols-12 gap-4 items-start p-4 bg-muted/30 rounded-lg border border-border"
-                                    >
-                                        {/* Checkbox */}
-                                        <div className="col-span-1 flex items-center justify-center pt-2">
-                                            <Checkbox
-                                                checked={isChecked}
-                                                onCheckedChange={(checked: boolean) => {
-                                                    if (checked) {
-                                                        handleCompleteTask(task.id);
-                                                    }
-                                                }}
-                                                disabled={isChecked}
-                                            />
-                                        </div>
-
-                                        {/* Başlık */}
-                                        <div className="col-span-2">
-                                            <Input
-                                                value={task.title}
-                                                onChange={(e) =>
-                                                    handleUpdateTask(task.id, { title: e.target.value })
-                                                }
-                                                className="bg-background border-border"
-                                                placeholder="Başlık"
-                                            />
-                                        </div>
-
-                                        {/* Açıklama */}
-                                        <div className="col-span-3">
-                                            <Textarea
-                                                value={task.description || ''}
-                                                onChange={(e) =>
-                                                    handleUpdateTask(task.id, { description: e.target.value })
-                                                }
-                                                className="bg-background border-border min-h-[80px]"
-                                                placeholder="Konu açıklaması..."
-                                            />
-                                        </div>
-
-                                        {/* Sorumlu */}
-                                        <div className="col-span-2">
-                                            <Select
-                                                value={task.responsible_person_id || ''}
-                                                onValueChange={(value) =>
-                                                    handleUpdateTask(task.id, { responsible_person_id: value })
-                                                }
-                                            >
-                                                <SelectTrigger className="bg-background border-border">
-                                                    <SelectValue placeholder="Sorumlu seçin" />
-                                                </SelectTrigger>
-                                                <SelectContent className="bg-popover border-border">
-                                                    {users.map((user) => (
-                                                        <SelectItem key={user.id} value={user.id}>
-                                                            {user.full_name}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-
-                                        {/* Başlangıç Tarihi */}
-                                        <div className="col-span-2">
-                                            <p className="text-sm text-muted-foreground">
-                                                {task.started_at
-                                                    ? new Date(task.started_at).toLocaleDateString('tr-TR')
-                                                    : '-'}
-                                            </p>
-                                        </div>
-
-                                        {/* Geçen Süre */}
-                                        <div className="col-span-1">
-                                            {elapsed ? (
-                                                <p
-                                                    className={`text-sm font-medium ${elapsed.isOverdue ? 'text-red-500' : 'text-green-500'
-                                                        }`}
-                                                >
-                                                    {elapsed.days}g {elapsed.hours}s
-                                                </p>
-                                            ) : (
-                                                <p className="text-sm text-muted-foreground">-</p>
-                                            )}
-                                        </div>
-
-                                        {/* Sil Butonu */}
-                                        <div className="col-span-1 flex items-center justify-center">
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() => handleDeleteTask(task.id, false)}
-                                                className="text-destructive hover:text-destructive"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </Button>
-                                        </div>
-
-                                        {/* Link (Açıklama altında) */}
-                                        <div className="col-span-11 col-start-2">
-                                            <div className="flex items-center gap-2">
-                                                <Input
-                                                    value={task.link || ''}
-                                                    onChange={(e) =>
-                                                        handleUpdateTask(task.id, { link: e.target.value })
-                                                    }
-                                                    className="bg-background border-border"
-                                                    placeholder="Link ekle (opsiyonel)"
-                                                />
-                                                {task.link && (
-                                                    <Button
-                                                        variant="outline"
-                                                        size="icon"
-                                                        asChild
-                                                        className="shrink-0"
-                                                    >
-                                                        <a href={task.link} target="_blank" rel="noopener noreferrer">
-                                                            <ExternalLink className="w-4 h-4" />
-                                                        </a>
-                                                    </Button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })
-                        )}
-                    </div>
-                </Card>
-
-                {/* Tamamlanan Görevler */}
-                <Card className="bg-card border-border p-6">
-                    <h2 className="text-xl font-semibold text-foreground mb-4">Tamamlanan Görevler</h2>
-                    <div className="space-y-4">
-                        {completedTasks.length === 0 ? (
-                            <p className="text-muted-foreground text-center py-8">
-                                Henüz tamamlanan görev yok
-                            </p>
-                        ) : (
-                            completedTasks.map((task) => {
-                                const elapsed = calculateElapsedTime(task.started_at, task.completed_at);
-
-                                return (
-                                    <div
-                                        key={task.id}
-                                        className="grid grid-cols-12 gap-4 items-start p-4 bg-muted/10 rounded-lg border border-border opacity-60"
-                                    >
-                                        {/* Checkbox (disabled) */}
-                                        <div className="col-span-1 flex items-center justify-center pt-2">
-                                            <Checkbox checked disabled />
-                                        </div>
-
-                                        {/* Başlık */}
-                                        <div className="col-span-2">
-                                            <p className="text-sm font-medium text-foreground">{task.title}</p>
-                                        </div>
-
-                                        {/* Açıklama */}
-                                        <div className="col-span-3">
-                                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                                                {task.description || '-'}
-                                            </p>
-                                        </div>
-
-                                        {/* Sorumlu */}
-                                        <div className="col-span-2">
-                                            <p className="text-sm text-muted-foreground">
-                                                {task.responsible_person?.full_name || '-'}
-                                            </p>
-                                        </div>
-
-                                        {/* Başlangıç Tarihi */}
-                                        <div className="col-span-2">
-                                            <p className="text-sm text-muted-foreground">
-                                                {task.started_at
-                                                    ? new Date(task.started_at).toLocaleDateString('tr-TR')
-                                                    : '-'}
-                                            </p>
-                                        </div>
-
-                                        {/* Geçen Süre */}
-                                        <div className="col-span-1">
-                                            {elapsed ? (
-                                                <p className="text-sm text-muted-foreground">
-                                                    {elapsed.days}g {elapsed.hours}s
-                                                </p>
-                                            ) : (
-                                                <p className="text-sm text-muted-foreground">-</p>
-                                            )}
-                                        </div>
-
-                                        {/* Sil Butonu */}
-                                        <div className="col-span-1 flex items-center justify-center">
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() => handleDeleteTask(task.id, true)}
-                                                className="text-destructive hover:text-destructive"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </Button>
-                                        </div>
-
-                                        {/* Link */}
-                                        {task.link && (
-                                            <div className="col-span-11 col-start-2">
-                                                <div className="flex items-center gap-2">
-                                                    <a
-                                                        href={task.link}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="text-sm text-primary hover:underline flex items-center gap-1"
-                                                    >
-                                                        {task.link}
-                                                        <ExternalLink className="w-3 h-3" />
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            })
-                        )}
-                    </div>
-                </Card>
-
-                {/* Alt Yeni Konu Ekle Butonu */}
-                <div className="flex justify-center">
-                    <Button onClick={handleAddTask} className="gap-2">
-                        <Plus className="w-4 h-4" />
-                        Yeni Konu Ekle
-                    </Button>
-                </div>
+                <Button onClick={handleCreateTask} disabled={isCreating} size="lg" className="shadow-lg hover:shadow-xl transition-all">
+                    {isCreating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <PlusCircle className="min-w-4 w-4 h-4 mr-2" />}
+                    Yeni Konu Ekle
+                </Button>
             </div>
+
+            {/* Active Tasks Section */}
+            <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                    <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+                        <CheckCircle2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <h2 className="text-xl font-semibold">Aktif Gündem & Görevler</h2>
+                    <span className="ml-2 px-2.5 py-0.5 rounded-full bg-muted text-xs font-medium text-muted-foreground">
+                        {activeTasks.length}
+                    </span>
+                </div>
+
+                {/* Table Headers (Visual Guide) */}
+                {activeTasks.length > 0 && (
+                    <div className="grid grid-cols-12 gap-4 px-4 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        <div className="col-span-1 text-center">Durum</div>
+                        <div className="col-span-11 md:col-span-6">Karar / Görev Detayı</div>
+                        <div className="hidden md:flex col-span-5 pl-6 justify-between">
+                            <span>Sorumlu</span>
+                            <div className="flex gap-8 mr-12">
+                                <span>Başlangıç</span>
+                                <span>Süre</span>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                <div className="space-y-3">
+                    <AnimatePresence initial={false}>
+                        {activeTasks.map((task) => (
+                            <MeetingTaskItem
+                                key={task.id}
+                                task={task}
+                                users={users}
+                                onUpdate={handleUpdateTask}
+                                onComplete={handleCompleteTask}
+                                onDelete={handleDeleteTask}
+                            />
+                        ))}
+                    </AnimatePresence>
+
+                    {activeTasks.length === 0 && (
+                        <div className="text-center py-12 border-2 border-dashed rounded-xl bg-muted/10">
+                            <p className="text-muted-foreground">Henüz aktif bir görev veya karar bulunmuyor.</p>
+                            <Button variant="link" onClick={handleCreateTask} className="mt-2 text-primary">
+                                İlk konuyu ekle
+                            </Button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Bottom Add Button for convenience */}
+                {activeTasks.length > 3 && (
+                    <Button variant="outline" onClick={handleCreateTask} disabled={isCreating} className="w-full border-dashed border-2 py-6 text-muted-foreground hover:text-primary hover:border-primary/50">
+                        <PlusCircle className="min-w-4 w-4 h-4 mr-2" />
+                        Bir Konu Daha Ekle
+                    </Button>
+                )}
+            </div>
+
+            {/* Completed Tasks Section */}
+            {completedTasks.length > 0 && (
+                <div className="space-y-4 pt-8 border-t">
+                    <div className="flex items-center gap-2 mb-4 opacity-80">
+                        <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full">
+                            <History className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                        </div>
+                        <h2 className="text-xl font-semibold">Tamamlananlar</h2>
+                        <span className="ml-2 px-2.5 py-0.5 rounded-full bg-muted text-xs font-medium text-muted-foreground">
+                            {completedTasks.length}
+                        </span>
+                    </div>
+
+                    <div className="space-y-3 opacity-70 hover:opacity-100 transition-opacity duration-300">
+                        {completedTasks.map((task) => (
+                            <MeetingTaskItem
+                                key={task.id}
+                                task={task}
+                                users={users}
+                                onUpdate={handleUpdateTask}
+                                onComplete={handleCompleteTask}
+                                onDelete={handleDeleteTask}
+                                isCompleted={true}
+                            />
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
