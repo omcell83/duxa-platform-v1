@@ -30,7 +30,11 @@ import {
     Sparkles,
     FileJson,
     Check,
+    Key,
+    AlertCircle,
+    Zap,
 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Language {
     code: string;
@@ -49,6 +53,57 @@ const LANGUAGES: Language[] = [
     { code: "ru", country: "ru", name: "Rusça" },
 ];
 
+interface TranslationProvider {
+    id: string;
+    name: string;
+    description: string;
+    requiresKey: boolean;
+    isFree: boolean;
+    keyLabel?: string;
+}
+
+const PROVIDERS: TranslationProvider[] = [
+    {
+        id: "google",
+        name: "Google Translate",
+        description: "Ücretsiz, hızlı (Kısa metinler için otomatik)",
+        requiresKey: false,
+        isFree: true,
+    },
+    {
+        id: "azure",
+        name: "Azure Translator",
+        description: "2M karakter/ay ücretsiz",
+        requiresKey: true,
+        isFree: true,
+        keyLabel: "Azure API Key",
+    },
+    {
+        id: "deepl",
+        name: "DeepL",
+        description: "500K karakter/ay ücretsiz (En iyi Avrupa dilleri)",
+        requiresKey: true,
+        isFree: true,
+        keyLabel: "DeepL API Key",
+    },
+    {
+        id: "openai",
+        name: "OpenAI GPT-4",
+        description: "Ücretli - En iyi pazarlama metinleri",
+        requiresKey: true,
+        isFree: false,
+        keyLabel: "OpenAI API Key",
+    },
+    {
+        id: "gemini",
+        name: "Google Gemini Pro",
+        description: "Ücretsiz tier mevcut",
+        requiresKey: true,
+        isFree: true,
+        keyLabel: "Gemini API Key",
+    },
+];
+
 interface TranslationData {
     [key: string]: any;
 }
@@ -56,17 +111,23 @@ interface TranslationData {
 export function TranslationEditor() {
     const [sourceData, setSourceData] = useState<TranslationData>({});
     const [translations, setTranslations] = useState<Record<string, TranslationData>>({});
-    const [selectedLanguage, setSelectedLanguage] = useState<string>("de");
+    const [selectedLanguage, setSelectedLanguage] = useState<string>("tr");
+    const [selectedProvider, setSelectedProvider] = useState<string>("google");
     const [isLoading, setIsLoading] = useState(false);
     const [isTranslating, setIsTranslating] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [editedKeys, setEditedKeys] = useState<Set<string>>(new Set());
     const [currentPage, setCurrentPage] = useState(1);
+    const [apiKeys, setApiKeys] = useState<Record<string, string>>({});
+    const [translationProgress, setTranslationProgress] = useState("");
     const itemsPerPage = 50;
 
-    // Load source file (en.json)
+    const currentProvider = PROVIDERS.find(p => p.id === selectedProvider);
+
+    // Load source file and saved settings
     useEffect(() => {
         loadSourceFile();
+        loadSavedSettings();
     }, []);
 
     const loadSourceFile = async () => {
@@ -76,13 +137,22 @@ export function TranslationEditor() {
             const data = await response.json();
             setSourceData(data);
 
-            // Initialize empty translations for each language
+            // Try to load existing translations
             const initialTranslations: Record<string, TranslationData> = {};
-            LANGUAGES.forEach((lang) => {
+            for (const lang of LANGUAGES) {
                 if (lang.code !== "en") {
-                    initialTranslations[lang.code] = {};
+                    try {
+                        const langResponse = await fetch(`/api/i18n/${lang.code}`);
+                        if (langResponse.ok) {
+                            initialTranslations[lang.code] = await langResponse.json();
+                        } else {
+                            initialTranslations[lang.code] = {};
+                        }
+                    } catch {
+                        initialTranslations[lang.code] = {};
+                    }
                 }
-            });
+            }
             setTranslations(initialTranslations);
         } catch (error) {
             console.error("Failed to load source file:", error);
@@ -92,9 +162,53 @@ export function TranslationEditor() {
         }
     };
 
+    const loadSavedSettings = () => {
+        const savedKeys: Record<string, string> = {};
+        PROVIDERS.forEach(provider => {
+            const key = localStorage.getItem(`${provider.id}_api_key`);
+            if (key) savedKeys[provider.id] = key;
+        });
+        setApiKeys(savedKeys);
+
+        const savedProvider = localStorage.getItem("selected_provider");
+        if (savedProvider) setSelectedProvider(savedProvider);
+    };
+
+    const saveApiKey = (providerId: string, key: string) => {
+        setApiKeys(prev => ({ ...prev, [providerId]: key }));
+        if (key) {
+            localStorage.setItem(`${providerId}_api_key`, key);
+        } else {
+            localStorage.removeItem(`${providerId}_api_key`);
+        }
+    };
+
+    const saveProviderSelection = (providerId: string) => {
+        setSelectedProvider(providerId);
+        localStorage.setItem("selected_provider", providerId);
+    };
+
     const translateWithAI = async (targetLang: string) => {
+        const provider = PROVIDERS.find(p => p.id === selectedProvider);
+        if (!provider) return;
+
+        if (provider.requiresKey && !apiKeys[provider.id]) {
+            alert(`Lütfen önce ${provider.name} API Key girin!`);
+            return;
+        }
+
+        // Check if translation already exists
+        const existingTranslation = translations[targetLang];
+        if (existingTranslation && Object.keys(existingTranslation).length > 0) {
+            const proceed = confirm(
+                `${LANGUAGES.find(l => l.code === targetLang)?.name} için çeviri zaten mevcut. Yeniden çevirmek istiyor musunuz?`
+            );
+            if (!proceed) return;
+        }
+
         try {
             setIsTranslating(true);
+            setTranslationProgress("Çeviri başlatılıyor...");
 
             const response = await fetch("/api/translate", {
                 method: "POST",
@@ -102,11 +216,17 @@ export function TranslationEditor() {
                 body: JSON.stringify({
                     sourceData,
                     targetLanguage: targetLang,
+                    provider: selectedProvider,
+                    apiKey: apiKeys[selectedProvider],
                 }),
             });
 
-            if (!response.ok) throw new Error("Translation failed");
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || "Translation failed");
+            }
 
+            setTranslationProgress("Çeviriler alınıyor...");
             const translatedData = await response.json();
 
             setTranslations((prev) => ({
@@ -115,11 +235,16 @@ export function TranslationEditor() {
             }));
 
             const langName = LANGUAGES.find((l) => l.code === targetLang)?.name;
-            console.log(`Translation completed for ${langName}`);
-            alert(`Başarılı: ${langName} çevirisi tamamlandı`);
-        } catch (error) {
+            setTranslationProgress(`✓ ${langName} çevirisi tamamlandı!`);
+
+            setTimeout(() => {
+                alert(`Başarılı: ${langName} çevirisi tamamlandı!\n\nKısa metinler: Google Translate\nUzun metinler: ${provider.name}`);
+                setTranslationProgress("");
+            }, 1000);
+        } catch (error: any) {
             console.error("Translation failed:", error);
-            alert("Hata: Çeviri başarısız oldu. Lütfen tekrar deneyin.");
+            setTranslationProgress("");
+            alert(`Hata: ${error.message || "Çeviri başarısız oldu"}`);
         } finally {
             setIsTranslating(false);
         }
@@ -143,8 +268,6 @@ export function TranslationEditor() {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-
-        console.log(`Downloaded ${langCode}.json`);
     };
 
     const updateTranslation = (langCode: string, key: string, value: string) => {
@@ -153,23 +276,19 @@ export function TranslationEditor() {
             setNestedValue(updated[langCode], key, value);
             return updated;
         });
-
         setEditedKeys((prev) => new Set(prev).add(`${langCode}.${key}`));
     };
 
     const flattenObject = (obj: any, prefix = ""): Array<{ key: string; value: any }> => {
         const result: Array<{ key: string; value: any }> = [];
-
         for (const key in obj) {
             const fullKey = prefix ? `${prefix}.${key}` : key;
-
             if (typeof obj[key] === "object" && obj[key] !== null && !Array.isArray(obj[key])) {
                 result.push(...flattenObject(obj[key], fullKey));
             } else {
                 result.push({ key: fullKey, value: obj[key] });
             }
         }
-
         return result;
     };
 
@@ -194,7 +313,6 @@ export function TranslationEditor() {
         return obj;
     };
 
-    // Pagination
     const totalPages = Math.ceil(filteredKeys.length / itemsPerPage);
     const paginatedKeys = filteredKeys.slice(
         (currentPage - 1) * itemsPerPage,
@@ -213,16 +331,89 @@ export function TranslationEditor() {
 
     return (
         <div className="space-y-6">
-            {/* Controls */}
+            {/* Provider Selection */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Zap className="h-5 w-5" />
+                        Çeviri Motoru Seçimi
+                    </CardTitle>
+                    <CardDescription>
+                        Hibrit sistem: Kısa metinler Google, uzun metinler seçilen motor
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {PROVIDERS.map((provider) => (
+                            <div
+                                key={provider.id}
+                                className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${selectedProvider === provider.id
+                                        ? "border-primary bg-primary/5"
+                                        : "border-border hover:border-primary/50"
+                                    }`}
+                                onClick={() => saveProviderSelection(provider.id)}
+                            >
+                                <div className="flex items-start justify-between mb-2">
+                                    <div className="font-medium">{provider.name}</div>
+                                    {provider.isFree && (
+                                        <Badge variant="secondary" className="text-xs">
+                                            Ücretsiz
+                                        </Badge>
+                                    )}
+                                </div>
+                                <div className="text-sm text-muted-foreground">{provider.description}</div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {currentProvider?.requiresKey && (
+                        <div className="flex gap-2 pt-4 border-t">
+                            <div className="flex-1">
+                                <Label>{currentProvider.keyLabel}</Label>
+                                <Input
+                                    type="password"
+                                    placeholder={`${currentProvider.name} API Key...`}
+                                    value={apiKeys[currentProvider.id] || ""}
+                                    onChange={(e) => saveApiKey(currentProvider.id, e.target.value)}
+                                />
+                            </div>
+                            <div className="flex items-end">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                        const urls: Record<string, string> = {
+                                            azure: "https://portal.azure.com",
+                                            deepl: "https://www.deepl.com/pro-api",
+                                            openai: "https://platform.openai.com/api-keys",
+                                            gemini: "https://makersuite.google.com/app/apikey",
+                                        };
+                                        window.open(urls[currentProvider.id], "_blank");
+                                    }}
+                                >
+                                    API Key Al
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+
+                    <Alert>
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription className="text-sm">
+                            <strong>Hibrit Sistem:</strong> Kısa metinler (butonlar, menüler) otomatik olarak
+                            Google Translate ile çevrilir. Uzun metinler (pazarlama, açıklamalar) seçilen motor
+                            ile çevrilir.
+                        </AlertDescription>
+                    </Alert>
+                </CardContent>
+            </Card>
+
+            {/* Translation Controls */}
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <Sparkles className="h-5 w-5" />
-                        AI Destekli Çeviri
+                        Çeviri Kontrolü
                     </CardTitle>
-                    <CardDescription>
-                        Google Translate kullanarak otomatik çeviri (Ücretsiz)
-                    </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="flex flex-col sm:flex-row gap-4">
@@ -245,7 +436,7 @@ export function TranslationEditor() {
                         <div className="flex items-end gap-2">
                             <Button
                                 onClick={() => translateWithAI(selectedLanguage)}
-                                disabled={isTranslating}
+                                disabled={isTranslating || (currentProvider?.requiresKey && !apiKeys[currentProvider.id])}
                                 className="gap-2"
                             >
                                 {isTranslating ? (
@@ -256,7 +447,7 @@ export function TranslationEditor() {
                                 ) : (
                                     <>
                                         <RefreshCw className="h-4 w-4" />
-                                        AI ile Çevir
+                                        Çevir
                                     </>
                                 )}
                             </Button>
@@ -276,6 +467,13 @@ export function TranslationEditor() {
                         </div>
                     </div>
 
+                    {translationProgress && (
+                        <Alert>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <AlertDescription>{translationProgress}</AlertDescription>
+                        </Alert>
+                    )}
+
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <FileJson className="h-4 w-4" />
                         <span>Toplam {flattenObject(sourceData).length} çeviri anahtarı</span>
@@ -289,9 +487,7 @@ export function TranslationEditor() {
                     <div className="flex items-center justify-between">
                         <div>
                             <CardTitle>Çeviri Tablosu</CardTitle>
-                            <CardDescription>
-                                Çevirileri kontrol edin ve düzenleyin
-                            </CardDescription>
+                            <CardDescription>Çevirileri kontrol edin ve düzenleyin</CardDescription>
                         </div>
                         {editedKeys.size > 0 && (
                             <Badge variant="secondary">{editedKeys.size} değişiklik yapıldı</Badge>
@@ -299,7 +495,6 @@ export function TranslationEditor() {
                     </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    {/* Search */}
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
@@ -313,7 +508,6 @@ export function TranslationEditor() {
                         />
                     </div>
 
-                    {/* Table */}
                     <div className="rounded-md border">
                         <Table>
                             <TableHeader>
@@ -335,17 +529,12 @@ export function TranslationEditor() {
                                     </TableRow>
                                 ) : (
                                     paginatedKeys.map((item) => {
-                                        const translatedValue = getNestedValue(
-                                            translations[selectedLanguage],
-                                            item.key
-                                        );
+                                        const translatedValue = getNestedValue(translations[selectedLanguage], item.key);
                                         const isEdited = editedKeys.has(`${selectedLanguage}.${item.key}`);
 
                                         return (
                                             <TableRow key={item.key}>
-                                                <TableCell className="font-mono text-xs">
-                                                    {item.key}
-                                                </TableCell>
+                                                <TableCell className="font-mono text-xs">{item.key}</TableCell>
                                                 <TableCell className="max-w-[300px]">
                                                     <div className="text-sm">{String(item.value)}</div>
                                                 </TableCell>
@@ -375,7 +564,6 @@ export function TranslationEditor() {
                         </Table>
                     </div>
 
-                    {/* Pagination */}
                     {totalPages > 1 && (
                         <div className="flex items-center justify-between">
                             <div className="text-sm text-muted-foreground">
