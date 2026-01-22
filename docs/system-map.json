@@ -244,6 +244,16 @@
       "type": "Page"
     },
     {
+      "path": "app/super-admin/settings/translations/page.tsx",
+      "description": "Çeviri yönetim sayfası. AI destekli çeviri sistemi, dil dosyası yönetimi ve indirme.",
+      "type": "Page"
+    },
+    {
+      "path": "app/api/translate/route.ts",
+      "description": "Çeviri API endpoint'i. LibreTranslate kullanarak otomatik çeviri işlemleri, batch processing.",
+      "type": "API Route"
+    },
+    {
       "path": "app/super-admin/documentation/layout.tsx",
       "description": "Dokümantasyon layout bileşeni. Super admin erişim kontrolü sağlar.",
       "type": "Layout"
@@ -409,6 +419,11 @@
       "type": "Component"
     },
     {
+      "path": "components/super-admin/translation-editor.tsx",
+      "description": "Çeviri düzenleyici bileşeni. AI destekli çeviri, arama, düzenleme ve indirme özellikleri.",
+      "type": "Component"
+    },
+    {
       "path": "components/super-admin/users/add-user-modal.tsx",
       "description": "Kullanıcı ekleme modalı. Yeni personel/kullanıcı ekleme formu.",
       "type": "Component"
@@ -541,6 +556,11 @@
     {
       "path": "components/ui/tabs.tsx",
       "description": "Tabs UI bileşeni. Shadcn/ui tabs component'i, sekme yapısı ve tab navigation.",
+      "type": "Component"
+    },
+    {
+      "path": "components/ui/textarea.tsx",
+      "description": "Textarea UI bileşeni. Shadcn/ui textarea component'i, çok satırlı metin giriş alanları.",
       "type": "Component"
     },
     {

@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Settings, FileText, Route, BookOpen, Users } from "lucide-react";
+import { Settings, FileText, Route, BookOpen, Users, Languages } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -98,6 +98,25 @@ export default function SuperAdminSettingsPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">Admin, Manager ve Personel hesapları.</p>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/super-admin/settings/translations">
+            <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/10 rounded-md">
+                    <Languages className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle>Çeviri Yönetimi</CardTitle>
+                    <CardDescription>Platform dil çevirileri</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">AI destekli çeviri sistemi ve dil dosyaları.</p>
               </CardContent>
             </Card>
           </Link>
