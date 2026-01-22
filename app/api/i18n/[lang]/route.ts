@@ -8,10 +8,10 @@ import path from "path";
  */
 export async function GET(
     request: NextRequest,
-    { params }: { params: { lang: string } }
+    { params }: { params: Promise<{ lang: string }> }
 ) {
     try {
-        const { lang } = params;
+        const { lang } = await params;
 
         // Validate language code (security)
         const validLangs = ["en", "de", "fr", "lb", "tr", "me", "mt", "ru"];
