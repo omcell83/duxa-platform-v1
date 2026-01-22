@@ -38,7 +38,7 @@ export async function getMeetingTasks(status?: 'active' | 'completed'): Promise<
             .from('meeting_tasks')
             .select(`
         *,
-        responsible_person:profiles!meeting_tasks_responsible_person_id_fkey(
+        responsible_person:profiles!responsible_person_id(
           id,
           full_name,
           email
@@ -116,7 +116,7 @@ export async function createMeetingTask(data: {
             })
             .select(`
         *,
-        responsible_person:profiles!meeting_tasks_responsible_person_id_fkey(
+        responsible_person:profiles!responsible_person_id(
           id,
           full_name,
           email
@@ -182,7 +182,7 @@ export async function updateMeetingTask(
             .eq('id', id)
             .select(`
         *,
-        responsible_person:profiles!meeting_tasks_responsible_person_id_fkey(
+        responsible_person:profiles!responsible_person_id(
           id,
           full_name,
           email
@@ -222,7 +222,7 @@ export async function completeMeetingTask(id: string): Promise<{
             .eq('id', id)
             .select(`
         *,
-        responsible_person:profiles!meeting_tasks_responsible_person_id_fkey(
+        responsible_person:profiles!responsible_person_id(
           id,
           full_name,
           email
@@ -262,7 +262,7 @@ export async function markTaskAsCompleted(id: string): Promise<{
             .eq('id', id)
             .select(`
         *,
-        responsible_person:profiles!meeting_tasks_responsible_person_id_fkey(
+        responsible_person:profiles!responsible_person_id(
           id,
           full_name,
           email
