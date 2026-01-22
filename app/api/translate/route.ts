@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// Language code mapping for LibreTranslate
+// Language code mapping for Google Translate
 const LANGUAGE_MAP: Record<string, string> = {
     en: "en",
     de: "de",
     fr: "fr",
-    lb: "de", // Luxembourgish -> German (closest alternative)
+    lb: "lb",
     tr: "tr",
-    me: "sr", // Montenegrin -> Serbian (very similar)
-    mt: "en", // Maltese -> fallback to English (limited support)
+    me: "sr", // Montenegrin -> Serbian (closest)
+    mt: "mt",
     ru: "ru",
 };
 
@@ -19,12 +19,10 @@ interface TranslationRequest {
 
 // Batch size for translation requests
 const BATCH_SIZE = 50;
-const DELAY_BETWEEN_BATCHES = 1000; // 1 second delay to avoid rate limiting
+const DELAY_BETWEEN_BATCHES = 500; // 500ms delay
 
 /**
- * Translates nested JSON object using LibreTranslate API
- * LibreTranslate is a free and open-source machine translation API
- * Public instance: https://libretranslate.com
+ * Translates nested JSON object using Google Translate unofficial API
  */
 export async function POST(request: NextRequest) {
     try {
@@ -42,6 +40,8 @@ export async function POST(request: NextRequest) {
         // Collect all strings to translate
         const stringsToTranslate: Array<{ path: string; text: string }> = [];
         collectStrings(sourceData, "", stringsToTranslate);
+
+        console.log(`Starting translation of ${stringsToTranslate.length} items to ${targetLanguage}`);
 
         // Translate in batches
         const translations = await translateInBatches(
@@ -163,7 +163,7 @@ function reconstructObject(
 }
 
 /**
- * Translates a single text string using LibreTranslate
+ * Translates a single text string using Google Translate unofficial API
  */
 async function translateText(
     text: string,
@@ -181,19 +181,10 @@ async function translateText(
             return text;
         }
 
-        // Use public LibreTranslate instance
-        const response = await fetch("https://libretranslate.com/translate", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                q: text,
-                source: sourceLang,
-                target: targetLang,
-                format: "text",
-            }),
-        });
+        // Use Google Translate unofficial API
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
+
+        const response = await fetch(url);
 
         if (!response.ok) {
             console.error(`Translation failed for: ${text}`);
@@ -201,7 +192,13 @@ async function translateText(
         }
 
         const data = await response.json();
-        return data.translatedText || text;
+
+        // Google Translate returns array of arrays: [[[translated, original, ...]]]
+        if (data && data[0] && data[0][0] && data[0][0][0]) {
+            return data[0][0][0];
+        }
+
+        return text;
     } catch (error) {
         console.error(`Error translating "${text}":`, error);
         return text; // Return original text on error

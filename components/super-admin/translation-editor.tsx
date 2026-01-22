@@ -12,21 +12,24 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
 import {
     Download,
-    Upload,
     RefreshCw,
     Loader2,
-    Check,
-    X,
     Search,
-    Plus,
     Sparkles,
     FileJson,
+    Check,
 } from "lucide-react";
 
 interface Language {
@@ -58,6 +61,8 @@ export function TranslationEditor() {
     const [isTranslating, setIsTranslating] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [editedKeys, setEditedKeys] = useState<Set<string>>(new Set());
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 50;
 
     // Load source file (en.json)
     useEffect(() => {
@@ -91,7 +96,6 @@ export function TranslationEditor() {
         try {
             setIsTranslating(true);
 
-            // Using LibreTranslate API (free and open-source)
             const response = await fetch("/api/translate", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -110,7 +114,7 @@ export function TranslationEditor() {
                 [targetLang]: translatedData,
             }));
 
-            const langName = LANGUAGES.find(l => l.code === targetLang)?.name;
+            const langName = LANGUAGES.find((l) => l.code === targetLang)?.name;
             console.log(`Translation completed for ${langName}`);
             alert(`Başarılı: ${langName} çevirisi tamamlandı`);
         } catch (error) {
@@ -144,13 +148,11 @@ export function TranslationEditor() {
     };
 
     const updateTranslation = (langCode: string, key: string, value: string) => {
-        setTranslations((prev) => ({
-            ...prev,
-            [langCode]: {
-                ...prev[langCode],
-                [key]: value,
-            },
-        }));
+        setTranslations((prev) => {
+            const updated = { ...prev };
+            setNestedValue(updated[langCode], key, value);
+            return updated;
+        });
 
         setEditedKeys((prev) => new Set(prev).add(`${langCode}.${key}`));
     };
@@ -171,17 +173,18 @@ export function TranslationEditor() {
         return result;
     };
 
-    const filteredKeys = flattenObject(sourceData).filter((item) =>
-        item.key.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        String(item.value).toLowerCase().includes(searchQuery.toLowerCase())
+    const filteredKeys = flattenObject(sourceData).filter(
+        (item) =>
+            item.key.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            String(item.value).toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     const getNestedValue = (obj: any, path: string): any => {
-        return path.split('.').reduce((current, key) => current?.[key], obj);
+        return path.split(".").reduce((current, key) => current?.[key], obj);
     };
 
     const setNestedValue = (obj: any, path: string, value: any): any => {
-        const keys = path.split('.');
+        const keys = path.split(".");
         const lastKey = keys.pop()!;
         const target = keys.reduce((current, key) => {
             if (!current[key]) current[key] = {};
@@ -190,6 +193,13 @@ export function TranslationEditor() {
         target[lastKey] = value;
         return obj;
     };
+
+    // Pagination
+    const totalPages = Math.ceil(filteredKeys.length / itemsPerPage);
+    const paginatedKeys = filteredKeys.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
 
     if (isLoading) {
         return (
@@ -211,7 +221,7 @@ export function TranslationEditor() {
                         AI Destekli Çeviri
                     </CardTitle>
                     <CardDescription>
-                        Kaynak dosyayı seçili dile otomatik çevirin
+                        Google Translate kullanarak otomatik çeviri (Ücretsiz)
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -254,7 +264,10 @@ export function TranslationEditor() {
                             <Button
                                 variant="outline"
                                 onClick={() => downloadTranslation(selectedLanguage)}
-                                disabled={!translations[selectedLanguage] || Object.keys(translations[selectedLanguage]).length === 0}
+                                disabled={
+                                    !translations[selectedLanguage] ||
+                                    Object.keys(translations[selectedLanguage]).length === 0
+                                }
                                 className="gap-2"
                             >
                                 <Download className="h-4 w-4" />
@@ -265,27 +278,23 @@ export function TranslationEditor() {
 
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <FileJson className="h-4 w-4" />
-                        <span>
-                            Toplam {flattenObject(sourceData).length} çeviri anahtarı
-                        </span>
+                        <span>Toplam {flattenObject(sourceData).length} çeviri anahtarı</span>
                     </div>
                 </CardContent>
             </Card>
 
-            {/* Translation Editor */}
+            {/* Translation Table */}
             <Card>
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <div>
-                            <CardTitle>Çeviri Düzenleyici</CardTitle>
+                            <CardTitle>Çeviri Tablosu</CardTitle>
                             <CardDescription>
                                 Çevirileri kontrol edin ve düzenleyin
                             </CardDescription>
                         </div>
                         {editedKeys.size > 0 && (
-                            <Badge variant="secondary">
-                                {editedKeys.size} değişiklik yapıldı
-                            </Badge>
+                            <Badge variant="secondary">{editedKeys.size} değişiklik yapıldı</Badge>
                         )}
                     </div>
                 </CardHeader>
@@ -296,69 +305,102 @@ export function TranslationEditor() {
                         <Input
                             placeholder="Anahtar veya değer ara..."
                             value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onChange={(e) => {
+                                setSearchQuery(e.target.value);
+                                setCurrentPage(1);
+                            }}
                             className="pl-10"
                         />
                     </div>
 
-                    {/* Translation List */}
-                    <ScrollArea className="h-[600px] rounded-md border">
-                        <div className="p-4 space-y-4">
-                            {filteredKeys.length === 0 ? (
-                                <div className="text-center py-12 text-muted-foreground">
-                                    Sonuç bulunamadı
-                                </div>
-                            ) : (
-                                filteredKeys.map((item) => {
-                                    const translatedValue = getNestedValue(translations[selectedLanguage], item.key);
-                                    const isEdited = editedKeys.has(`${selectedLanguage}.${item.key}`);
+                    {/* Table */}
+                    <div className="rounded-md border">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="w-[300px]">Anahtar</TableHead>
+                                    <TableHead>Kaynak (İngilizce)</TableHead>
+                                    <TableHead>
+                                        Çeviri ({LANGUAGES.find((l) => l.code === selectedLanguage)?.name})
+                                    </TableHead>
+                                    <TableHead className="w-[80px]">Durum</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {paginatedKeys.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={4} className="text-center py-12 text-muted-foreground">
+                                            Sonuç bulunamadı
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    paginatedKeys.map((item) => {
+                                        const translatedValue = getNestedValue(
+                                            translations[selectedLanguage],
+                                            item.key
+                                        );
+                                        const isEdited = editedKeys.has(`${selectedLanguage}.${item.key}`);
 
-                                    return (
-                                        <div
-                                            key={item.key}
-                                            className="p-4 bg-muted/30 rounded-lg space-y-3 border border-border"
-                                        >
-                                            <div className="flex items-start justify-between gap-2">
-                                                <code className="text-xs bg-background px-2 py-1 rounded font-mono">
+                                        return (
+                                            <TableRow key={item.key}>
+                                                <TableCell className="font-mono text-xs">
                                                     {item.key}
-                                                </code>
-                                                {isEdited && (
-                                                    <Badge variant="secondary" className="text-xs">
-                                                        Düzenlendi
-                                                    </Badge>
-                                                )}
-                                            </div>
-
-                                            <div className="grid gap-3">
-                                                <div>
-                                                    <Label className="text-xs text-muted-foreground">
-                                                        Kaynak (İngilizce)
-                                                    </Label>
-                                                    <div className="mt-1 p-2 bg-background rounded text-sm">
-                                                        {String(item.value)}
-                                                    </div>
-                                                </div>
-
-                                                <div>
-                                                    <Label className="text-xs text-muted-foreground">
-                                                        Çeviri ({LANGUAGES.find(l => l.code === selectedLanguage)?.name})
-                                                    </Label>
+                                                </TableCell>
+                                                <TableCell className="max-w-[300px]">
+                                                    <div className="text-sm">{String(item.value)}</div>
+                                                </TableCell>
+                                                <TableCell>
                                                     <Textarea
                                                         value={translatedValue || ""}
                                                         onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                                                             updateTranslation(selectedLanguage, item.key, e.target.value)
                                                         }
                                                         placeholder="Çeviri buraya yazılacak..."
-                                                        className="mt-1 min-h-[60px]"
+                                                        className="min-h-[60px] text-sm"
                                                     />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })
-                            )}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {isEdited && (
+                                                        <Badge variant="secondary" className="text-xs">
+                                                            <Check className="h-3 w-3 mr-1" />
+                                                            Düzenlendi
+                                                        </Badge>
+                                                    )}
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
+
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                        <div className="flex items-center justify-between">
+                            <div className="text-sm text-muted-foreground">
+                                Sayfa {currentPage} / {totalPages} ({filteredKeys.length} sonuç)
+                            </div>
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                                    disabled={currentPage === 1}
+                                >
+                                    Önceki
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                                    disabled={currentPage === totalPages}
+                                >
+                                    Sonraki
+                                </Button>
+                            </div>
                         </div>
-                    </ScrollArea>
+                    )}
                 </CardContent>
             </Card>
 
@@ -366,14 +408,13 @@ export function TranslationEditor() {
             <Card>
                 <CardHeader>
                     <CardTitle>Toplu İndirme</CardTitle>
-                    <CardDescription>
-                        Tüm dilleri tek seferde indirin
-                    </CardDescription>
+                    <CardDescription>Tüm dilleri tek seferde indirin</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         {LANGUAGES.filter((l) => l.code !== "en").map((lang) => {
-                            const hasTranslation = translations[lang.code] && Object.keys(translations[lang.code]).length > 0;
+                            const hasTranslation =
+                                translations[lang.code] && Object.keys(translations[lang.code]).length > 0;
 
                             return (
                                 <Button
