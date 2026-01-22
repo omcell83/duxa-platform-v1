@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -43,11 +43,19 @@ export function MeetingTaskItem({
     const [link, setLink] = useState(task.link || '');
     const [isUpdating, setIsUpdating] = useState(false);
     const [elapsedString, setElapsedString] = useState<string>('-');
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    // Auto-resize textarea
+    useEffect(() => {
+        if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto'; // Reset height
+            textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px'; // Set new height
+        }
+    }, [description]);
 
     // Canlı Sayaç
     useEffect(() => {
         if (!task.started_at || isCompletedList) {
-            // Eğer tamamlanmışsa sabit son süreyi göster
             if (task.started_at && task.completed_at) {
                 setElapsedString(calculateDiff(new Date(task.started_at), new Date(task.completed_at)));
             }
@@ -58,11 +66,9 @@ export function MeetingTaskItem({
             const start = new Date(task.started_at!);
             const now = new Date();
             setElapsedString(calculateDiff(start, now));
-        }, 1000 * 60); // Her dakika güncelle
+        }, 1000 * 60);
 
-        // İlk hesaplama
         setElapsedString(calculateDiff(new Date(task.started_at), new Date()));
-
         return () => clearInterval(interval);
     }, [task.started_at, task.completed_at, isCompletedList]);
 
@@ -82,7 +88,6 @@ export function MeetingTaskItem({
     };
 
     const handleUpdate = async (field: string, value: any) => {
-        // Değişiklik yoksa güncelleme yapma
         if (field === 'title' && value === task.title) return;
         if (field === 'description' && value === (task.description || '')) return;
         if (field === 'link' && value === (task.link || '')) return;
@@ -100,59 +105,76 @@ export function MeetingTaskItem({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, x: -10 }}
             className={cn(
-                "group relative grid grid-cols-12 gap-4 p-4 rounded-xl border transition-all duration-200",
+                "group relative grid grid-cols-12 gap-6 p-5 rounded-xl border-2 transition-all duration-200", // gap ve padding artırıldı, border-2 yapıldı
                 isCompletedList
                     ? "bg-muted/20 border-border/50 opacity-70"
-                    : "bg-background border-border shadow-sm hover:shadow-md",
-                status === 'important' && "border-red-200 bg-red-50/10 dark:border-red-900/30 dark:bg-red-900/5",
-                status === 'postponed' && "border-yellow-200 bg-yellow-50/10 dark:border-yellow-900/30 dark:bg-yellow-900/5",
-                status === 'completed' && !isCompletedList && "border-green-200 bg-green-50/10 dark:border-green-900/30 dark:bg-green-900/5"
+                    : "bg-background shadow-sm hover:shadow-md",
+                // Renkler daha belirgin (vivid) hale getirildi
+                !isCompletedList && status === 'active' && "border-border",
+                !isCompletedList && status === 'important' && "border-red-500 bg-red-50/50 dark:bg-red-900/20",
+                !isCompletedList && status === 'postponed' && "border-yellow-500 bg-yellow-50/50 dark:bg-yellow-900/20",
+                !isCompletedList && status === 'completed' && "border-green-500 bg-green-50/50 dark:bg-green-900/20"
             )}
         >
             {/* 1. Sütun: Aksiyon Butonları */}
-            <div className="col-span-12 md:col-span-1 flex md:flex-col items-center justify-center gap-2 border-b md:border-b-0 md:border-r border-border/40 pb-3 md:pb-0 md:pr-3">
+            <div className="col-span-12 md:col-span-1 flex md:flex-col items-center justify-start gap-3 border-b md:border-b-0 md:border-r border-border/40 pb-4 md:pb-0 md:pr-4">
                 {!isCompletedList && (
                     <>
                         <Button
                             variant="ghost"
                             size="icon"
                             title="Önemli"
-                            className={cn("h-8 w-8", status === 'important' ? "text-red-500 bg-red-100 dark:bg-red-900/20" : "text-muted-foreground hover:text-red-500")}
+                            className={cn(
+                                "h-12 w-12 rounded-lg transition-all", // Boyut büyütüldü (2x yaklaşık)
+                                status === 'important'
+                                    ? "bg-red-500 text-white hover:bg-red-600 hover:text-white shadow-md shadow-red-200"
+                                    : "text-muted-foreground hover:bg-red-100 hover:text-red-500"
+                            )}
                             onClick={() => onUpdate(task.id, { status: status === 'important' ? 'active' : 'important' })}
                         >
-                            <AlertCircle className="w-5 h-5" />
+                            <AlertCircle className="w-7 h-7" />
                         </Button>
 
                         <Button
                             variant="ghost"
                             size="icon"
                             title="Ertele"
-                            className={cn("h-8 w-8", status === 'postponed' ? "text-yellow-500 bg-yellow-100 dark:bg-yellow-900/20" : "text-muted-foreground hover:text-yellow-500")}
+                            className={cn(
+                                "h-12 w-12 rounded-lg transition-all",
+                                status === 'postponed'
+                                    ? "bg-yellow-500 text-white hover:bg-yellow-600 hover:text-white shadow-md shadow-yellow-200"
+                                    : "text-muted-foreground hover:bg-yellow-100 hover:text-yellow-500"
+                            )}
                             onClick={() => onUpdate(task.id, { status: status === 'postponed' ? 'active' : 'postponed' })}
                         >
-                            <PauseCircle className="w-5 h-5" />
+                            <PauseCircle className="w-7 h-7" />
                         </Button>
 
                         <Button
                             variant="ghost"
                             size="icon"
                             title="Bitti"
-                            className={cn("h-8 w-8", status === 'completed' ? "text-green-600 bg-green-100 dark:bg-green-900/20" : "text-muted-foreground hover:text-green-600")}
+                            className={cn(
+                                "h-12 w-12 rounded-lg transition-all",
+                                status === 'completed'
+                                    ? "bg-green-500 text-white hover:bg-green-600 hover:text-white shadow-md shadow-green-200"
+                                    : "text-muted-foreground hover:bg-green-100 hover:text-green-500"
+                            )}
                             onClick={() => onUpdate(task.id, { status: status === 'completed' ? 'active' : 'completed' })}
                         >
-                            <CheckCircle2 className="w-5 h-5" />
+                            <CheckCircle2 className="w-7 h-7" />
                         </Button>
                     </>
                 )}
                 {isCompletedList && (
-                    <div className="text-green-500">
-                        <CheckCircle2 className="w-6 h-6" />
+                    <div className="text-green-500 p-2">
+                        <CheckCircle2 className="w-8 h-8" />
                     </div>
                 )}
             </div>
 
             {/* İçerik Alanı */}
-            <div className="col-span-12 md:col-span-7 space-y-3">
+            <div className="col-span-12 md:col-span-7 space-y-4">
                 {/* Başlık */}
                 <div className="relative">
                     <Input
@@ -162,35 +184,36 @@ export function MeetingTaskItem({
                         disabled={isCompletedList}
                         placeholder="Görev Başlığı"
                         className={cn(
-                            "font-semibold text-lg border-transparent px-0 h-auto focus-visible:ring-0 focus-visible:border-primary/50 focus-visible:px-2 transition-all rounded-md bg-transparent",
+                            "font-bold text-xl border-transparent px-0 h-auto focus-visible:ring-0 focus-visible:border-primary/50 focus-visible:px-2 transition-all rounded-md bg-transparent",
                             isCompletedList && "line-through text-muted-foreground"
                         )}
                     />
                 </div>
 
-                {/* Açıklama */}
+                {/* Açıklama (Auto-resize) */}
                 <div className="relative group/desc">
                     <Textarea
+                        ref={textareaRef}
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         onBlur={(e) => handleUpdate('description', e.target.value)}
                         disabled={isCompletedList}
                         placeholder="Yapılacak işin detayı..."
-                        className="min-h-[60px] resize-none border-transparent bg-muted/30 focus-visible:bg-background focus-visible:ring-1 focus-visible:ring-primary/20 transition-all rounded-lg p-3 text-sm leading-relaxed"
+                        className="min-h-[80px] overflow-hidden resize-none border-transparent bg-muted/40 focus-visible:bg-background focus-visible:ring-1 focus-visible:ring-primary/20 transition-all rounded-lg p-4 text-base leading-relaxed"
                     />
                 </div>
 
                 {/* Link Alanı */}
-                <div className="flex items-center gap-2 group/link">
+                <div className="flex items-center gap-2 group/link pt-2">
                     <div className="relative flex-1 flex items-center">
-                        <LinkIcon className="w-3.5 h-3.5 absolute left-3 text-muted-foreground" />
+                        <LinkIcon className="w-4 h-4 absolute left-3 text-muted-foreground" />
                         <Input
                             value={link}
                             onChange={(e) => setLink(e.target.value)}
                             onBlur={(e) => handleUpdate('link', e.target.value)}
                             disabled={isCompletedList}
                             placeholder="İlgili bağlantı ekle (URL)..."
-                            className="h-8 pl-8 text-xs bg-transparent border-transparent hover:bg-muted/30 focus-visible:bg-background focus-visible:border-border transition-all"
+                            className="h-9 pl-9 text-sm bg-transparent border-transparent hover:bg-muted/30 focus-visible:bg-background focus-visible:border-border transition-all"
                         />
                     </div>
                     {(task.link || link) && (
@@ -198,10 +221,10 @@ export function MeetingTaskItem({
                             variant="ghost"
                             size="icon"
                             asChild
-                            className="h-8 w-8 text-primary hover:text-primary hover:bg-primary/10"
+                            className="h-9 w-9 text-primary hover:text-primary hover:bg-primary/10"
                         >
                             <a href={task.link || link} target="_blank" rel="noopener noreferrer">
-                                <ExternalLink className="w-3.5 h-3.5" />
+                                <ExternalLink className="w-4 h-4" />
                             </a>
                         </Button>
                     )}
@@ -209,16 +232,16 @@ export function MeetingTaskItem({
             </div>
 
             {/* Meta Veriler ve (Sağ Taraf) */}
-            <div className="col-span-12 md:col-span-4 flex flex-col justify-between gap-4 md:border-l md:pl-6 border-border/50">
+            <div className="col-span-12 md:col-span-4 flex flex-col justify-between gap-4 md:border-l md:pl-8 border-border/50">
 
                 {/* Sorumlu Kişi */}
-                <div className="w-full">
+                <div className="w-full pt-1">
                     <Select
                         value={task.responsible_person_id || ''}
                         onValueChange={(value) => onUpdate(task.id, { responsible_person_id: value })}
                         disabled={isCompletedList}
                     >
-                        <SelectTrigger className="h-9 border-transparent hover:border-border bg-muted/20 hover:bg-muted/40 transition-colors text-sm w-full">
+                        <SelectTrigger className="h-10 border-transparent hover:border-border bg-muted/30 hover:bg-muted/50 transition-colors text-sm w-full font-medium">
                             <SelectValue placeholder="Sorumlu Ata" />
                         </SelectTrigger>
                         <SelectContent>
@@ -232,37 +255,37 @@ export function MeetingTaskItem({
                 </div>
 
                 {/* Tarih ve Sayaç */}
-                <div className="space-y-2">
-                    <div className="flex items-center justify-between text-xs text-muted-foreground p-2 bg-muted/20 rounded-md">
-                        <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> Başlangıç</span>
-                        <span className="font-mono">{task.started_at ? new Date(task.started_at).toLocaleDateString('tr-TR') : '-'}</span>
+                <div className="space-y-3">
+                    <div className="flex items-center justify-between text-sm text-muted-foreground p-3 bg-muted/20 rounded-lg">
+                        <span className="flex items-center gap-2"><Calendar className="w-4 h-4" /> Başlangıç</span>
+                        <span className="font-mono font-medium">{task.started_at ? new Date(task.started_at).toLocaleDateString('tr-TR') : '-'}</span>
                     </div>
                     <div className={cn(
-                        "flex items-center justify-between text-xs p-2 rounded-md font-medium",
-                        isCompletedList ? "bg-green-100 text-green-700 dark:bg-green-900/20" : "bg-blue-50 text-blue-700 dark:bg-blue-900/20"
+                        "flex items-center justify-between text-sm p-3 rounded-lg font-semibold",
+                        isCompletedList ? "bg-green-100/50 text-green-700 dark:bg-green-900/20 dark:text-green-400" : "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400"
                     )}>
-                        <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> Süre</span>
-                        <span className="font-mono">{elapsedString}</span>
+                        <span className="flex items-center gap-2"><Clock className="w-4 h-4" /> Süre</span>
+                        <span className="font-mono text-base">{elapsedString}</span>
                     </div>
                 </div>
 
                 {/* Silme Butonu (En altta) */}
-                <div className="flex justify-end pt-2">
+                <div className="flex justify-end pt-4 mt-auto">
                     <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => onDelete(task.id, isCompletedList)}
-                        className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors h-8 px-2 text-xs"
+                        className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors h-9 px-3 text-xs"
                     >
-                        <Trash2 className="w-3.5 h-3.5 mr-1" /> Sil
+                        <Trash2 className="w-4 h-4 mr-1.5" /> Sil
                     </Button>
                 </div>
             </div>
 
             {/* Updating indicator */}
             {isUpdating && (
-                <div className="absolute top-2 right-2">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse block" />
+                <div className="absolute top-3 right-3">
+                    <span className="w-2.5 h-2.5 bg-blue-500 rounded-full animate-pulse block" />
                 </div>
             )}
         </motion.div>

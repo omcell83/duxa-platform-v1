@@ -25,19 +25,25 @@ export interface MeetingTask {
 
 /**
  * Taskları getir
- * listType 'active': Aktif, önemli, ertelenmiş VE son 2 dakika içinde tamamlanmışları döndürür.
- * listType 'completed': 2 dakikadan önce tamamlanmışları döndürür.
+ * 
+ * Mod 1 (Filtreleme Modu): search veya userId varsa
+ * - listType parametresi yoksayılır (null gönderilebilir).
+ * - "Tamamlanan ve aktif bütün görevler listelenir".
+ * 
+ * Mod 2 (Liste Modu): listType ('active' | 'completed')
+ * - 'active': Aktif, önemli, ertelenmiş VE son 2 dakika içinde tamamlanmışları döndürür.
+ * - 'completed': 2 dakikadan önce tamamlanmışları döndürür.
  */
-export async function getMeetingTasks(listType: 'active' | 'completed'): Promise<{
+export async function getMeetingTasks(
+    listType?: 'active' | 'completed',
+    filters?: { search?: string; userId?: string | 'all' }
+): Promise<{
     success: boolean;
     data?: MeetingTask[];
     error?: string;
 }> {
     try {
         const supabase = await createClient();
-
-        // 2 dakika öncesinin zaman damgası
-        const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
 
         let query = supabase
             .from('meeting_tasks')
@@ -51,13 +57,39 @@ export async function getMeetingTasks(listType: 'active' | 'completed'): Promise
             `)
             .order('order_index', { ascending: false });
 
-        if (listType === 'active') {
-            // Aktifler + Henüz listeye düşmemiş taze tamamlananlar
-            // status IN ('active', 'important', 'postponed') OR (status = 'completed' AND completed_at > twoMinutesAgo)
-            query = query.or(`status.in.(active,important,postponed),and(status.eq.completed,completed_at.gt.${twoMinutesAgo})`);
-        } else {
-            // Tamamen arşivlenmiş tamamlananlar
-            query = query.eq('status', 'completed').lte('completed_at', twoMinutesAgo);
+        // 1. Filtreleme Modu (Arama veya Kullanıcı Seçimi Var)
+        const hasSearch = filters?.search && filters.search.trim().length > 0;
+        const hasUserFilter = filters?.userId && filters.userId !== 'all';
+
+        if (hasSearch || hasUserFilter) {
+
+            if (hasSearch) {
+                const searchTerm = filters!.search!.trim();
+                // Basit ilike search (title OR description)
+                // Supabase postgrest syntax: or=(title.ilike.%term%,description.ilike.%term%)
+                query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
+            }
+
+            if (hasUserFilter) {
+                query = query.eq('responsible_person_id', filters!.userId!);
+            }
+
+            // Bu modda tüm statüler gelir (kullanıcı isteği: "bütün görevler listelenmeli")
+
+        } else if (listType) {
+            // 2. Liste Modu (Varsayılan Görünüm)
+
+            // 2 dakika öncesinin zaman damgası
+            const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+
+            if (listType === 'active') {
+                // Aktifler + Henüz listeye düşmemiş taze tamamlananlar
+                // status IN ('active', 'important', 'postponed') OR (status = 'completed' AND completed_at > twoMinutesAgo)
+                query = query.or(`status.in.(active,important,postponed),and(status.eq.completed,completed_at.gt.${twoMinutesAgo})`);
+            } else {
+                // Tamamen arşivlenmiş tamamlananlar
+                query = query.eq('status', 'completed').lte('completed_at', twoMinutesAgo);
+            }
         }
 
         const { data, error } = await query;
@@ -176,18 +208,16 @@ export async function updateMeetingTask(
         const updateData: Record<string, unknown> = { ...data };
 
         // started_at mantığı: Eğer henüz set edilmemişse ve anlamlı bir içerik girişi varsa set et.
-        // Hem title hem description kontrol edilir.
         if (!existingTask.started_at) {
             const newTitle = data.title !== undefined ? data.title : existingTask.title;
             const newDesc = data.description !== undefined ? data.description : existingTask.description;
 
-            // Eğer title veya description doluysa started_at'i başlat
             if ((newTitle && newTitle.trim() !== '') || (newDesc && newDesc.trim() !== '')) {
                 updateData.started_at = new Date().toISOString();
             }
         }
 
-        // Eğer statüs completed oluyorsa completed_at'i de set et, yoksa null yap (geri alma durumu için)
+        // Eğer statüs completed oluyorsa completed_at'i de set et, yoksa null yap
         if (data.status === 'completed') {
             updateData.completed_at = new Date().toISOString();
         } else if (data.status) {
@@ -269,11 +299,3 @@ export async function getEligibleUsers(): Promise<{
         return { success: false, error: 'Kullanıcı hatası' };
     }
 }
-
-/**
- * Cron job benzeri "tamamen tamamla" fonksiyonuna artık gerek kalmadı çünkü sorgu tabanlı çalışıyoruz.
- * Ancak geriye dönük uyumluluk veya manuel tetikleme için boş bir fonksiyon bırakabilir veya silebiliriz.
- * Kullanıcı isteği: "2 dakika daha aktif alanda kalacak" -> bu sorgu ile halloldu.
- * Yine de markTaskAsCompleted eski kodda çağrılıyorsa hatayı önlemek için boş bir implementasyon bırakıyorum veya siliyorum.
- * Silmek en iyisi, ama page.tsx'den de sileceğim.
- */
