@@ -1,10 +1,12 @@
 'use server'
 
 import { createClient } from '@/lib/supabase-server'
-import fs from 'fs/promises'
-import path from 'path'
 import { revalidatePath } from 'next/cache'
+import path from 'path'
+import fs from 'fs/promises'
 
+// Note: Local FS is mainly used for Sync Status check. 
+// Writing is now done to Supabase DB directly.
 const I18N_PATH = path.join(process.cwd(), 'i18n')
 
 export interface SupportedLanguage {
@@ -15,6 +17,7 @@ export interface SupportedLanguage {
     show_in_admin: boolean
     show_in_marketing: boolean
     show_in_online_menu: boolean
+    flag_icon: string | null
 }
 
 export interface SyncStatus {
@@ -89,7 +92,7 @@ export async function syncLanguageToDb(code: string) {
     const name = LANGUAGE_NAMES[code] || code.toUpperCase();
     const supabase = await createClient()
 
-    // Check if exists first to avoid duplicate errors if race condition
+    // Check if exists
     const { data } = await supabase.from('supported_languages').select('id').eq('code', code).single()
 
     if (!data) {
@@ -108,20 +111,104 @@ export async function removeLanguageFromDb(code: string) {
     revalidatePath('/super-admin/settings/translations')
 }
 
+/**
+ * Gets translation file. 
+ * NOTE: For "Master DB" architecture, we should ideally fetch from DB.
+ * However, to keep reading fast and consistent with local dev, we check DB first, 
+ * if empty or error (e.g. key missing locally), we might fallback.
+ * But user requested "Advanced Translation System".
+ * 
+ * Let's change this to read from DB 'translations' table constructed as JSON.
+ * But we need the nested structure.
+ * 
+ * Constructing big JSON from DB rows might be heavy if done excessively.
+ * But 'migrated' structure is flat in DB. UI expects Nested.
+ * 
+ * Better approach for Editor:
+ * 1. Fetch all rows from 'translations' (key, code_value).
+ * 2. Unflatten to object.
+ */
 export async function getTranslationFile(langCode: string) {
-    try {
-        const filePath = path.join(I18N_PATH, `${langCode}.json`)
-        const content = await fs.readFile(filePath, 'utf-8')
-        return JSON.parse(content)
-    } catch (error) {
-        return {}
+    const supabase = await createClient();
+
+    // Fetch all translations for this language
+    const { data, error } = await supabase
+        .from('translations')
+        .select(`key, ${langCode}`)
+        .not(langCode, 'is', null) // Filter where not null if desired, or fetch all
+
+    if (error) {
+        console.error('DB Fetch Error:', error);
+        return {};
     }
+
+    // Convert to Nested Object
+    const result = {};
+    data.forEach(row => {
+        const val = row[langCode as keyof typeof row];
+        if (val) {
+            // Simple unflatten logic or use a library if we had one here (we don't import lodash in server actions usually unless installed)
+            // We can do a simple split.
+            const keys = row.key.split('.');
+            let current: any = result;
+            for (let i = 0; i < keys.length; i++) {
+                const k = keys[i];
+                if (i === keys.length - 1) {
+                    current[k] = val;
+                } else {
+                    current[k] = current[k] || {};
+                    current = current[k];
+                }
+            }
+        }
+    });
+
+    return result;
 }
 
+/**
+ * Update a specific translation key in DB.
+ * Used by the Editor when user saves.
+ */
 export async function saveTranslationFile(langCode: string, content: any) {
-    const filePath = path.join(I18N_PATH, `${langCode}.json`)
-    await fs.writeFile(filePath, JSON.stringify(content, null, 2), 'utf-8')
-    return { success: true }
+    const supabase = await createClient();
+
+    // The 'content' is nested JSON. We need to flatten it to update specific keys.
+    const flatten = (obj: any, prefix = ''): Record<string, string> => {
+        const acc: Record<string, string> = {};
+        for (const key in obj) {
+            if (typeof obj[key] === 'object' && obj[key] !== null) {
+                Object.assign(acc, flatten(obj[key], prefix ? `${prefix}.${key}` : key));
+            } else {
+                acc[prefix ? `${prefix}.${key}` : key] = String(obj[key]);
+            }
+        }
+        return acc;
+    }
+
+    const flatContent = flatten(content);
+
+    // We need to upsert each key.
+    // NOTE: This might be heavy if saving WHOLE file.
+    // The editor sends the whole file? Yes 'saveLanguage' does.
+    // Optimize: Only send changed keys? 
+    // For now, let's upsert all keys found in content.
+
+    const updates = Object.entries(flatContent).map(([key, value]) => ({
+        key,
+        [langCode]: value,
+        updated_at: new Date().toISOString()
+    }));
+
+    // Batch upsert
+    const chunkSize = 100;
+    for (let i = 0; i < updates.length; i += chunkSize) {
+        const chunk = updates.slice(i, i + chunkSize);
+        await supabase.from('translations').upsert(chunk, { onConflict: 'key' });
+    }
+
+    revalidatePath('/super-admin/settings/translations');
+    return { success: true };
 }
 
 export async function updateLanguageSettings(id: string, settings: Partial<SupportedLanguage>) {

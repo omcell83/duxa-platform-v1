@@ -3,6 +3,8 @@ echo ==========================================
 echo   DUXA PLATFORM - HIZLI YUKLEME ARACI
 echo ==========================================
 echo.
+echo "Admin değişiklikleri çekiliyor..."
+node scripts/pull_translations.js
 echo [1/3] Dosyalar ekleniyor...
 git add .
 echo.
