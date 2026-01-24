@@ -32,21 +32,34 @@ import {
     Search,
     Check,
     ChevronsUpDown,
-    Download,
     Save
 } from "lucide-react";
 import { getLanguages, getTranslationFile, saveTranslationFile, type SupportedLanguage } from "@/app/super-admin/settings/translations/actions";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-interface FlattenedItem {
-    key: string;
-    sourceValue: string;
+interface TranslationEditorProps {
+    externalSelectedCodes?: string[];
+    onSelectionChange?: (codes: string[]) => void;
 }
 
-export function TranslationEditor() {
+export function TranslationEditor({ externalSelectedCodes, onSelectionChange }: TranslationEditorProps) {
     const [availableLanguages, setAvailableLanguages] = useState<SupportedLanguage[]>([]);
-    const [selectedLangCodes, setSelectedLangCodes] = useState<string[]>(["tr"]); // Default TR
+    // Internal state mainly used if external control is not provided, though we prefer external control.
+    const [internalSelectedLangCodes, setInternalSelectedLangCodes] = useState<string[]>(["tr"]);
+
+    // Derived selected codes: prioritize external prop
+    const selectedLangCodes = externalSelectedCodes || internalSelectedLangCodes;
+
+    // Set selected codes helper (handles both prop callback and internal state)
+    const setSelectedLangCodes = (codes: string[]) => {
+        if (onSelectionChange) {
+            onSelectionChange(codes);
+        } else {
+            setInternalSelectedLangCodes(codes);
+        }
+    };
+
     const [sourceData, setSourceData] = useState<Record<string, any>>({});
     const [translations, setTranslations] = useState<Record<string, Record<string, string>>>({});
 
@@ -71,8 +84,10 @@ export function TranslationEditor() {
                 setAvailableLanguages(langs);
                 setSourceData(source);
 
-                // Load default TR
-                await loadLanguage('tr');
+                // Ensure initial languages are loaded
+                for (const code of selectedLangCodes) {
+                    await loadLanguage(code);
+                }
             } catch (error) {
                 console.error(error);
                 toast.error("Başlangıç verileri yüklenemedi");
@@ -81,14 +96,26 @@ export function TranslationEditor() {
             }
         };
         init();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Watch for selectedLangCodes changes to load data if missing
+    useEffect(() => {
+        selectedLangCodes.forEach(code => {
+            if (!translations[code]) {
+                loadLanguage(code);
+            }
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedLangCodes]);
 
     // Load translation data for a specific language
     const loadLanguage = async (code: string) => {
         if (translations[code]) return; // Already loaded
 
         try {
-            setIsLoading(true);
+            // Don't set global loading, just load subtly if possible or show skeleton in cell
+            // But for simplicity let's assume fast loading or acceptable delay
             const data = await getTranslationFile(code);
             setTranslations(prev => ({
                 ...prev,
@@ -96,8 +123,6 @@ export function TranslationEditor() {
             }));
         } catch (error) {
             toast.error(`${code.toUpperCase()} yüklenemedi`);
-        } finally {
-            setIsLoading(false);
         }
     };
 
@@ -134,17 +159,17 @@ export function TranslationEditor() {
         return result;
     };
 
-    // Handle Language Selection
+    // Handle Language Selection (Toggle)
     const toggleLanguage = async (code: string) => {
         if (selectedLangCodes.includes(code)) {
-            setSelectedLangCodes(prev => prev.filter(c => c !== code));
+            setSelectedLangCodes(selectedLangCodes.filter(c => c !== code));
         } else {
             if (selectedLangCodes.length >= 3) {
                 toast.warning("En fazla 3 dil seçebilirsiniz");
                 return;
             }
             await loadLanguage(code);
-            setSelectedLangCodes(prev => [...prev, code]);
+            setSelectedLangCodes([...selectedLangCodes, code]);
         }
     };
 

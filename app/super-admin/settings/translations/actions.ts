@@ -15,7 +15,6 @@ export interface SupportedLanguage {
     show_in_admin: boolean
     show_in_marketing: boolean
     show_in_online_menu: boolean
-    allow_download: boolean
 }
 
 export interface SyncStatus {
