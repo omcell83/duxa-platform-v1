@@ -132,7 +132,7 @@ export async function getTranslationFile(langCode: string) {
     const supabase = await createClient();
 
     // Fetch all translations for this language
-    const { data, error } = await supabase
+    const { data: rawData, error } = await supabase
         .from('translations')
         .select(`key, ${langCode}`)
         .not(langCode, 'is', null) // Filter where not null if desired, or fetch all
@@ -142,10 +142,12 @@ export async function getTranslationFile(langCode: string) {
         return {};
     }
 
+    const data = rawData as unknown as Array<{ key: string } & Record<string, string>>;
+
     // Convert to Nested Object
     const result = {};
     data.forEach(row => {
-        const val = row[langCode as keyof typeof row];
+        const val = row[langCode];
         if (val) {
             // Simple unflatten logic or use a library if we had one here (we don't import lodash in server actions usually unless installed)
             // We can do a simple split.

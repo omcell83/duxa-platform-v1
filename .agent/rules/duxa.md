@@ -125,28 +125,33 @@ Every piece of data, text, or UI content MUST be realistic and relevant to the H
 **B. MANDATORY SOURCE OF TRUTH:**
 * **Existing Data:** If the database has data, FETCH IT. Never hardcode if you can query.
 
-## 10. DEPLOYMENT & GIT AUTOMATION PROTOCOL
+## 10. DEPLOYMENT & GIT AUTOMATION PROTOCOL (UPDATED)
 
 **Trigger:** When a coding task is fully completed, verified (Rule 0), and files are saved.
-**Goal:** Automate the "Save -> Commit -> Push" cycle to trigger Coolify deployment.
+**Goal:** Sync translations first, then automate the "Save -> Commit -> Push" cycle to trigger Coolify deployment.
 
-**PROTOCOL (Do not run `send.bat` directly, execute these steps):**
+**PROTOCOL (Do not run `send.bat` directly, execute these steps strictly in order):**
 
-1.  **Pre-Flight Check:**
+1.  **SYNC TRANSLATIONS (Critical Step):**
+    * **Action:** Execute `npm run pull:i18n`
+    * **Reason:** Before committing, we MUST fetch the latest translation changes from Supabase to ensure local JSON files are up-to-date with the Admin Panel. This prevents overwriting user data.
+
+2.  **Pre-Flight Check:**
     * Ensure no TypeScript errors exist (`npm run type-check`).
     * Ensure no linting errors exist.
 
-2.  **Stage Changes:**
+3.  **Stage Changes:**
     * Execute: `git add .`
 
-3.  **Semantic Commit (AI Generated):**
+4.  **Semantic Commit (AI Generated):**
     * **DO NOT** ask the user for a commit message.
     * **DO NOT** use generic messages like "Update".
-    * **ACTION:** Analyze your changes and generate a semantic commit message (e.g., `feat: add menu builder layout`, `fix: resolve RLS policy in products`).
+    * **ACTION:** Analyze your changes AND the changes in i18n JSON files. Generate a semantic commit message.
+    * *Example:* `feat: add menu builder layout & sync i18n` or `fix: resolve RLS policy & update translations`.
     * Execute: `git commit -m "TYPE: Summary of changes"`
 
-4.  **Push to Production:**
+5.  **Push to Production:**
     * Execute: `git push`
 
-5.  **Final Notification:**
-    * Inform the user: "🚀 Code pushed to GitHub. Coolify deployment should start automatically."
+6.  **Final Notification:**
+    * Inform the user: "✅ Translations synced & Code pushed to GitHub. Coolify deployment should start automatically."
