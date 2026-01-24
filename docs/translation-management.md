@@ -31,7 +31,6 @@ Uzun Metinler (>50 karakter):
 ├─ Pazarlama içerikleri
 └─ → Seçilen AI Motor (Doğal, Bağlama Uygun)
 ```
-
 ### 3. Akıllı Özellikler
 
 ✅ **Mevcut Çeviri Kontrolü**
