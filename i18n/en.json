@@ -1496,7 +1496,11 @@
     "welcomeToTable": "Welcome to Table {tableNumber}!",
     "categories": "Categories",
     "viewAllCategories": "View all categories",
-    "settings": "Settings"
+    "settings": "Settings",
+    "languages": {
+      "title": "Platform Languages",
+      "description": "Manage available languages and translations for the platform."
+    }
   },
   "imageCrop": {
     "title": "Crop Image",
