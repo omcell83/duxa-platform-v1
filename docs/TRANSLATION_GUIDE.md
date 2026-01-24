@@ -63,5 +63,4 @@ const TARGET_LANGUAGES = [
 ];
 ```
 
-
 - **Maliyet ve Hız:** Dosya boyutu büyük olduğu için çeviri işlemi birkaç dakika sürebilir. Script, API limitlerine takılmamak için işlemi parçalar (chunk) halinde yapar.
