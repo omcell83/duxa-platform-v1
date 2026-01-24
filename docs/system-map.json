@@ -249,8 +249,16 @@
       "type": "Page"
     },
     {
+      "type": "Page"
+    },
+    {
+      "path": "app/super-admin/settings/translations/actions.ts",
+      "description": "Çeviri yönetimi server actions. Dil senkronizasyonu, veritabanı CRUD işlemleri ve dosya okuma/yazma.",
+      "type": "Server Action"
+    },
+    {
       "path": "app/super-admin/settings/translations/page.tsx",
-      "description": "Çeviri yönetim sayfası. AI destekli çeviri sistemi, dil dosyası yönetimi ve indirme.",
+      "description": "Çeviri yönetim sayfası. Dil yönetimi, senkronizasyon kontrolü ve çeviri editörü.",
       "type": "Page"
     },
     {
@@ -459,6 +467,11 @@
       "type": "Component"
     },
     {
+      "path": "components/super-admin/language-manager.tsx",
+      "description": "Dil yönetimi bileşeni. Desteklenen dillerin veritabanı senkronizasyonu ve görüntülenme ayarları.",
+      "type": "Component"
+    },
+    {
       "path": "components/tenant-detail-page.tsx",
       "description": "Tenant detay sayfası bileşeni. İşletme bilgileri, düzenleme formları ve yönetim işlemleri.",
       "type": "Component"
@@ -529,6 +542,11 @@
       "type": "Component"
     },
     {
+      "path": "components/ui/command.tsx",
+      "description": "Command UI bileşeni. Shadcn/ui command component'i, komut paleti ve arama.",
+      "type": "Component"
+    },
+    {
       "path": "components/ui/input.tsx",
       "description": "Input UI bileşeni. Shadcn/ui input component'i, form input alanları.",
       "type": "Component"
@@ -536,6 +554,16 @@
     {
       "path": "components/ui/label.tsx",
       "description": "Label UI bileşeni. Shadcn/ui label component'i, form etiketleri.",
+      "type": "Component"
+    },
+    {
+      "path": "components/ui/popover.tsx",
+      "description": "Popover UI bileşeni. Shadcn/ui popover component'i, açılır içerik alanı.",
+      "type": "Component"
+    },
+    {
+      "path": "components/ui/scroll-area.tsx",
+      "description": "Scroll Area UI bileşeni. Shadcn/ui scroll area component'i, özelleştirilebilir kaydırma alanı.",
       "type": "Component"
     },
     {
@@ -639,6 +667,11 @@
       "type": "Schema"
     },
     {
+      "path": "docs/TRANSLATION_GUIDE.md",
+      "description": "Yeni dil ekleme ve çeviri süreçlerini anlatan rehber dosyası.",
+      "type": "Documentation"
+    },
+    {
       "path": "package.json",
       "description": "Node.js paket yönetim dosyası. Proje bağımlılıkları ve script tanımlamaları.",
       "type": "Config"
@@ -652,6 +685,11 @@
       "path": "README.md",
       "description": "Proje dokümantasyon dosyası. Proje açıklaması, kurulum ve kullanım talimatları.",
       "type": "Documentation"
+    },
+    {
+      "path": "scripts/translate_manager.js",
+      "description": "OpenAI API kullanarak i18n JSON dosyalarını otomatik çeviren Node.js scripti.",
+      "type": "Script"
     },
     {
       "path": ".gitignore",
