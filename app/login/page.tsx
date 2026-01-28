@@ -98,12 +98,17 @@ function LoginForm() {
         return;
       }
 
-      // Log success (blocking before redirect to ensure it's saved)
-      try {
-        await logLoginSuccess(data.user.id, profile.role);
-      } catch (logErr) {
-        console.error("Logging failed:", logErr);
+      // Log success (CRITICAL: Waiting for confirmation as requested for debugging)
+      const logResult = await logLoginSuccess(data.user.id, profile.role);
+
+      if (!logResult.success) {
+        console.error("Login log failed:", logResult.error);
+        setError(`Sistem logu kaydedilemedi! İlerleyemezsiniz. Hata: ${logResult.error}`);
+        setLoading(false);
+        return;
       }
+
+      console.log("Log saved successfully, proceeding to session check...");
 
       // Cookie'lerin set edilmesi için session'ı kontrol et
       const { data: sessionData } = await supabase.auth.getSession();

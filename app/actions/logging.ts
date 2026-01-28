@@ -7,21 +7,23 @@ import { headers } from "next/headers";
 /**
  * Common logging function using Admin Client to bypass RLS/Session issues
  */
-async function logToDb(log: SystemLogInsert) {
+async function logToDb(log: SystemLogInsert): Promise<{ success: boolean; error?: string }> {
     try {
         console.log(`[logToDb] Attempting database insert:`, JSON.stringify(log));
 
-        // Statik olarak Admin Client kullanıyoruz, böylece auth/session bağımlılığı kalmaz.
         const supabaseAdmin = createAdminClient();
         const { error } = await supabaseAdmin.from("system_logs").insert(log);
 
         if (error) {
             console.error("DB Logging Error:", error.message, error.details);
+            return { success: false, error: `${error.message} (${error.details || ''})` };
         } else {
             console.log("[logToDb] Insert successful");
+            return { success: true };
         }
-    } catch (err) {
+    } catch (err: any) {
         console.error("Critical Logging Exception:", err);
+        return { success: false, error: err.message || "Bilinmeyen sunucu hatası" };
     }
 }
 
@@ -30,33 +32,30 @@ async function logToDb(log: SystemLogInsert) {
  */
 export async function logSystemEvent(
     log: Omit<SystemLogInsert, "ip_address" | "user_agent">
-) {
+): Promise<{ success: boolean; error?: string }> {
+    let ip = "unknown";
+    let ua = "unknown";
+
     try {
         const headersList = await headers();
-        let ip = headersList.get("x-forwarded-for") || headersList.get("x-real-ip") || "unknown";
+        ip = headersList.get("x-forwarded-for") || headersList.get("x-real-ip") || "unknown";
         if (ip.includes(",")) ip = ip.split(",")[0].trim();
-        const ua = headersList.get("user-agent") || "unknown";
-
-        await logToDb({
-            ...log,
-            ip_address: ip,
-            user_agent: ua,
-        });
+        ua = headersList.get("user-agent") || "unknown";
     } catch (err) {
-        // If headers() fails (e.g. in some edge cases), still try to log
-        await logToDb({
-            ...log,
-            ip_address: "unknown",
-            user_agent: "unknown",
-        });
+        console.warn("Headers access failed in logSystemEvent");
     }
+
+    return await logToDb({
+        ...log,
+        ip_address: ip,
+        user_agent: ua,
+    });
 }
 
 /**
  * Specialized login failure logger
  */
 export async function logLoginFailure(email: string) {
-    // Always log errors to server console too for debugging
     console.log(`[LOGGING-FN] logLoginFailure called for: ${email}`);
 
     return await logSystemEvent({
