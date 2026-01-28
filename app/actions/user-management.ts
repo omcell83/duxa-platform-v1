@@ -273,8 +273,8 @@ export async function toggleUserStatus(userId: string, isActive: boolean) {
 }
 
 export async function incrementFailedAttempts(email: string) {
-    const supabaseAdmin = createAdminClient();
     try {
+        const supabaseAdmin = createAdminClient();
         // 1. Find profile by email
         const { data: profile, error: findError } = await supabaseAdmin
             .from('profiles')
@@ -334,9 +334,20 @@ export async function incrementFailedAttempts(email: string) {
 }
 
 export async function resetFailedAttempts(userId: string) {
-    const supabaseAdmin = createAdminClient();
-    await supabaseAdmin
-        .from('profiles')
-        .update({ failed_login_attempts: 0 })
-        .eq('id', userId);
+    try {
+        const supabaseAdmin = createAdminClient();
+        const { error } = await supabaseAdmin
+            .from('profiles')
+            .update({ failed_login_attempts: 0 })
+            .eq('id', userId);
+
+        if (error) {
+            console.error("Error resetting attempts:", error);
+            return { success: false, error: error.message };
+        }
+        return { success: true };
+    } catch (err: any) {
+        console.error("Critical error in resetFailedAttempts:", err);
+        return { success: false, error: err.message };
+    }
 }

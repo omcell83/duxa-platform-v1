@@ -9,11 +9,11 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2, AlertCircle } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { getUserTheme } from "@/app/actions/user-settings";
 import { useTheme } from "next-themes";
 import Link from "next/link";
-import { logLoginFailure, logLoginSuccess, logLoginBlocked } from "@/app/actions/logging";
-import { incrementFailedAttempts, resetFailedAttempts } from "@/app/actions/user-management";
+import { logLoginFailure, logLoginBlocked } from "@/app/actions/logging";
+import { incrementFailedAttempts } from "@/app/actions/user-management";
+import { handlePostLoginTasks } from "@/app/actions/auth-events";
 
 function LoginForm() {
   const router = useRouter();
@@ -41,17 +41,19 @@ function LoginForm() {
     setError(null);
 
     try {
+      console.log("[LOGIN] Starting sign-in process for:", email);
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (signInError) {
+        console.warn("[LOGIN] Sign-in error:", signInError.message);
         // Check if it's a ban error
         const isBanned = signInError.message?.toLowerCase().includes("banned") ||
           signInError.message?.toLowerCase().includes("blocked");
 
-        // Track failed attempt
+        // Track failed attempt (Server Action)
         const lockResult = await incrementFailedAttempts(email);
 
         // Log failure (non-blocking)
@@ -75,21 +77,14 @@ function LoginForm() {
       }
 
       if (!data.user) {
-        await incrementFailedAttempts(email);
-        try {
-          await logLoginFailure(email);
-        } catch (logErr) {
-          console.error("Logging failed:", logErr);
-        }
+        console.error("[LOGIN] No user data returned after successful sign-in");
         setError("Kullanıcı bulunamadı.");
         setLoading(false);
         return;
       }
 
-      // Successful login - Reset attempts
-      await resetFailedAttempts(data.user.id);
-
-      // Get user profile to determine role
+      // Successful Auth - Now get profile
+      console.log("[LOGIN] Auth success, fetching profile...");
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("role, is_active, tenant_id")
@@ -97,82 +92,48 @@ function LoginForm() {
         .single();
 
       if (profileError || !profile) {
-        try {
-          await logLoginFailure(email);
-        } catch (logErr) {
-          console.error("Logging failed:", logErr);
-        }
+        console.error("[LOGIN] Profile fetch error:", profileError);
         setError("Kullanıcı profili bulunamadı.");
         setLoading(false);
         return;
       }
 
       if (!profile.is_active) {
-        // Log blocked attempt (Using Server Action for better user_id tracking)
-        try {
-          await logLoginBlocked(email, data.user.id, profile.tenant_id);
-        } catch (logErr) {
-          console.error("Logging failed:", logErr);
-        }
-
+        console.warn("[LOGIN] Account inactive:", email);
         setError("Hesabınız aktif değil. Lütfen sistem yöneticisi ile iletişime geçin.");
         setLoading(false);
         return;
       }
 
-      // Log success (Best effort, don't block login if logging fails)
+      // Consolidated post-login tasks (Reset attempts & Log success)
       try {
-        logLoginSuccess(data.user.id, profile.role, profile.tenant_id).catch(e => {
-          console.error("Delayed login log failed:", e);
-        });
-      } catch (logErr: any) {
-        console.error("Login log activation failed:", logErr);
+        console.log("[LOGIN] Running post-login tasks...");
+        await handlePostLoginTasks(data.user.id, profile.role, profile.tenant_id);
+      } catch (postLoginErr) {
+        // Robustness: Don't block redirect if logging fails
+        console.error("[LOGIN] Post-login tasks failed but continuing redirect:", postLoginErr);
       }
 
-      console.log("Log saved successfully via API, proceeding...");
-
-      // Cookie'lerin set edilmesi için session'ı kontrol et
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session) {
-        setError("Oturum oluşturulamadı. Lütfen tekrar deneyin.");
-        setLoading(false);
-        return;
-      }
-
-      // Cookie'lerin set edilmesi için kısa bir bekleme
+      // Short delay for cookie propagation
       await new Promise(resolve => setTimeout(resolve, 300));
 
-      // Kullanıcının tema tercihini yükle ve uygula
-      try {
-        const dbTheme = await getUserTheme();
-        if (dbTheme) {
-          setTheme(dbTheme);
-        }
-      } catch (themeError) {
-        console.error("Error loading user theme:", themeError);
-      }
-
-      // Redirect path'i belirle
+      // Redirect determination
       const redirectPath = searchParams.get("redirect") || "";
+      const normalizedRole = (profile.role || "").trim().toLowerCase();
       let targetPath = "";
 
       if (redirectPath && redirectPath.startsWith("/")) {
         targetPath = redirectPath;
       } else {
-        const normalizedRole = (profile.role || "").trim().toLowerCase();
-        if (normalizedRole === "super_admin") {
-          targetPath = "/super-admin/dashboard";
-        } else {
-          targetPath = "/dashboard";
-        }
+        targetPath = normalizedRole === "super_admin" ? "/super-admin/dashboard" : "/dashboard";
       }
 
-      window.location.replace(targetPath);
+      console.log("[LOGIN] Final success, redirecting to:", targetPath);
+      window.location.href = targetPath;
+
     } catch (err: any) {
-      console.error("Login exception:", err);
-      // Attempt to log the crash too
-      logLoginFailure(email).catch(() => { });
-      setError(err.message || "Bir hata oluştu. Lütfen tekrar deneyin.");
+      console.error("[LOGIN] Uncaught exception:", err);
+      setError(err.message || "Beklenmeyen bir hata oluştu.");
       setLoading(false);
     }
   };

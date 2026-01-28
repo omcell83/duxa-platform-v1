@@ -9,9 +9,8 @@ import { headers } from "next/headers";
  */
 async function logToDb(log: SystemLogInsert): Promise<{ success: boolean; error?: string }> {
     try {
-        console.log(`[logToDb] Input:`, JSON.stringify(log));
-
         const supabaseAdmin = createAdminClient();
+        console.log(`[logToDb] Input:`, JSON.stringify(log));
 
         // Ensure strictly serializable data for Postgres
         const cleanData = {
