@@ -2,12 +2,13 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { 
-  LayoutDashboard, 
-  Building2, 
-  Package, 
-  Languages, 
+import {
+  LayoutDashboard,
+  Building2,
+  Package,
+  Languages,
   Settings,
+  Palette,
   ChevronLeft,
   ChevronRight
 } from "lucide-react";
@@ -34,6 +35,11 @@ const menuItems = [
     title: "Çeviriler",
     href: "/super-admin/translations",
     icon: Languages,
+  },
+  {
+    title: "Temalar",
+    href: "/super-admin/settings/themes",
+    icon: Palette,
   },
   {
     title: "Ayarlar",
