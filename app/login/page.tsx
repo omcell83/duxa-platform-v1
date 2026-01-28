@@ -98,8 +98,20 @@ function LoginForm() {
         return;
       }
 
-      // Log success (CRITICAL: Waiting for confirmation as requested for debugging)
-      const logResult = await logLoginSuccess(data.user.id, profile.role);
+      // Log success (Using API instead of Server Action to avoid Auth/Cookie conflicts)
+      const logResponse = await fetch("/api/logs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          event_type: "LOGIN_SUCCESS",
+          severity: "SUCCESS",
+          message: `Başarılı giriş: ${profile.role}`,
+          user_id: data.user.id,
+          metadata: { role: profile.role }
+        }),
+      });
+
+      const logResult = await logResponse.json();
 
       if (!logResult.success) {
         console.error("Login log failed:", logResult.error);
@@ -108,7 +120,7 @@ function LoginForm() {
         return;
       }
 
-      console.log("Log saved successfully, proceeding to session check...");
+      console.log("Log saved successfully via API, proceeding...");
 
       // Cookie'lerin set edilmesi için session'ı kontrol et
       const { data: sessionData } = await supabase.auth.getSession();
