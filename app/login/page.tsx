@@ -63,9 +63,9 @@ function LoginForm() {
           details: { email, error: signInError.message }
         });
 
-        if (!logResult.success) {
-          console.error("Logging failed during failed login attempt.");
-          setError("Sistem güvenlik günlüğü hatası. Giriş işlemi iptal edildi.");
+        if (!logResult || !logResult.success) {
+          console.error("Logging failed during failed login attempt:", logResult);
+          setError(`Sistem güvenlik günlüğü hatası (${logResult?.error || 'Sunucu yanıt vermedi'}). Giriş işlemi iptal edildi.`);
         }
 
         setLoading(false);
@@ -111,9 +111,9 @@ function LoginForm() {
         details: { role: profile.role, email }
       });
 
-      if (!logResult.success) {
-        console.error("Login aborted due to logging failure:", logResult.error);
-        setError(`Sistem güvenlik günlüğü hatası: ${logResult.error || 'Log kaydı yapılamadı'}. Giriş işlemi durduruldu.`);
+      if (!logResult || !logResult.success) {
+        console.error("Login aborted due to logging failure:", logResult?.error);
+        setError(`Sistem güvenlik günlüğü hatası: ${logResult?.error || 'Log kaydı yapılamadı'}. Giriş işlemi durduruldu.`);
         setLoading(false);
         // Security: Sign out if we can't log the entry
         await supabase.auth.signOut();

@@ -27,7 +27,18 @@ export interface SystemLogEvent {
  * This is a MANDATORY action. If it fails, the calling process should be aware.
  */
 export async function logSystemEvent(event: SystemLogEvent) {
+    console.log(`[logSystemEvent] Attempting to log: ${event.event_type} - ${event.message}`);
+
     try {
+        // Enforce mandatory environment check
+        if (!process.env.SUPABASE_SERVICE_ROLE_KEY || !process.env.NEXT_PUBLIC_SUPABASE_URL) {
+            console.error('SYSTEM LOG FAILURE: Missing Supabase Credentials in Environment');
+            return {
+                success: false,
+                error: 'Server configuration error: Missing Supabase Admin Keys'
+            };
+        }
+
         const supabaseAdmin = createAdminClient();
 
         // Safety check for IP address
@@ -40,15 +51,15 @@ export async function logSystemEvent(event: SystemLogEvent) {
 
             if (ip) {
                 ipAddress = ip.split(',')[0].trim();
-                if (ipAddress === 'unknown' || ipAddress === '::1') {
+                if (ipAddress === 'unknown' || ipAddress === '::1' || ipAddress === '127.0.0.1') {
                     ipAddress = null;
                 }
             }
         } catch (hError) {
-            console.error('Logging Headers Error:', hError);
+            console.error('Logging Headers Error (Continuing without IP):', hError);
         }
 
-        // Prepare data for insertion
+        // Prepare data for insertion (Only include fields that exist)
         const logData: any = {
             event_type: event.event_type,
             severity: event.severity,
@@ -58,29 +69,32 @@ export async function logSystemEvent(event: SystemLogEvent) {
             ip_address: ipAddress,
         };
 
-        // Strict tenant_id handling
-        if (event.tenant_id !== undefined && event.tenant_id !== null) {
+        // Strict tenant_id handling: Only bigint compatible numbers allowed
+        if (event.tenant_id !== undefined && event.tenant_id !== null && event.tenant_id !== '') {
             const tid = Number(event.tenant_id);
-            if (!isNaN(tid)) {
+            if (!isNaN(tid) && tid !== 0) {
                 logData.tenant_id = tid;
             }
         }
 
-        const { error, data } = await supabaseAdmin
+        const { error } = await supabaseAdmin
             .from('system_logs')
-            .insert(logData)
-            .select()
-            .single();
+            .insert(logData);
 
         if (error) {
-            console.error('SYSTEM LOG FAILURE:', error);
-            return { success: false, error: error.message };
+            console.error('SUPABASE DB LOG ERROR:', error);
+            return { success: false, error: `Database Error: ${error.message}` };
         }
 
-        return { success: true, id: data?.id };
+        console.log(`[logSystemEvent] Success: ${event.event_type}`);
+        return { success: true };
     } catch (err: any) {
-        console.error('SYSTEM LOG CRITICAL ERROR:', err);
-        return { success: false, error: err.message || 'Unknown critical error' };
+        console.error('SYSTEM LOG CRITICAL FAILURE:', err);
+        // Ensure we always return a serializable object, never an Error instance
+        return {
+            success: false,
+            error: err.message || 'Critical internal failure during logging'
+        };
     }
 }
 
