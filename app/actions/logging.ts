@@ -85,6 +85,44 @@ export async function logLoginFailure(email: string) {
 }
 
 /**
+ * Specialized login blocked logger
+ */
+export async function logLoginBlocked(email: string, userId?: string | null, tenantId?: number | null) {
+    try {
+        let finalUserId = userId;
+        let finalTenantId = tenantId;
+
+        // If we don't have ID or TenantId, try to lookup from profile by email
+        if (!finalUserId || finalTenantId === undefined) {
+            const supabaseAdmin = createAdminClient();
+            const { data: profile } = await supabaseAdmin
+                .from('profiles')
+                .select('id, tenant_id')
+                .eq('email', email)
+                .single();
+
+            if (profile) {
+                if (!finalUserId) finalUserId = profile.id;
+                if (finalTenantId === undefined || finalTenantId === null) finalTenantId = profile.tenant_id;
+            }
+        }
+
+        return await logSystemEvent({
+            event_type: "LOGIN_BLOCKED",
+            severity: "WARNING",
+            message: `Engellenen kullanıcı girişi: ${email}`,
+            user_id: finalUserId || null,
+            tenant_id: finalTenantId || null,
+            metadata: { email, reason: "banned_or_inactive" },
+            personnel_id: null
+        });
+    } catch (err: any) {
+        console.error("Error in logLoginBlocked:", err);
+        return { success: false, error: err.message };
+    }
+}
+
+/**
  * Specialized login success logger
  */
 export async function logLoginSuccess(userId: string, role: string) {

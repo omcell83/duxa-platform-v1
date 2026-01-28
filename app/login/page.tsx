@@ -12,7 +12,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { getUserTheme } from "@/app/actions/user-settings";
 import { useTheme } from "next-themes";
 import Link from "next/link";
-import { logLoginFailure, logLoginSuccess } from "@/app/actions/logging";
+import { logLoginFailure, logLoginSuccess, logLoginBlocked } from "@/app/actions/logging";
 
 function LoginForm() {
   const router = useRouter();
@@ -30,7 +30,7 @@ function LoginForm() {
     if (errorParam === "unauthorized") {
       setError("Bu sayfaya erişim yetkiniz yok.");
     } else if (errorParam === "account_inactive") {
-      setError("Hesabınız aktif değil. Lütfen yönetici ile iletişime geçin.");
+      setError("Hesabınız aktif değil. Lütfen sistem yöneticisi ile iletişime geçin.");
     }
   }, [searchParams]);
 
@@ -46,14 +46,26 @@ function LoginForm() {
       });
 
       if (signInError) {
+        // Check if it's a ban error
+        const isBanned = signInError.message?.toLowerCase().includes("banned") ||
+          signInError.message?.toLowerCase().includes("blocked");
+
         // Log failure (non-blocking)
         try {
-          await logLoginFailure(email);
+          if (isBanned) {
+            await logLoginBlocked(email);
+          } else {
+            await logLoginFailure(email);
+          }
         } catch (logErr) {
           console.error("Logging failed:", logErr);
         }
 
-        setError(signInError.message || "Giriş başarısız. Email ve şifrenizi kontrol edin.");
+        if (isBanned) {
+          setError("Hesabınız aktif değil. Lütfen sistem yöneticisi ile iletişime geçin.");
+        } else {
+          setError(signInError.message || "Giriş başarısız. Email ve şifrenizi kontrol edin.");
+        }
         setLoading(false);
         return;
       }
@@ -88,12 +100,14 @@ function LoginForm() {
       }
 
       if (!profile.is_active) {
+        // Log blocked attempt (Using Server Action for better user_id tracking)
         try {
-          await logLoginFailure(email);
+          await logLoginBlocked(email, data.user.id, profile.tenant_id);
         } catch (logErr) {
           console.error("Logging failed:", logErr);
         }
-        setError("Hesabınız aktif değil. Lütfen yönetici ile iletişime geçin.");
+
+        setError("Hesabınız aktif değil. Lütfen sistem yöneticisi ile iletişime geçin.");
         setLoading(false);
         return;
       }
