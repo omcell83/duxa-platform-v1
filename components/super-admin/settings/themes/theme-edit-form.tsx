@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { Monitor, Smartphone, Layout, Palette, Type, Box, Layers, Info, Trash2, Check, AlertCircle, TriangleAlert, Languages } from "lucide-react";
+import { Monitor, Smartphone, Tablet, Layout, Palette, Type, Box, Layers, Info, Trash2, Check, AlertCircle, TriangleAlert, Languages } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ThemeEditFormProps {
@@ -32,6 +32,7 @@ const FONTS = [
 export function ThemeEditForm({ theme }: ThemeEditFormProps) {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
+    const [previewMode, setPreviewMode] = useState<'mobile' | 'tablet' | 'desktop'>('mobile');
 
     // Initial state setup with fallbacks for existing data
     const [formData, setFormData] = useState<Theme>({
@@ -324,18 +325,60 @@ export function ThemeEditForm({ theme }: ThemeEditFormProps) {
 
             {/* PREVIEW AREA */}
             <div className="lg:col-span-5 relative">
-                <div className="sticky top-6 space-y-6">
-                    <Card className="border-primary/20 bg-primary/5">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm flex items-center gap-2">
-                                <Monitor className="h-4 w-4" /> Canlı Kiosk/Menü Önizleme
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            {/* Device Mockup */}
-                            <div className="rounded-2xl border-8 border-black shadow-2xl overflow-hidden aspect-[9/16] max-h-[700px] mx-auto bg-white transition-all duration-300">
+                <div className="sticky top-6 space-y-4">
+                    <div className="flex items-center justify-between bg-muted/30 p-1.5 rounded-lg border border-border/50">
+                        <Button
+                            variant={previewMode === 'mobile' ? 'default' : 'ghost'}
+                            size="sm"
+                            className="flex-1 gap-2 h-9"
+                            onClick={() => setPreviewMode('mobile')}
+                        >
+                            <Smartphone className="h-4 w-4" /> Mobil
+                        </Button>
+                        <Button
+                            variant={previewMode === 'tablet' ? 'default' : 'ghost'}
+                            size="sm"
+                            className="flex-1 gap-2 h-9"
+                            onClick={() => setPreviewMode('tablet')}
+                        >
+                            <Tablet className="h-4 w-4" /> Tablet
+                        </Button>
+                        <Button
+                            variant={previewMode === 'desktop' ? 'default' : 'ghost'}
+                            size="sm"
+                            className="flex-1 gap-2 h-9"
+                            onClick={() => setPreviewMode('desktop')}
+                        >
+                            <Monitor className="h-4 w-4" /> Kiosk
+                        </Button>
+                    </div>
+
+                    <Card className="border-primary/20 bg-primary/5 overflow-hidden">
+                        <CardContent className="p-0 flex items-center justify-center bg-zinc-900/5 min-h-[600px] py-12">
+                            {/* Device Mockup Logic */}
+                            <div
+                                className={cn(
+                                    "transition-all duration-500 ease-in-out relative shadow-2xl overflow-hidden",
+                                    previewMode === 'mobile' && "w-[320px] h-[650px] rounded-[3rem] border-[8px] border-zinc-950 bg-black",
+                                    previewMode === 'tablet' && "w-[480px] h-[640px] rounded-[2rem] border-[12px] border-zinc-950 bg-black",
+                                    previewMode === 'desktop' && "w-[100%] max-w-[550px] aspect-video rounded-xl border-[6px] border-zinc-950 bg-zinc-900"
+                                )}
+                            >
+                                {/* iPhone specific elements */}
+                                {previewMode === 'mobile' && (
+                                    <>
+                                        {/* Dynamic Island */}
+                                        <div className="absolute top-2 left-1/2 -translate-x-1/2 w-28 h-7 bg-zinc-950 rounded-full z-50 flex items-center justify-end px-3">
+                                            <div className="w-2 h-2 rounded-full bg-zinc-800" />
+                                        </div>
+                                        {/* Side buttons */}
+                                        <div className="absolute left-[-10px] top-24 w-1 h-12 bg-zinc-900 rounded-r-lg" />
+                                        <div className="absolute right-[-10px] top-32 w-1 h-20 bg-zinc-900 rounded-l-lg" />
+                                    </>
+                                )}
+
                                 <div
-                                    className="h-full w-full flex flex-col overflow-hidden"
+                                    className="h-full w-full flex flex-col overflow-hidden bg-white"
                                     style={{
                                         backgroundColor: formData.colors.background,
                                         color: formData.colors.text,
@@ -355,15 +398,17 @@ export function ThemeEditForm({ theme }: ThemeEditFormProps) {
                                             <div className="w-10 h-10 flex items-center justify-center rounded-lg" style={{ backgroundColor: formData.colors.primary }}>
                                                 <Palette className="h-6 w-6" style={{ color: formData.colors.background }} />
                                             </div>
-                                            <span
-                                                className="uppercase"
-                                                style={{
-                                                    fontSize: `${formData.typography.base_font_size}px`,
-                                                    fontWeight: formData.typography.font_weight_bold
-                                                }}
-                                            >
-                                                DUXA CAFE
-                                            </span>
+                                            {!(previewMode === 'mobile') && (
+                                                <span
+                                                    className="uppercase hidden sm:inline"
+                                                    style={{
+                                                        fontSize: `${formData.typography.base_font_size}px`,
+                                                        fontWeight: formData.typography.font_weight_bold
+                                                    }}
+                                                >
+                                                    DUXA CAFE
+                                                </span>
+                                            )}
                                         </div>
                                         <div className="flex gap-2">
                                             <div className="w-8 h-8 rounded-full border flex items-center justify-center" style={{ borderColor: formData.colors.border }}>
@@ -377,38 +422,43 @@ export function ThemeEditForm({ theme }: ThemeEditFormProps) {
                                         <div
                                             className={cn(
                                                 "flex gap-3 overflow-x-auto pb-2 scrollbar-hide",
-                                                formData.components.category_scroll === 'vertical' && "flex-col overflow-x-hidden"
+                                                (formData.components.category_scroll === 'vertical' || previewMode === 'desktop') && "flex-col overflow-x-hidden"
                                             )}
                                         >
-                                            {["Burgerler", "Pizzalar", "İçecekler", "Tatlılar"].map((cat, i) => (
-                                                <div
-                                                    key={cat}
-                                                    className="px-4 py-2 shrink-0 border transition-all text-center flex items-center gap-2"
-                                                    style={{
-                                                        borderRadius: `${formData.layout.border_radius}px`,
-                                                        backgroundColor: i === 0 ? formData.colors.primary : formData.colors.card_background,
-                                                        color: i === 0 ? formData.colors.background : formData.colors.text,
-                                                        borderColor: i === 0 ? formData.colors.primary : formData.colors.border,
-                                                        fontSize: `${formData.typography.secondary_font_size}px`,
-                                                        fontWeight: formData.typography.font_weight_medium,
-                                                        boxShadow: formData.components.card_shadow !== 'none' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'
-                                                    }}
-                                                >
-                                                    {formData.components.show_icons && <Layout className="h-3 w-3" />}
-                                                    {cat}
-                                                </div>
-                                            ))}
+                                            <div className={cn("flex gap-2", (formData.components.category_scroll === 'vertical' || previewMode === 'desktop') && "flex-col")}>
+                                                {["Burgerler", "Pizzalar", "İçecekler"].map((cat, i) => (
+                                                    <div
+                                                        key={cat}
+                                                        className="px-4 py-2 shrink-0 border transition-all text-center flex items-center justify-center gap-2"
+                                                        style={{
+                                                            borderRadius: `${formData.layout.border_radius}px`,
+                                                            backgroundColor: i === 0 ? formData.colors.primary : formData.colors.card_background,
+                                                            color: i === 0 ? formData.colors.background : formData.colors.text,
+                                                            borderColor: i === 0 ? formData.colors.primary : formData.colors.border,
+                                                            fontSize: `${formData.typography.secondary_font_size}px`,
+                                                            fontWeight: formData.typography.font_weight_medium,
+                                                            boxShadow: formData.components.card_shadow !== 'none' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'
+                                                        }}
+                                                    >
+                                                        {formData.components.show_icons && <Layout className="h-3 w-3" />}
+                                                        {cat}
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
 
                                         {/* Product Items */}
-                                        <div className="grid grid-cols-1 gap-4">
+                                        <div className={cn(
+                                            "grid gap-4",
+                                            previewMode === 'desktop' ? "grid-cols-2" : "grid-cols-1"
+                                        )}>
                                             {[
-                                                { name: "Double Cheese Burger", price: "280 ₺", desc: "Özel sos, cheddar, turşu." },
-                                                { name: "Margerita Pizza", price: "320 ₺", desc: "Mozzarella, taze fesleğen." }
+                                                { name: "Double Cheese Burger", price: "280 ₺", desc: "Özel sos, cheddar." },
+                                                { name: "Margerita Pizza", price: "320 ₺", desc: "Mozzarella, fesleğen." }
                                             ].map((prod) => (
                                                 <div
                                                     key={prod.name}
-                                                    className="p-4 border shadow-sm flex gap-4 items-center"
+                                                    className="p-3 border shadow-sm flex gap-3 items-center"
                                                     style={{
                                                         borderRadius: `${formData.layout.border_radius}px`,
                                                         backgroundColor: formData.colors.card_background,
@@ -416,16 +466,15 @@ export function ThemeEditForm({ theme }: ThemeEditFormProps) {
                                                         boxShadow: getShadow(formData.components.card_shadow)
                                                     }}
                                                 >
-                                                    <div className="w-20 h-20 bg-muted rounded-lg shrink-0 flex items-center justify-center">
-                                                        <Box className="h-8 w-8 text-muted-foreground/30" />
+                                                    <div className="w-16 h-16 bg-muted rounded-lg shrink-0 flex items-center justify-center">
+                                                        <Box className="h-6 w-6 text-muted-foreground/30" />
                                                     </div>
-                                                    <div className="flex-1">
-                                                        <h3 style={{ fontSize: `${formData.typography.base_font_size}px`, fontWeight: formData.typography.font_weight_bold }}>{prod.name}</h3>
-                                                        <p style={{ color: formData.colors.secondary_text, fontSize: `${formData.typography.secondary_font_size}px` }}>{prod.desc}</p>
-                                                        <div className="flex justify-between items-center mt-2">
+                                                    <div className="flex-1 min-w-0">
+                                                        <h3 className="truncate" style={{ fontSize: `${formData.typography.base_font_size}px`, fontWeight: formData.typography.font_weight_bold }}>{prod.name}</h3>
+                                                        <div className="flex justify-between items-center mt-1">
                                                             <span style={{ color: formData.colors.primary, fontWeight: formData.typography.font_weight_bold }}>{prod.price}</span>
                                                             <div
-                                                                className="px-3 py-1 text-white text-[10px] font-bold"
+                                                                className="px-2 py-0.5 text-white text-[9px] font-bold"
                                                                 style={{
                                                                     backgroundColor: formData.colors.primary,
                                                                     borderRadius: formData.components.button_style === 'rounded' ? '99px' : `${formData.layout.border_radius}px`
@@ -440,35 +489,33 @@ export function ThemeEditForm({ theme }: ThemeEditFormProps) {
                                         </div>
 
                                         {/* Status Indicators Example */}
-                                        <div className="space-y-3 pt-6">
-                                            <div className="p-3 flex items-center gap-3 text-xs font-medium" style={{ backgroundColor: `${formData.colors.success}15`, color: formData.colors.success, borderRadius: '8px' }}>
-                                                <Check className="h-4 w-4" /> Siparişiniz hazırlandı.
+                                        <div className="space-y-2 pt-4">
+                                            <div className="p-2 flex items-center gap-2 text-[10px] font-medium" style={{ backgroundColor: `${formData.colors.success}15`, color: formData.colors.success, borderRadius: '6px' }}>
+                                                <Check className="h-3 w-3" /> Siparişiniz hazırlandı.
                                             </div>
-                                            <div className="p-3 flex items-center gap-3 text-xs font-medium" style={{ backgroundColor: `${formData.colors.warning}15`, color: formData.colors.warning, borderRadius: '8px' }}>
-                                                <TriangleAlert className="h-4 w-4" /> Stok azalıyor.
-                                            </div>
-                                            <div className="p-3 flex items-center gap-3 text-xs font-medium" style={{ backgroundColor: `${formData.colors.error}15`, color: formData.colors.error, borderRadius: '8px' }}>
-                                                <AlertCircle className="h-4 w-4" /> Bir hata oluştu!
+                                            <div className="p-2 flex items-center gap-2 text-[10px] font-medium" style={{ backgroundColor: `${formData.colors.error}15`, color: formData.colors.error, borderRadius: '6px' }}>
+                                                <AlertCircle className="h-3 w-3" /> Stok tükendi!
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Action Bar */}
-                                    <div className="p-4 bg-transparent border-t" style={{ borderColor: formData.colors.border }}>
+                                    <div className="p-4 bg-transparent border-t mt-auto" style={{ borderColor: formData.colors.border }}>
                                         <button
-                                            className="w-full py-4 font-bold text-center flex items-center justify-center gap-2 shadow-lg"
+                                            className="w-full py-3 font-bold text-center flex items-center justify-center gap-2 shadow-lg"
                                             style={{
                                                 backgroundColor: formData.colors.primary,
                                                 color: formData.colors.background,
-                                                fontSize: `${formData.typography.base_font_size}px`,
+                                                fontSize: `${formData.typography.base_font_size - 2}px`,
                                                 borderRadius: formData.components.button_style === 'rounded' ? '99px' : `${formData.layout.border_radius}px`,
                                                 filter: formData.components.button_style === 'glass' ? 'backdrop-blur(10px) saturate(150%)' : 'none',
                                                 opacity: formData.components.button_style === 'glass' ? 0.8 : 1
                                             }}
                                         >
-                                            SİPARİŞİ TAMAMLA (600 ₺)
+                                            SİPARİŞ (600 ₺)
                                         </button>
                                     </div>
+                                    {previewMode === 'mobile' && <div className="h-6 w-full flex items-center justify-center"><div className="w-32 h-1 bg-zinc-300 rounded-full" /></div>}
                                 </div>
                             </div>
                         </CardContent>
