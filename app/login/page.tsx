@@ -104,14 +104,16 @@ function LoginForm() {
         setLoading(false);
         return;
       }
+      // 1. Successful login - Consolidate post-login tasks (Log & Reset)
+      console.log("[LOGIN] Authentication successful, running post-login tasks...");
+      const postLoginResult = await handlePostLoginTasks(data.user.id, profile.role, profile.tenant_id);
 
-      // Consolidated post-login tasks (Reset attempts & Log success)
-      try {
-        console.log("[LOGIN] Running post-login tasks...");
-        await handlePostLoginTasks(data.user.id, profile.role, profile.tenant_id);
-      } catch (postLoginErr) {
-        // Robustness: Don't block redirect if logging fails
-        console.error("[LOGIN] Post-login tasks failed but continuing redirect:", postLoginErr);
+      if (!postLoginResult.success) {
+        console.error("[LOGIN] Post-login tasks failed:", postLoginResult.error);
+        await supabase.auth.signOut(); // Security: sign out if log failed
+        setError(postLoginResult.error || "Sistem güvenliği nedeniyle giriş engellendi.");
+        setLoading(false);
+        return;
       }
 
       // Short delay for cookie propagation

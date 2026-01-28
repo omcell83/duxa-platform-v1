@@ -9,17 +9,29 @@ import { resetFailedAttempts } from "./user-management";
  */
 export async function handlePostLoginTasks(userId: string, role: string, tenantId: number | null) {
     try {
+        console.log(`[AUTH-EVENTS] Processing post-login for user ${userId}, role ${role}`);
+
         // 1. Reset failed attempts
-        await resetFailedAttempts(userId);
+        const resetResult = await resetFailedAttempts(userId);
+        if (resetResult && 'success' in resetResult && !resetResult.success) {
+            console.warn("[AUTH-EVENTS] Failed to reset attempts, but continuing:", resetResult.error);
+        }
 
-        // 2. Log success
-        await logLoginSuccess(userId, role, tenantId);
+        // 2. Log success - THIS IS MANDATORY
+        const logResult = await logLoginSuccess(userId, role, tenantId);
 
+        if (!logResult.success) {
+            console.error("[AUTH-EVENTS] CRITICAL: Log entry failed:", logResult.error);
+            return {
+                success: false,
+                error: `Sistem günlüğü kaydedilemedi. Güvenlik gereği giriş engellendi. (${logResult.error})`
+            };
+        }
+
+        console.log("[AUTH-EVENTS] Post-login tasks completed successfully.");
         return { success: true };
     } catch (error: any) {
-        console.error("[POST-LOGIN-TASKS] Failed:", error);
-        // Return success: true anyway because we don't want to block the user
-        // if logging or counter reset fails.
-        return { success: true, warning: error.message };
+        console.error("[AUTH-EVENTS] Critical error in handlePostLoginTasks:", error);
+        return { success: false, error: `Sunucu hatası: ${error.message}` };
     }
 }

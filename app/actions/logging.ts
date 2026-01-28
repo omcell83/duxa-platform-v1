@@ -9,33 +9,44 @@ import { headers } from "next/headers";
  */
 async function logToDb(log: SystemLogInsert): Promise<{ success: boolean; error?: string }> {
     try {
+        if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+            return { success: false, error: "SUPABASE_SERVICE_ROLE_KEY environment variable is missing." };
+        }
         const supabaseAdmin = createAdminClient();
-        console.log(`[logToDb] Input:`, JSON.stringify(log));
 
-        // Ensure strictly serializable data for Postgres
-        const cleanData = {
+        // Final sanity check on data types for Postgres
+        const cleanData: any = {
             event_type: String(log.event_type),
-            severity: log.severity,
+            severity: log.severity || "INFO",
             message: String(log.message),
             user_id: log.user_id || null,
             personnel_id: log.personnel_id || null,
-            tenant_id: log.tenant_id || null,
-            ip_address: log.ip_address || "unknown",
-            user_agent: log.user_agent || "unknown",
+            tenant_id: log.tenant_id ? Number(log.tenant_id) : null,
+            ip_address: String(log.ip_address || "unknown").substring(0, 50),
+            user_agent: String(log.user_agent || "unknown").substring(0, 255),
             metadata: log.metadata || {}
         };
 
-        const { error } = await supabaseAdmin.from("system_logs").insert(cleanData);
+        const { error, data } = await supabaseAdmin
+            .from("system_logs")
+            .insert(cleanData)
+            .select();
 
         if (error) {
-            console.error("DB Logging Error:", error.message, error.details);
-            return { success: false, error: `${error.message} (${error.details || ''})` };
+            console.error("[LOG-DB] Supabase Insert Error:", error.message, error.details, error.hint);
+            return {
+                success: false,
+                error: `DB_ERROR: ${error.message} ${error.details ? `(${error.details})` : ''}`
+            };
         }
 
         return { success: true };
     } catch (err: any) {
-        console.error("Critical Logging Exception:", err);
-        return { success: false, error: err.message || "Bilinmeyen sunucu hatası" };
+        console.error("[LOG-DB] Critical Exception:", err);
+        return {
+            success: false,
+            error: `CRITICAL_EXCEPTION: ${err.message || 'Bilinmeyen hata'}`
+        };
     }
 }
 
