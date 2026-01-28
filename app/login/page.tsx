@@ -106,12 +106,16 @@ function LoginForm() {
       }
       // 1. Successful login - Consolidate post-login tasks (Log & Reset)
       console.log("[LOGIN] Authentication successful, running post-login tasks...");
-      const postLoginResult = await handlePostLoginTasks(data.user.id, profile.role, profile.tenant_id);
 
-      if (!postLoginResult.success) {
-        console.error("[LOGIN] Post-login tasks failed:", postLoginResult.error);
+      // Explicitly cast tenant_id to number | null to avoid BigInt serialization issues in Server Actions
+      const tenantIdNum = profile.tenant_id ? Number(profile.tenant_id) : null;
+
+      const postLoginResult = await handlePostLoginTasks(data.user.id, profile.role, tenantIdNum);
+
+      if (!postLoginResult || !postLoginResult.success) {
+        console.error("[LOGIN] Post-login tasks failed:", postLoginResult?.error);
         await supabase.auth.signOut(); // Security: sign out if log failed
-        setError(postLoginResult.error || "Sistem güvenliği nedeniyle giriş engellendi.");
+        setError(postLoginResult?.error || "Sistem güvenliği nedeniyle giriş engellendi.");
         setLoading(false);
         return;
       }

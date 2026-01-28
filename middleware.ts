@@ -8,6 +8,16 @@ export async function middleware(request: NextRequest) {
     },
   });
 
+  // CRITICAL: Bypassing middleware for Server Actions and POST requests
+  // to prevent interception and "unexpected response" errors during login flow.
+  const isAction = request.method === 'POST' ||
+    request.headers.has('next-action') ||
+    request.headers.has('x-nextjs-action');
+
+  if (isAction) {
+    return response;
+  }
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
