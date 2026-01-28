@@ -55,20 +55,19 @@ function LoginForm() {
       if (signInError) {
         setError(signInError.message || "Giriş başarısız. Email ve şifrenizi kontrol edin.");
 
-        // Log failed login (Mandatory)
-        console.group("DEBUG: Attempting Log System Event (Failed Login)");
+        // Log failed login (Only email as requested)
+        console.group("DEBUG: Failed Login Log Attempt");
         const logResult = await logSystemEvent({
           event_type: 'login_failed',
           severity: 'warning',
-          message: `Login failed: ${signInError.message}`,
-          details: { email, error: signInError.message }
+          message: `Giriş başarısız: ${signInError.message}`,
+          details: { email } // Only email for failed attempts
         });
-        console.log("DEBUG: Log Result:", logResult);
+        console.log("Log Result:", logResult);
         console.groupEnd();
 
         if (!logResult || !logResult.success) {
-          console.error("Logging failed during failed login attempt:", logResult);
-          setError(`DEBUG LOG ERROR: ${logResult?.error} || Details: ${JSON.stringify(logResult)}`);
+          setError(`Sistem günlüğü hatası: ${logResult?.error || 'Sunucu hatası'}`);
         }
 
         setLoading(false);
@@ -100,26 +99,23 @@ function LoginForm() {
         return;
       }
 
-      // Debug: Role değerini kontrol et
-      console.log("Login successful - User role:", profile.role);
-      console.log("Profile data:", profile);
-
-      // Log successful login (MANDATORY - LOGIN FAILS IF THIS FAILS)
-      console.group("DEBUG: Attempting Log System Event (Success Login)");
+      // Log successful login (MANDATORY)
+      console.group("DEBUG: Success Login Log Attempt");
       const logResult = await logSystemEvent({
         event_type: 'login',
         severity: 'info',
         message: 'Giriş başarılı',
-        user_id: data.user.id || null,
-        tenant_id: profile.tenant_id, // Pass raw value
+        user_id: data.user.id,
+        // Requirement: if tenant_id is missing, use user role
+        tenant_id: profile.tenant_id || profile.role,
         details: { role: profile.role, email: email }
       });
-      console.log("DEBUG: Log Result:", logResult);
+      console.log("Log Result:", logResult);
       console.groupEnd();
 
       if (!logResult || !logResult.success) {
         console.error("Login aborted due to logging failure:", logResult);
-        setError(`DEBUG LOG ERROR: ${logResult?.error || 'Unknown'} || Full: ${JSON.stringify(logResult)}`);
+        setError(`Sistem güvenlik günlüğü hatası: ${logResult?.error || 'Log yazılamadı'}`);
         setLoading(false);
         await supabase.auth.signOut();
         return;

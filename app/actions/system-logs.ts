@@ -23,113 +23,88 @@ export interface SystemLogEvent {
 }
 
 /**
- * DEBUG MODE: Log System Event
- * Returns explicit error strings instead of throwing.
+ * MANDATORY SYSTEM LOGGING
+ * This action is designed to be extremely stable.
+ * CRITICAL: Never return non-serializable objects (like Error instances) to prevent Next.js crashes.
  */
 export async function logSystemEvent(event: SystemLogEvent) {
-    // 1. Initial Server Log
-    console.log('--- [DEBUG] logSystemEvent CALLED ---');
-    console.log('Event:', JSON.stringify(event, null, 2));
+    // Server log for Coolify/Console inspection
+    console.log(`[logSystemEvent] Monitoring: ${event.event_type} - ${event.message}`);
 
     try {
-        // 2. Env Var Check
-        const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        const supabaseAdmin = createAdminClient();
 
-        if (!url || !key) {
-            console.error('[DEBUG] Missing Env Vars');
-            return {
-                success: false,
-                error: `Missing ENV: URL=${!!url}, KEY=${!!key}`,
-                debug: { url: !!url, key: !!key }
-            };
-        }
-
-        // 3. Admin Client Creation
-        let supabaseAdmin;
-        try {
-            supabaseAdmin = createAdminClient();
-        } catch (clientErr: any) {
-            console.error('[DEBUG] Admin Client Creation Failed:', clientErr);
-            return { success: false, error: `Client Init Failed: ${clientErr.message}` };
-        }
-
-        // 4. IP Extraction (Safe)
         let ipAddress: string | null = null;
         try {
             const headersList = await headers();
             const forwarded = headersList.get('x-forwarded-for');
             const realIp = headersList.get('x-real-ip');
             const ip = forwarded || realIp || null;
+
             if (ip) {
                 ipAddress = ip.split(',')[0].trim();
-                // Basic cleanup
                 if (ipAddress === 'unknown' || ipAddress === '::1' || ipAddress === '127.0.0.1') {
                     ipAddress = null;
                 }
             }
         } catch (hErr) {
-            console.warn('[DEBUG] Header Warning:', hErr);
-            // Ignore header errors
+            console.warn('[logSystemEvent] Header error ignored');
         }
 
-        // 5. Data Preparation
+        // 1. Prepare log data
         const logData: any = {
             event_type: event.event_type,
             severity: event.severity,
             message: event.message,
             details: event.details || {},
-            user_id: event.user_id || null, // Ensure explicit null
+            user_id: event.user_id || null,
             ip_address: ipAddress,
-            tenant_id: null // Default null
+            tenant_id: null
         };
 
-        // 6. Tenant ID Handling (Safe)
-        if (event.tenant_id !== undefined && event.tenant_id !== null) {
+        // 2. User/Role Logic for Tenant ID
+        // Note: tenant_id is BIGINT in DB. We CANNOT write strings there.
+        // If tenant_id is missing, we log it in details but keep DB column NULL.
+        if (event.tenant_id) {
             const tid = Number(event.tenant_id);
             if (!isNaN(tid) && tid !== 0) {
                 logData.tenant_id = tid;
             } else {
-                // If invalid number, log in details
-                logData.details.invalid_tenant_id_attempt = event.tenant_id;
+                // For non-numeric tenant IDs (like roles), put in details as requested
+                logData.details.role_as_tenant = String(event.tenant_id);
             }
         }
 
-        console.log('[DEBUG] Prepared Log Data:', JSON.stringify(logData, null, 2));
-
-        // 7. Supabase Insert
+        // 3. Insert without complex checks
+        // We use insert().select() but only return serializable bits
         const { data, error } = await supabaseAdmin
             .from('system_logs')
             .insert([logData])
-            .select()
+            .select('id')
             .single();
 
         if (error) {
-            console.error('[DEBUG] Supabase Insert Error:', error);
-            // Return raw error message
+            console.error('[logSystemEvent] DB ERROR:', error.message);
+            // DO NOT return the error object itself, it crashes Next.js serialization
             return {
                 success: false,
-                error: `DB Error: ${error.message} (Code: ${error.code})`,
-                full_error: error
+                error: `Database: ${error.message}`,
+                code: error.code
             };
         }
 
-        console.log('[DEBUG] Insert Success:', data);
-        return { success: true, id: data.id };
+        return { success: true, id: data?.id };
 
-    } catch (criticalErr: any) {
-        // 8. Catch All
-        console.error('[DEBUG] Critical Catch:', criticalErr);
+    } catch (err: any) {
+        console.error('[logSystemEvent] FATAL:', err.message);
         return {
             success: false,
-            error: `CRITICAL EXCEPTION: ${criticalErr.message}`,
-            stack: criticalErr.stack
+            error: err.message || 'Fatal server error'
         };
     }
 }
 
 export async function getSystemLogs(limit = 100, offset = 0) {
-    // Basic get implementation
     try {
         const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
@@ -143,7 +118,7 @@ export async function getSystemLogs(limit = 100, offset = 0) {
 
         if (error) throw error;
         return { logs: data || [], count: count || 0 };
-    } catch (err) {
-        return { logs: [], count: 0, error: 'Fetch failed' };
+    } catch (err: any) {
+        return { logs: [], count: 0, error: err.message };
     }
 }
