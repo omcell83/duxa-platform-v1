@@ -1,18 +1,24 @@
 "use server";
 
-import { createClient } from "@/lib/supabase-server";
+import { createAdminClient } from "@/lib/admin";
 import { SystemLogInsert } from "@/lib/types";
 import { headers } from "next/headers";
 
 /**
- * Common logging function
+ * Common logging function using Admin Client to bypass RLS/Session issues
  */
 async function logToDb(log: SystemLogInsert) {
     try {
-        const supabase = await createClient();
-        const { error } = await supabase.from("system_logs").insert(log);
+        console.log(`[logToDb] Attempting database insert:`, JSON.stringify(log));
+
+        // Statik olarak Admin Client kullanıyoruz, böylece auth/session bağımlılığı kalmaz.
+        const supabaseAdmin = createAdminClient();
+        const { error } = await supabaseAdmin.from("system_logs").insert(log);
+
         if (error) {
-            console.error("DB Logging Error:", error);
+            console.error("DB Logging Error:", error.message, error.details);
+        } else {
+            console.log("[logToDb] Insert successful");
         }
     } catch (err) {
         console.error("Critical Logging Exception:", err);
@@ -37,7 +43,12 @@ export async function logSystemEvent(
             user_agent: ua,
         });
     } catch (err) {
-        console.error("logSystemEvent Exception:", err);
+        // If headers() fails (e.g. in some edge cases), still try to log
+        await logToDb({
+            ...log,
+            ip_address: "unknown",
+            user_agent: "unknown",
+        });
     }
 }
 
@@ -45,13 +56,16 @@ export async function logSystemEvent(
  * Specialized login failure logger
  */
 export async function logLoginFailure(email: string) {
-    return logSystemEvent({
+    // Always log errors to server console too for debugging
+    console.log(`[LOGGING-FN] logLoginFailure called for: ${email}`);
+
+    return await logSystemEvent({
         event_type: "LOGIN_FAILED",
         severity: "WARNING",
         message: `Hatalı giriş denemesi: ${email}`,
         metadata: { email_attempt: email },
         user_id: null,
-        tenant_id: null
+        personnel_id: null
     });
 }
 
@@ -59,7 +73,9 @@ export async function logLoginFailure(email: string) {
  * Specialized login success logger
  */
 export async function logLoginSuccess(userId: string, role: string) {
-    return logSystemEvent({
+    console.log(`[LOGGING-FN] logLoginSuccess called for user: ${userId} (${role})`);
+
+    return await logSystemEvent({
         event_type: "LOGIN_SUCCESS",
         severity: "SUCCESS",
         message: `Başarılı giriş: ${role}`,

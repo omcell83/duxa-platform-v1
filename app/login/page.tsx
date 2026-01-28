@@ -47,7 +47,11 @@ function LoginForm() {
 
       if (signInError) {
         // Log failure (non-blocking)
-        logLoginFailure(email).catch(err => console.error("Logging failed:", err));
+        try {
+          await logLoginFailure(email);
+        } catch (logErr) {
+          console.error("Logging failed:", logErr);
+        }
 
         setError(signInError.message || "Giriş başarısız. Email ve şifrenizi kontrol edin.");
         setLoading(false);
@@ -55,7 +59,11 @@ function LoginForm() {
       }
 
       if (!data.user) {
-        logLoginFailure(email).catch(err => console.error("Logging failed:", err));
+        try {
+          await logLoginFailure(email);
+        } catch (logErr) {
+          console.error("Logging failed:", logErr);
+        }
         setError("Kullanıcı bulunamadı.");
         setLoading(false);
         return;
@@ -69,21 +77,33 @@ function LoginForm() {
         .single();
 
       if (profileError || !profile) {
-        logLoginFailure(email).catch(err => console.error("Logging failed:", err));
+        try {
+          await logLoginFailure(email);
+        } catch (logErr) {
+          console.error("Logging failed:", logErr);
+        }
         setError("Kullanıcı profili bulunamadı.");
         setLoading(false);
         return;
       }
 
       if (!profile.is_active) {
-        logLoginFailure(email).catch(err => console.error("Logging failed:", err));
+        try {
+          await logLoginFailure(email);
+        } catch (logErr) {
+          console.error("Logging failed:", logErr);
+        }
         setError("Hesabınız aktif değil. Lütfen yönetici ile iletişime geçin.");
         setLoading(false);
         return;
       }
 
-      // Log success (non-blocking)
-      logLoginSuccess(data.user.id, profile.role).catch(err => console.error("Logging failed:", err));
+      // Log success (blocking before redirect to ensure it's saved)
+      try {
+        await logLoginSuccess(data.user.id, profile.role);
+      } catch (logErr) {
+        console.error("Logging failed:", logErr);
+      }
 
       // Cookie'lerin set edilmesi için session'ı kontrol et
       const { data: sessionData } = await supabase.auth.getSession();
