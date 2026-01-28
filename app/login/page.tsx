@@ -54,17 +54,20 @@ function LoginForm() {
 
       if (signInError) {
         setError(signInError.message || "Giriş başarısız. Email ve şifrenizi kontrol edin.");
-        // Log failed login
-        try {
-          await logSystemEvent({
-            event_type: 'login_failed',
-            severity: 'warning',
-            message: `Login failed: ${signInError.message}`,
-            details: { email, error: signInError.message }
-          });
-        } catch (logErr) {
-          console.error("Critical logging error (fail path):", logErr);
+
+        // Log failed login (Mandatory)
+        const logResult = await logSystemEvent({
+          event_type: 'login_failed',
+          severity: 'warning',
+          message: `Login failed: ${signInError.message}`,
+          details: { email, error: signInError.message }
+        });
+
+        if (!logResult.success) {
+          console.error("Logging failed during failed login attempt.");
+          setError("Sistem güvenlik günlüğü hatası. Giriş işlemi iptal edildi.");
         }
+
         setLoading(false);
         return;
       }
@@ -75,10 +78,10 @@ function LoginForm() {
         return;
       }
 
-      // Get user profile to determine role
+      // Get user profile to determine role and tenant
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("role, is_active")
+        .select("role, is_active, tenant_id")
         .eq("id", data.user.id)
         .single();
 
@@ -98,17 +101,23 @@ function LoginForm() {
       console.log("Login successful - User role:", profile.role);
       console.log("Profile data:", profile);
 
-      // Log successful login
-      try {
-        await logSystemEvent({
-          event_type: 'login',
-          severity: 'info',
-          message: 'Login successful',
-          user_id: data.user.id,
-          details: { role: profile.role, email }
-        });
-      } catch (logErr) {
-        console.error("Critical logging error (success path):", logErr);
+      // Log successful login (MANDATORY - LOGIN FAILS IF THIS FAILS)
+      const logResult = await logSystemEvent({
+        event_type: 'login',
+        severity: 'info',
+        message: 'Giriş başarılı',
+        user_id: data.user.id,
+        tenant_id: (profile as any).tenant_id,
+        details: { role: profile.role, email }
+      });
+
+      if (!logResult.success) {
+        console.error("Login aborted due to logging failure:", logResult.error);
+        setError(`Sistem güvenlik günlüğü hatası: ${logResult.error || 'Log kaydı yapılamadı'}. Giriş işlemi durduruldu.`);
+        setLoading(false);
+        // Security: Sign out if we can't log the entry
+        await supabase.auth.signOut();
+        return;
       }
 
       // Cookie'lerin set edilmesi için session'ı kontrol et
