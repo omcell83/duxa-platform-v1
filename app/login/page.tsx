@@ -54,13 +54,17 @@ function LoginForm() {
 
       if (signInError) {
         setError(signInError.message || "Giriş başarısız. Email ve şifrenizi kontrol edin.");
-        // Log failed login (non-blocking)
-        logSystemEvent({
-          event_type: 'login_failed',
-          severity: 'warning',
-          message: `Login failed: ${signInError.message}`,
-          details: { email, error: signInError.message }
-        }).catch(err => console.error("Logging failed:", err));
+        // Log failed login
+        try {
+          await logSystemEvent({
+            event_type: 'login_failed',
+            severity: 'warning',
+            message: `Login failed: ${signInError.message}`,
+            details: { email, error: signInError.message }
+          });
+        } catch (logErr) {
+          console.error("Critical logging error (fail path):", logErr);
+        }
         setLoading(false);
         return;
       }
@@ -94,14 +98,18 @@ function LoginForm() {
       console.log("Login successful - User role:", profile.role);
       console.log("Profile data:", profile);
 
-      // Log successful login (non-blocking)
-      logSystemEvent({
-        event_type: 'login',
-        severity: 'info',
-        message: 'Login successful',
-        user_id: data.user.id,
-        details: { role: profile.role, email }
-      }).catch(err => console.error("Logging failed:", err));
+      // Log successful login
+      try {
+        await logSystemEvent({
+          event_type: 'login',
+          severity: 'info',
+          message: 'Login successful',
+          user_id: data.user.id,
+          details: { role: profile.role, email }
+        });
+      } catch (logErr) {
+        console.error("Critical logging error (success path):", logErr);
+      }
 
       // Cookie'lerin set edilmesi için session'ı kontrol et
       const { data: sessionData } = await supabase.auth.getSession();

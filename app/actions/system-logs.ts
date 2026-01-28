@@ -28,6 +28,11 @@ export interface SystemLogEvent {
  */
 export async function logSystemEvent(event: SystemLogEvent) {
     try {
+        if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+            console.error('CRITICAL: SUPABASE_SERVICE_ROLE_KEY is missing from environment variables!');
+            return { success: false, error: 'Service role key missing' };
+        }
+
         const supabaseAdmin = createAdminClient();
 
         // Safety check for IP address to avoid Postgres inet errors
