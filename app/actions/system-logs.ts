@@ -19,56 +19,95 @@ export interface SystemLogEvent {
     message: string;
     details?: Record<string, any>;
     user_id?: string;
-    tenant_id?: string;
+    tenant_id?: string | number;
 }
 
+/**
+ * Logs a system event to the database.
+ * This is a server action that can be called from client or server components.
+ */
 export async function logSystemEvent(event: SystemLogEvent) {
     try {
         const supabaseAdmin = createAdminClient();
-        const headersList = await headers();
-        const ip = headersList.get('x-forwarded-for') || headersList.get('x-real-ip') || 'unknown';
 
-        // Parse IP if it's a list (x-forwarded-for can be comma separated)
-        const ipAddress = ip ? ip.split(',')[0].trim() : 'unknown';
+        // Safety check for IP address to avoid Postgres inet errors
+        let ipAddress: string | null = null;
+        try {
+            const headersList = await headers();
+            const forwarded = headersList.get('x-forwarded-for');
+            const realIp = headersList.get('x-real-ip');
+            const ip = forwarded || realIp || null;
 
-        const { error } = await supabaseAdmin.from('system_logs').insert({
+            if (ip) {
+                ipAddress = ip.split(',')[0].trim();
+                // Basic validation: if it doesn't look like an IP, set to null
+                if (ipAddress === 'unknown' || ipAddress === '::1') {
+                    ipAddress = null;
+                }
+            }
+        } catch (hError) {
+            console.error('Error fetching headers for log:', hError);
+        }
+
+        // Prepare data for insertion
+        const logData: any = {
             event_type: event.event_type,
             severity: event.severity,
             message: event.message,
             details: event.details || {},
-            user_id: event.user_id,
-            tenant_id: event.tenant_id,
+            user_id: event.user_id || null,
             ip_address: ipAddress,
-        });
+        };
+
+        // Handle tenant_id conversion if it exists
+        if (event.tenant_id) {
+            // If it's a string that can be a number, convert it. 
+            // Our DB uses bigint for tenants.id
+            const tid = Number(event.tenant_id);
+            if (!isNaN(tid)) {
+                logData.tenant_id = tid;
+            }
+        }
+
+        const { error } = await supabaseAdmin.from('system_logs').insert(logData);
 
         if (error) {
-            console.error('Failed to log system event:', error);
-            // Don't throw, just log to console to not break the app flow
+            console.error('Supabase error logging event:', error);
+            return { success: false, error: error.message };
         }
-    } catch (err) {
-        console.error('Error in logSystemEvent:', err);
+
+        return { success: true };
+    } catch (err: any) {
+        console.error('Critical failure in logSystemEvent:', err);
+        // We return success: false instead of throwing to prevent "Unexpected response" errors in Next.js
+        return { success: false, error: err.message || 'Unknown error' };
     }
 }
 
 export async function getSystemLogs(limit = 100, offset = 0) {
-    const supabase = await createClient();
+    try {
+        const supabase = await createClient();
 
-    // Check permission (RLS handles this, but we can double check)
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-        throw new Error('Unauthorized');
+        // Check permission (RLS handles this, but we can double check)
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            throw new Error('Unauthorized');
+        }
+
+        const { data, error, count } = await supabase
+            .from('system_logs')
+            .select('*', { count: 'exact' })
+            .order('created_at', { ascending: false })
+            .range(offset, offset + limit - 1);
+
+        if (error) {
+            console.error('Error fetching logs:', error);
+            throw new Error('Failed to fetch logs');
+        }
+
+        return { logs: data || [], count: count || 0 };
+    } catch (err) {
+        console.error('getSystemLogs failure:', err);
+        return { logs: [], count: 0, error: 'Failed to fetch' };
     }
-
-    const { data, error, count } = await supabase
-        .from('system_logs')
-        .select('*', { count: 'exact' })
-        .order('created_at', { ascending: false })
-        .range(offset, offset + limit - 1);
-
-    if (error) {
-        console.error('Error fetching logs:', error);
-        throw new Error('Failed to fetch logs');
-    }
-
-    return { logs: data, count };
 }
