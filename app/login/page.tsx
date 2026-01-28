@@ -56,16 +56,19 @@ function LoginForm() {
         setError(signInError.message || "Giriş başarısız. Email ve şifrenizi kontrol edin.");
 
         // Log failed login (Mandatory)
+        console.group("DEBUG: Attempting Log System Event (Failed Login)");
         const logResult = await logSystemEvent({
           event_type: 'login_failed',
           severity: 'warning',
           message: `Login failed: ${signInError.message}`,
           details: { email, error: signInError.message }
         });
+        console.log("DEBUG: Log Result:", logResult);
+        console.groupEnd();
 
         if (!logResult || !logResult.success) {
           console.error("Logging failed during failed login attempt:", logResult);
-          setError(`Sistem güvenlik günlüğü hatası (${logResult?.error || 'Sunucu yanıt vermedi'}). Giriş işlemi iptal edildi.`);
+          setError(`DEBUG LOG ERROR: ${logResult?.error} || Details: ${JSON.stringify(logResult)}`);
         }
 
         setLoading(false);
@@ -102,20 +105,22 @@ function LoginForm() {
       console.log("Profile data:", profile);
 
       // Log successful login (MANDATORY - LOGIN FAILS IF THIS FAILS)
+      console.group("DEBUG: Attempting Log System Event (Success Login)");
       const logResult = await logSystemEvent({
         event_type: 'login',
         severity: 'info',
         message: 'Giriş başarılı',
         user_id: data.user.id || null,
-        tenant_id: profile.tenant_id, // Pass raw value, server action handles safety
+        tenant_id: profile.tenant_id, // Pass raw value
         details: { role: profile.role, email: email }
       });
+      console.log("DEBUG: Log Result:", logResult);
+      console.groupEnd();
 
       if (!logResult || !logResult.success) {
-        console.error("Login aborted due to logging failure:", logResult?.error);
-        setError(`Sistem güvenlik günlüğü hatası: ${logResult?.error || 'Log kaydı yapılamadı'}. Giriş işlemi durduruldu.`);
+        console.error("Login aborted due to logging failure:", logResult);
+        setError(`DEBUG LOG ERROR: ${logResult?.error || 'Unknown'} || Full: ${JSON.stringify(logResult)}`);
         setLoading(false);
-        // Security: Sign out if we can't log the entry
         await supabase.auth.signOut();
         return;
       }
