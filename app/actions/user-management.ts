@@ -26,12 +26,11 @@ export async function getUsers() {
     const supabase = await createClient();
 
     // RLS will handle tenant isolation, but for super admin we want to see specific roles
-    // We filter by roles and ensure they are active (soft delete check)
+    // We filter by roles
     const { data: users, error } = await supabase
         .from('profiles')
         .select('*')
         .in('role', ['super_admin', 'owner', 'tenant_admin', 'manager'])
-        .eq('is_active', true)
         .order('created_at', { ascending: false });
 
     if (error) {
@@ -239,6 +238,34 @@ export async function toggleUser2FA(userId: string, isRequired: boolean) {
         .eq('id', userId);
 
     if (error) throw new Error('2FA ayarı güncellenemedi.');
+
+    revalidatePath('/super-admin/settings/users');
+    return { success: true };
+}
+export async function toggleUserStatus(userId: string, isActive: boolean) {
+    const supabaseAdmin = createAdminClient();
+
+    // 1. Update Profile
+    const { error: profileError } = await supabaseAdmin
+        .from('profiles')
+        .update({ is_active: isActive })
+        .eq('id', userId);
+
+    if (profileError) {
+        console.error('Toggle status profile error:', profileError);
+        throw new Error('Kullanıcı durumu güncellenemedi.');
+    }
+
+    // 2. Update Auth (Ban/Unban)
+    // If not active, ban user (infinite). If active, unban (set duration to empty string or null)
+    // Supabase admin.updateUserById takes ban_duration. Setting to '0h' or small number unbans, but standard is null or ''
+    const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+        ban_duration: isActive ? 'none' : '876600h' // 'none' resets the ban
+    });
+
+    if (authError) {
+        console.error('Toggle status auth error:', authError);
+    }
 
     revalidatePath('/super-admin/settings/users');
     return { success: true };

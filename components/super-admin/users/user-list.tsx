@@ -17,6 +17,10 @@ import { UserActionsMenu } from "./user-actions-menu";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
+import { Switch } from "@/components/ui/switch";
+import { toggleUserStatus } from "@/app/actions/user-management";
+import { toast } from "sonner";
+
 interface UserProfile {
     id: string;
     full_name: string;
@@ -30,16 +34,36 @@ interface UserProfile {
 }
 
 interface UserListProps {
-    initialUsers: any[]; // Type issues with supabase generated types, using any for now or specific interface
+    initialUsers: any[];
 }
 
 export function UserList({ initialUsers }: UserListProps) {
     const [searchTerm, setSearchTerm] = useState("");
     const [users, setUsers] = useState<UserProfile[]>(initialUsers);
+    const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>({});
 
     useEffect(() => {
         setUsers(initialUsers);
     }, [initialUsers]);
+
+    const handleToggleStatus = async (userId: string, currentStatus: boolean) => {
+        setLoadingMap(prev => ({ ...prev, [userId]: true }));
+        try {
+            const nextStatus = !currentStatus;
+            const result = await toggleUserStatus(userId, nextStatus);
+            if (result.success) {
+                toast.success(nextStatus ? "Kullanıcı aktif edildi." : "Kullanıcı pasif edildi.");
+                // Update local state for immediate feedback
+                setUsers(prev => prev.map(u => u.id === userId ? { ...u, is_active: nextStatus } : u));
+            } else {
+                toast.error("İşlem başarısız oldu.");
+            }
+        } catch (err) {
+            toast.error("Bir hata oluştu.");
+        } finally {
+            setLoadingMap(prev => ({ ...prev, [userId]: false }));
+        }
+    };
 
     // Simple robust search
     const filteredUsers = users.filter((user) =>
@@ -85,6 +109,7 @@ export function UserList({ initialUsers }: UserListProps) {
                             <TableHead>Kullanıcı</TableHead>
                             <TableHead>Rol</TableHead>
                             <TableHead className="hidden md:table-cell">İletişim</TableHead>
+                            <TableHead>Durum</TableHead>
                             <TableHead>2FA</TableHead>
                             <TableHead className="text-right">İşlemler</TableHead>
                         </TableRow>
@@ -92,13 +117,13 @@ export function UserList({ initialUsers }: UserListProps) {
                     <TableBody>
                         {filteredUsers.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={5} className="h-24 text-center">
+                                <TableCell colSpan={6} className="h-24 text-center">
                                     Sonuç bulunamadı.
                                 </TableCell>
                             </TableRow>
                         ) : (
                             filteredUsers.map((user) => (
-                                <TableRow key={user.id}>
+                                <TableRow key={user.id} className={user.is_active ? "" : "opacity-60 bg-muted/30"}>
                                     <TableCell>
                                         <div className="flex items-center gap-3">
                                             <Avatar className="h-9 w-9">
@@ -121,10 +146,22 @@ export function UserList({ initialUsers }: UserListProps) {
                                         </div>
                                     </TableCell>
                                     <TableCell>
+                                        <div className="flex items-center gap-2">
+                                            <Switch
+                                                checked={user.is_active}
+                                                onCheckedChange={() => handleToggleStatus(user.id, user.is_active)}
+                                                disabled={loadingMap[user.id]}
+                                            />
+                                            <span className="text-xs min-w-[40px]">
+                                                {user.is_active ? "Aktif" : "Pasif"}
+                                            </span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
                                         {user.is_2fa_required ? (
-                                            <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200">Aktif</Badge>
+                                            <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200 text-[10px] px-1.5 h-5">Aktif</Badge>
                                         ) : (
-                                            <Badge variant="outline" className="text-muted-foreground">Pasif</Badge>
+                                            <Badge variant="outline" className="text-muted-foreground text-[10px] px-1.5 h-5">Pasif</Badge>
                                         )}
                                     </TableCell>
                                     <TableCell className="text-right">
