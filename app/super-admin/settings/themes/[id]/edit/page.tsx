@@ -6,13 +6,14 @@ import { Button } from "@/components/ui/button";
 import { notFound } from "next/navigation";
 
 interface PageProps {
-    params: {
+    params: Promise<{
         id: string;
-    }
+    }>;
 }
 
 export default async function ThemeEditPage({ params }: PageProps) {
-    const theme = await getThemeById(params.id);
+    const { id } = await params;
+    const theme = await getThemeById(id);
 
     if (!theme) {
         notFound();

@@ -158,24 +158,6 @@ export default function SuperAdminSettingsPage() {
               </CardContent>
             </Card>
           </Link>
-          <Link href="/super-admin/settings/themes">
-            <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full border-primary/20 bg-primary/5">
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary rounded-md">
-                    <Palette className="h-5 w-5 text-primary-foreground" />
-                  </div>
-                  <div>
-                    <CardTitle>Tema Ayarları</CardTitle>
-                    <CardDescription>Görünüm ve Tema yönetimi</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">Sistem genelindeki arayüz temalarını seçin ve özelleştirin.</p>
-              </CardContent>
-            </Card>
-          </Link>
 
           <Card>
             <CardHeader>
