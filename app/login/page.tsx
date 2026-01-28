@@ -12,6 +12,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { getUserTheme } from "@/app/actions/user-settings";
 import { useTheme } from "next-themes";
 import Link from "next/link";
+import { logSystemEvent } from "@/app/actions/system-logs";
 
 function LoginForm() {
   const router = useRouter();
@@ -28,6 +29,13 @@ function LoginForm() {
     const errorParam = searchParams.get("error");
     if (errorParam === "unauthorized") {
       setError("Bu sayfaya erişim yetkiniz yok.");
+      // Log unauthorized access redirect
+      logSystemEvent({
+        event_type: 'unauthorized_access',
+        severity: 'warning',
+        message: 'Unauthorized access attempt redirect',
+        details: { redirect: searchParams.get('redirect') }
+      }).catch(e => console.error('Failed to log unauthorized access', e));
     } else if (errorParam === "account_inactive") {
       setError("Hesabınız aktif değil. Lütfen yönetici ile iletişime geçin.");
     }
@@ -46,6 +54,13 @@ function LoginForm() {
 
       if (signInError) {
         setError(signInError.message || "Giriş başarısız. Email ve şifrenizi kontrol edin.");
+        // Log failed login
+        await logSystemEvent({
+          event_type: 'login_failed',
+          severity: 'warning',
+          message: 'Login failed',
+          details: { email, error: signInError.message }
+        });
         setLoading(false);
         return;
       }
@@ -79,6 +94,15 @@ function LoginForm() {
       console.log("Login successful - User role:", profile.role);
       console.log("Profile data:", profile);
 
+      // Log successful login
+      await logSystemEvent({
+        event_type: 'login',
+        severity: 'info',
+        message: 'Login successful',
+        user_id: data.user.id,
+        details: { role: profile.role, email }
+      });
+
       // Cookie'lerin set edilmesi için session'ı kontrol et
       const { data: sessionData } = await supabase.auth.getSession();
       if (!sessionData.session) {
@@ -105,7 +129,7 @@ function LoginForm() {
       // SONRA: Redirect path'i belirle
       const redirectPath = searchParams.get("redirect") || "";
       let targetPath = "";
-      
+
       if (redirectPath && redirectPath.startsWith("/")) {
         // URL parametresinden gelen redirect değerini kullan
         targetPath = redirectPath;
@@ -113,7 +137,7 @@ function LoginForm() {
         // Role göre varsayılan dashboard'a yönlendir
         // Role string'ini trim ve lowercase yap (güvenlik için)
         const normalizedRole = (profile.role || "").trim().toLowerCase();
-        
+
         if (normalizedRole === "super_admin") {
           targetPath = "/super-admin/dashboard";
         } else if (normalizedRole === "tenant_admin" || normalizedRole === "user") {

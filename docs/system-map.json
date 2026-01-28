@@ -244,6 +244,11 @@
       "type": "Page"
     },
     {
+      "path": "app/super-admin/settings/system-logs/page.tsx",
+      "description": "Sistem logları sayfası. Giriş kayıtları, hatalar ve güvenlik logları görüntüleme.",
+      "type": "Page"
+    },
+    {
       "path": "app/super-admin/settings/users/page.tsx",
       "description": "Kullanıcı/Personel yönetim sayfası. Süper admin, owner ve diğer yetkili kullanıcıların listesi ve yönetimi.",
       "type": "Page"
@@ -924,6 +929,10 @@
     {
       "url": "https://duxa.pro/super-admin/settings/security",
       "description": "Güvenlik ayarları sayfası. Parola politikaları, 2FA ve sistem güvenlik yapılandırması."
+    },
+    {
+      "url": "https://duxa.pro/super-admin/settings/system-logs",
+      "description": "Sistem logları sayfası. Giriş kayıtları, hatalar ve güvenlik logları görüntüleme."
     },
     {
       "url": "https://duxa.pro/super-admin/settings/meeting-tasks",
