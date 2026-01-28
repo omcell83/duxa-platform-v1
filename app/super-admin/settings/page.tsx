@@ -83,6 +83,25 @@ export default function SuperAdminSettingsPage() {
             </Card>
           </Link>
 
+          <Link href="/super-admin/settings/logs">
+            <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/10 rounded-md">
+                    <ClipboardList className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle>Sistem Logları</CardTitle>
+                    <CardDescription>Sistem kayıtları ve izleme</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">Giriş kayıtları, önemli değişiklikler ve hatalar.</p>
+              </CardContent>
+            </Card>
+          </Link>
+
           <Link href="/super-admin/settings/users">
             <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full">
               <CardHeader>

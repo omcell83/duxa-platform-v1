@@ -495,3 +495,34 @@ export interface ProductSaleInsert {
   sale_date?: string; // Default: now()
   notes?: string | null;
 }
+
+/**
+ * system_logs Tablosu
+ */
+export type LogSeverity = 'INFO' | 'WARNING' | 'CRITICAL' | 'SUCCESS';
+
+export interface SystemLog {
+  id: string; // uuid
+  created_at: string;
+  event_type: string;
+  severity: LogSeverity;
+  message: string;
+  user_id?: string | null;
+  personnel_id?: string | null;
+  tenant_id?: string | null; // uuid, not bigint like other tenant references due to mixed usage (auth vs app)
+  ip_address?: string | null;
+  user_agent?: string | null;
+  metadata?: Record<string, any> | null;
+}
+
+export interface SystemLogInsert {
+  event_type: string;
+  severity?: LogSeverity;
+  message: string;
+  user_id?: string | null;
+  personnel_id?: string | null;
+  tenant_id?: string | null;
+  ip_address?: string | null;
+  user_agent?: string | null;
+  metadata?: Record<string, any> | null;
+}

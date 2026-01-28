@@ -234,6 +234,11 @@
       "type": "Page"
     },
     {
+      "path": "app/super-admin/settings/logs/page.tsx",
+      "description": "Sistem logları sayfası. Giriş kayıtları, güvenlik olayları ve kritik değişikliklerin listelendiği sayfa.",
+      "type": "Page"
+    },
+    {
       "path": "app/super-admin/settings/meeting-tasks/page.tsx",
       "description": "Personel toplantısı kararları ve yapılacaklar listesi sayfası. Görev takibi ve tamamlanma yönetimi.",
       "type": "Page"
@@ -324,6 +329,11 @@
     {
       "path": "app/actions/invoices.ts",
       "description": "Fatura server actions. Fatura listesi ve yönetimi.",
+      "type": "Server Action"
+    },
+    {
+      "path": "app/actions/logging.ts",
+      "description": "Sistem loglama server actions. Veritabanına sistem olaylarını, hataları ve güvenlik loglarını kaydeder.",
       "type": "Server Action"
     },
     {

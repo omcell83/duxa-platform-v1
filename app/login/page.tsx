@@ -38,6 +38,10 @@ function LoginForm() {
     setLoading(true);
     setError(null);
 
+    // Import logging actions dynamically to avoid bundling issues if any, 
+    // though static import is fine for server actions.
+    const { logLoginFailure, logLoginSuccess } = await import("@/app/actions/logging");
+
     try {
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
@@ -45,12 +49,14 @@ function LoginForm() {
       });
 
       if (signInError) {
+        await logLoginFailure(email);
         setError(signInError.message || "Giriş başarısız. Email ve şifrenizi kontrol edin.");
         setLoading(false);
         return;
       }
 
       if (!data.user) {
+        await logLoginFailure(email);
         setError("Kullanıcı bulunamadı.");
         setLoading(false);
         return;
@@ -64,16 +70,23 @@ function LoginForm() {
         .single();
 
       if (profileError || !profile) {
+        // If user logged in but no profile, it's a critical data integrity issue or uninitialized user
+        await logLoginFailure(email);
         setError("Kullanıcı profili bulunamadı.");
         setLoading(false);
         return;
       }
 
       if (!profile.is_active) {
+        // Log as failed login due to inactive account
+        await logLoginFailure(email);
         setError("Hesabınız aktif değil. Lütfen yönetici ile iletişime geçin.");
         setLoading(false);
         return;
       }
+
+      // Log success
+      await logLoginSuccess(data.user.id, profile.role);
 
       // Debug: Role değerini kontrol et
       console.log("Login successful - User role:", profile.role);
@@ -129,6 +142,15 @@ function LoginForm() {
       // replace kullanıyoruz ki geri tuşu ile login sayfasına dönmesin
       window.location.replace(targetPath);
     } catch (err: any) {
+      console.error("Login exception:", err);
+      // Try catch logging separately to avoid recursive errors
+      try {
+        const { logLoginFailure } = await import("@/app/actions/logging");
+        await logLoginFailure(email);
+      } catch (logErr) {
+        // fail silently
+      }
+
       setError(err.message || "Bir hata oluştu. Lütfen tekrar deneyin.");
       setLoading(false);
     }
