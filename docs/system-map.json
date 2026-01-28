@@ -299,6 +299,11 @@
       "type": "Page"
     },
     {
+      "path": "app/actions/auth-events.ts",
+      "description": "Giriş sonrası işlemler server action. Loglama ve başarısız giriş denemesi sıfırlama işlemlerini yönetir.",
+      "type": "Server Action"
+    },
+    {
       "path": "app/actions/auth.ts",
       "description": "Kimlik doğrulama server actions. Login, logout, session yönetimi ve OAuth işlemleri.",
       "type": "Server Action"
