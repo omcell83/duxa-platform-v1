@@ -10,6 +10,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Building2, AlertCircle, Lock } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { updatePassword } from "@/app/actions/auth";
+import { getSecuritySettings, SecuritySettings } from "@/app/actions/system-settings";
+import { validatePassword } from "@/lib/password-utils";
 
 export default function UpdatePasswordPage() {
   const router = useRouter();
@@ -18,17 +20,20 @@ export default function UpdatePasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [verifying, setVerifying] = useState(true);
+  const [settings, setSettings] = useState<SecuritySettings | null>(null);
 
   useEffect(() => {
     // Refresh router to clear browser cache
     router.refresh();
 
     // Verify that user has a valid session (auth code exchange should have happened)
-    const verifySession = async () => {
-      const supabase = createClient();
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+    const verifyAndLoad = async () => {
+      const [secSettings, { data: { session } }] = await Promise.all([
+        getSecuritySettings(),
+        createClient().auth.getSession()
+      ]);
+
+      setSettings(secSettings);
 
       if (!session) {
         setError("Geçersiz veya süresi dolmuş bağlantı. Lütfen yeni bir şifre sıfırlama isteği gönderin.");
@@ -39,7 +44,7 @@ export default function UpdatePasswordPage() {
       setVerifying(false);
     };
 
-    verifySession();
+    verifyAndLoad();
   }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -51,9 +56,12 @@ export default function UpdatePasswordPage() {
       return;
     }
 
-    if (password.length < 6) {
-      setError("Şifre en az 6 karakter olmalıdır");
-      return;
+    if (settings) {
+      const validation = validatePassword(password, settings);
+      if (!validation.isValid) {
+        setError(validation.error || "Şifre politikasına uygun değil.");
+        return;
+      }
     }
 
     setLoading(true);

@@ -9,7 +9,13 @@ export interface SecuritySettings {
     require_number: boolean;
     require_uppercase: boolean;
     max_login_attempts: number;
-    session_timeout_minutes: number;
+    session_timeouts: {
+        super_admin: number;
+        owner: number;
+        tenant_admin: number;
+        manager: number;
+        personnel: number;
+    };
     two_factor_enforced: boolean;
 }
 
@@ -19,7 +25,13 @@ const DEFAULT_SECURITY_SETTINGS: SecuritySettings = {
     require_number: true,
     require_uppercase: true,
     max_login_attempts: 5,
-    session_timeout_minutes: 60,
+    session_timeouts: {
+        super_admin: 60,
+        owner: 120,
+        tenant_admin: 240,
+        manager: 480,
+        personnel: 720,
+    },
     two_factor_enforced: false,
 };
 

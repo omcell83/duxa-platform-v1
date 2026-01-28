@@ -13,6 +13,7 @@ import { getUserTheme } from "@/app/actions/user-settings";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { logLoginFailure, logLoginSuccess, logLoginBlocked } from "@/app/actions/logging";
+import { incrementFailedAttempts, resetFailedAttempts } from "@/app/actions/user-management";
 
 function LoginForm() {
   const router = useRouter();
@@ -50,9 +51,12 @@ function LoginForm() {
         const isBanned = signInError.message?.toLowerCase().includes("banned") ||
           signInError.message?.toLowerCase().includes("blocked");
 
+        // Track failed attempt
+        const lockResult = await incrementFailedAttempts(email);
+
         // Log failure (non-blocking)
         try {
-          if (isBanned) {
+          if (isBanned || lockResult.isLocked) {
             await logLoginBlocked(email);
           } else {
             await logLoginFailure(email);
@@ -61,7 +65,7 @@ function LoginForm() {
           console.error("Logging failed:", logErr);
         }
 
-        if (isBanned) {
+        if (isBanned || lockResult.isLocked) {
           setError("Hesabınız aktif değil. Lütfen sistem yöneticisi ile iletişime geçin.");
         } else {
           setError(signInError.message || "Giriş başarısız. Email ve şifrenizi kontrol edin.");
@@ -71,6 +75,7 @@ function LoginForm() {
       }
 
       if (!data.user) {
+        await incrementFailedAttempts(email);
         try {
           await logLoginFailure(email);
         } catch (logErr) {
@@ -80,6 +85,9 @@ function LoginForm() {
         setLoading(false);
         return;
       }
+
+      // Successful login - Reset attempts
+      await resetFailedAttempts(data.user.id);
 
       // Get user profile to determine role
       const { data: profile, error: profileError } = await supabase

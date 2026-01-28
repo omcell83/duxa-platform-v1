@@ -8,6 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle, Lock, Shield } from "lucide-react";
 import { updatePasswordAndClearFlag } from "@/app/actions/auth";
+import { getSecuritySettings, SecuritySettings } from "@/app/actions/system-settings";
+import { validatePassword } from "@/lib/password-utils";
+import { useEffect } from "react";
 
 export default function ChangePasswordPage() {
   const router = useRouter();
@@ -15,6 +18,15 @@ export default function ChangePasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [settings, setSettings] = useState<SecuritySettings | null>(null);
+
+  useEffect(() => {
+    async function loadSettings() {
+      const secSettings = await getSecuritySettings();
+      setSettings(secSettings);
+    }
+    loadSettings();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,9 +37,12 @@ export default function ChangePasswordPage() {
       return;
     }
 
-    if (password.length < 6) {
-      setError("Şifre en az 6 karakter olmalıdır");
-      return;
+    if (settings) {
+      const validation = validatePassword(password, settings);
+      if (!validation.isValid) {
+        setError(validation.error || "Şifre politikasına uygun değil.");
+        return;
+      }
     }
 
     setLoading(true);
@@ -85,8 +100,12 @@ export default function ChangePasswordPage() {
                 autoComplete="new-password"
                 minLength={6}
               />
-              <p className="text-xs text-muted-foreground">
-                Şifre en az 6 karakter olmalıdır
+              <p className="text-[10px] text-muted-foreground">
+                {settings ? (
+                  `En az ${settings.min_password_length} karakter${settings.require_uppercase ? ', büyük harf' : ''}${settings.require_number ? ', rakam' : ''}${settings.require_special_char ? ', özel karakter' : ''}`
+                ) : (
+                  "Şifre politikası yükleniyor..."
+                )}
               </p>
             </div>
 

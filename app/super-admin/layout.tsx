@@ -2,13 +2,18 @@ import { SuperAdminSidebar } from "@/components/super-admin/sidebar";
 import { SuperAdminHeader } from "@/components/super-admin/header";
 import { redirect } from "next/navigation";
 import { getUserWithProfile } from "@/lib/supabase-server";
+import { getSecuritySettings } from "@/app/actions/system-settings";
+import { SessionTimeoutWatcher } from "@/components/auth/session-timeout-watcher";
 
 export default async function SuperAdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const userData = await getUserWithProfile();
+  const [userData, securitySettings] = await Promise.all([
+    getUserWithProfile(),
+    getSecuritySettings()
+  ]);
 
   // Check if user is authenticated
   if (!userData?.user) {
@@ -27,6 +32,10 @@ export default async function SuperAdminLayout({
 
   return (
     <div className="min-h-screen bg-background">
+      <SessionTimeoutWatcher
+        role={userData.profile?.role || "personnel"}
+        settings={securitySettings}
+      />
       <div className="flex">
         {/* Sidebar */}
         <SuperAdminSidebar />

@@ -270,3 +270,65 @@ export async function toggleUserStatus(userId: string, isActive: boolean) {
     revalidatePath('/super-admin/settings/users');
     return { success: true };
 }
+
+export async function incrementFailedAttempts(email: string) {
+    const supabaseAdmin = createAdminClient();
+
+    // 1. Find profile by email
+    const { data: profile, error: findError } = await supabaseAdmin
+        .from('profiles')
+        .select('id, failed_login_attempts, is_active')
+        .eq('email', email)
+        .single();
+
+    if (findError || !profile) return { success: false };
+
+    // 2. Increment attempts
+    const newAttempts = (profile.failed_login_attempts || 0) + 1;
+
+    // 3. Get max attempts from settings
+    const { data: settingsData } = await supabaseAdmin
+        .from('system_settings')
+        .select('value')
+        .eq('key', 'security')
+        .single();
+
+    const maxAttempts = (settingsData?.value as any)?.max_login_attempts || 5;
+
+    const updates: any = { failed_login_attempts: newAttempts };
+
+    // 4. If limit reached, deactivate
+    if (newAttempts >= maxAttempts && profile.is_active) {
+        updates.is_active = false;
+
+        // Also ban in Auth officially
+        await supabaseAdmin.auth.admin.updateUserById(profile.id, {
+            ban_duration: '876600h'
+        });
+
+        // Log this critical security event
+        const { logSystemEvent } = await import('./logging');
+        await logSystemEvent({
+            event_type: 'ACCOUNT_LOCKED',
+            severity: 'CRITICAL',
+            message: `Hatalı giriş sınırı aşıldı. Hesap kilitlendi: ${email}`,
+            user_id: profile.id,
+            metadata: { attempts: newAttempts, maxAttempts }
+        });
+    }
+
+    await supabaseAdmin
+        .from('profiles')
+        .update(updates)
+        .eq('id', profile.id);
+
+    return { success: true, isLocked: updates.is_active === false };
+}
+
+export async function resetFailedAttempts(userId: string) {
+    const supabaseAdmin = createAdminClient();
+    await supabaseAdmin
+        .from('profiles')
+        .update({ failed_login_attempts: 0 })
+        .eq('id', userId);
+}
