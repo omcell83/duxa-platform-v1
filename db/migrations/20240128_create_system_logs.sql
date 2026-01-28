@@ -1,9 +1,7 @@
--- Create Log Severity Enum
-DO $$ BEGIN
-    CREATE TYPE log_severity AS ENUM ('INFO', 'WARNING', 'CRITICAL', 'SUCCESS');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+-- Recreate Log Severity Enum to ensure correct values and casing
+DROP TYPE IF EXISTS log_severity CASCADE;
+CREATE TYPE log_severity AS ENUM ('INFO', 'WARNING', 'CRITICAL', 'SUCCESS');
+
 
 -- Create System Logs Table
 CREATE TABLE IF NOT EXISTS system_logs (
