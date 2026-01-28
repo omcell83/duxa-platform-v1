@@ -23,31 +23,17 @@ export interface SystemLogEvent {
 }
 
 /**
- * Logs a system event. 
- * This version is designed to be extremely stable and never throw "Unexpected response".
+ * Logs a system event.
+ * Simplified and robust version.
  */
 export async function logSystemEvent(event: SystemLogEvent) {
-    // Server-side logging for debugging in Coolify/Docker logs
-    console.log(`[LOG_SYSTEM_EVENT_START] ${event.event_type}: ${event.message}`);
+    console.log(`[logSystemEvent] Start: ${event.event_type}`);
 
     try {
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-        if (!supabaseUrl || !serviceRoleKey) {
-            console.error('[LOG_SYSTEM_EVENT_ERROR] Missing Supabase environment variables');
-            return {
-                success: false,
-                error: 'Sistem konfigürasyonu eksik (Supabase Keys)'
-            };
-        }
-
         const supabaseAdmin = createAdminClient();
 
-        // Get IP safely
         let ipAddress: string | null = null;
         try {
-            // In Next.js 15+, headers() is a Promise. We must await it.
             const headersList = await headers();
             const forwarded = headersList.get('x-forwarded-for');
             const realIp = headersList.get('x-real-ip');
@@ -55,71 +41,72 @@ export async function logSystemEvent(event: SystemLogEvent) {
 
             if (ip) {
                 ipAddress = ip.split(',')[0].trim();
-                // inet type validation: ignore invalid/private IPs if they cause issues
+                // Basic clean up
                 if (ipAddress === 'unknown' || ipAddress === '::1' || ipAddress === '127.0.0.1') {
                     ipAddress = null;
                 }
             }
         } catch (hErr) {
-            console.warn('[LOG_SYSTEM_EVENT_IP_WARN] Could not retrieve headers', hErr);
+            console.error('[logSystemEvent] Header error:', hErr);
         }
 
-        // Prepare simple log data
+        // Prepare basic log data
         const logData: any = {
             event_type: event.event_type,
             severity: event.severity,
             message: event.message,
             details: event.details || {},
-            user_id: event.user_id || null,
+            user_id: event.user_id || null, // Ensure explicit null if empty
             ip_address: ipAddress,
-            tenant_id: null
+            tenant_id: null // Default to null
         };
 
-        // Handle tenant_id conversion
-        // Ensure we don't pass 0 or empty strings to a bigint field
-        if (event.tenant_id !== undefined && event.tenant_id !== null) {
+        // Handle tenant_id logic
+        if (event.tenant_id) {
             const tid = Number(event.tenant_id);
             if (!isNaN(tid) && tid !== 0) {
                 logData.tenant_id = tid;
+            } else {
+                // User requested to put role/string in tenant_id if empty, 
+                // BUT database column is BIGINT. We cannot put text there.
+                // We will put the raw value in details for audit purposes.
+                logData.details = {
+                    ...logData.details,
+                    requested_tenant_id: event.tenant_id
+                };
             }
         }
 
+        // Explicitly set tenant_id to null if validation failed (double check)
+        if (typeof logData.tenant_id !== 'number') {
+            logData.tenant_id = null;
+        }
+
+        // Insert - NO check for existence, straight insert as requested
         const { error } = await supabaseAdmin
             .from('system_logs')
             .insert([logData]);
 
         if (error) {
-            console.error('[LOG_SYSTEM_EVENT_DB_ERROR]', error);
-            return {
-                success: false,
-                error: `Veritabanı Hatası: ${error.message}`
-            };
+            console.error('[logSystemEvent] DB Error:', error);
+            return { success: false, error: error.message };
         }
 
-        console.log(`[LOG_SYSTEM_EVENT_SUCCESS] ${event.event_type}`);
+        console.log(`[logSystemEvent] Success`);
         return { success: true };
 
     } catch (err: any) {
-        console.error('[LOG_SYSTEM_EVENT_CRITICAL_ERROR]', err);
-        // Next.js Server Actions MUST return a plain object and MUST NOT throw to avoid "Unexpected response"
-        return {
-            success: false,
-            error: err.message || 'Bilinmeyen bir sunucu hatası oluştu'
-        };
+        console.error('[logSystemEvent] Critical:', err);
+        return { success: false, error: err.message || 'Server crash' };
     }
 }
 
 export async function getSystemLogs(limit = 100, offset = 0) {
     try {
         const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
 
-        // Use getUser() as recommended by Supabase for security
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-        if (userError || !user) {
-            console.error('[GET_SYSTEM_LOGS_AUTH_ERROR]', userError);
-            return { logs: [], count: 0, error: 'Yetkisiz erişim' };
-        }
+        if (!user) return { logs: [], count: 0, error: 'Unauthorized' };
 
         const { data, error, count } = await supabase
             .from('system_logs')
@@ -127,18 +114,10 @@ export async function getSystemLogs(limit = 100, offset = 0) {
             .order('created_at', { ascending: false })
             .range(offset, offset + limit - 1);
 
-        if (error) {
-            console.error('[GET_SYSTEM_LOGS_DB_ERROR]', error);
-            return { logs: [], count: 0, error: 'Loglar getirilemedi' };
-        }
-
-        return {
-            logs: data || [],
-            count: count || 0,
-            success: true
-        };
-    } catch (err: any) {
-        console.error('[GET_SYSTEM_LOGS_CRITICAL_ERROR]', err);
-        return { logs: [], count: 0, error: 'Sunucu hatası' };
+        if (error) throw error;
+        return { logs: data || [], count: count || 0 };
+    } catch (err) {
+        console.error('[getSystemLogs] Error:', err);
+        return { logs: [], count: 0, error: 'Fetch failed' };
     }
 }

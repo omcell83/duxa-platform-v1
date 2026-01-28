@@ -107,7 +107,7 @@ function LoginForm() {
         severity: 'info',
         message: 'Giriş başarılı',
         user_id: data.user.id || null,
-        tenant_id: profile.tenant_id ? Number(profile.tenant_id) : null,
+        tenant_id: profile.tenant_id, // Pass raw value, server action handles safety
         details: { role: profile.role, email: email }
       });
 
