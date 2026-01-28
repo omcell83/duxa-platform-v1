@@ -51,17 +51,21 @@ export async function logSystemEvent(
 
     try {
         const headersList = await headers();
-        ip = headersList.get("x-forwarded-for") || headersList.get("x-real-ip") || "unknown";
-        if (ip && ip.includes(",")) ip = ip.split(",")[0].trim();
-        ua = headersList.get("user-agent") || "unknown";
+        if (headersList) {
+            const forwardedFor = headersList.get("x-forwarded-for");
+            const realIp = headersList.get("x-real-ip");
+            ip = forwardedFor || realIp || "unknown";
+            if (ip && ip.includes(",")) ip = ip.split(",")[0].trim();
+            ua = headersList.get("user-agent") || "unknown";
+        }
     } catch (err) {
-        console.warn("Headers access failed");
+        // Silently fail, we already have "unknown" defaults
     }
 
     return await logToDb({
         ...log,
-        ip_address: ip,
-        user_agent: ua,
+        ip_address: String(ip).substring(0, 50),
+        user_agent: String(ua).substring(0, 255),
     });
 }
 
@@ -125,17 +129,16 @@ export async function logLoginBlocked(email: string, userId?: string | null, ten
 /**
  * Specialized login success logger
  */
-export async function logLoginSuccess(userId: string, role: string) {
+export async function logLoginSuccess(userId: string, role: string, tenantId?: number | null) {
     try {
-        console.log(`[LOGGING-FN] logLoginSuccess for ${userId}`);
         return await logSystemEvent({
             event_type: "LOGIN_SUCCESS",
             severity: "SUCCESS",
             message: `Başarılı giriş: ${role}`,
             user_id: userId,
+            tenant_id: tenantId || null,
             metadata: { role },
-            personnel_id: null,
-            tenant_id: null
+            personnel_id: null
         });
     } catch (err: any) {
         console.error("[LOGGING-FN] Crash in logLoginSuccess:", err);

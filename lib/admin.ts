@@ -24,8 +24,11 @@ export function createAdminClient() {
   }
 
   if (!serviceRoleKey) {
+    console.error('CRITICAL: Missing SUPABASE_SERVICE_ROLE_KEY');
     throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY environment variable');
   }
+
+  console.log('Admin client initializing with URL:', supabaseUrl);
 
   return createClient(supabaseUrl, serviceRoleKey, {
     auth: {

@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/admin';
 import { createClient } from '@/lib/supabase-server';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { logSystemEvent } from './logging';
 
 // Zod Schemas
 const createUserSchema = z.object({
@@ -273,56 +274,63 @@ export async function toggleUserStatus(userId: string, isActive: boolean) {
 
 export async function incrementFailedAttempts(email: string) {
     const supabaseAdmin = createAdminClient();
+    try {
+        // 1. Find profile by email
+        const { data: profile, error: findError } = await supabaseAdmin
+            .from('profiles')
+            .select('id, failed_login_attempts, is_active')
+            .eq('email', email)
+            .single();
 
-    // 1. Find profile by email
-    const { data: profile, error: findError } = await supabaseAdmin
-        .from('profiles')
-        .select('id, failed_login_attempts, is_active')
-        .eq('email', email)
-        .single();
+        if (findError || !profile) return { success: false, isLocked: false };
 
-    if (findError || !profile) return { success: false };
+        // 2. Increment attempts
+        const newAttempts = (profile.failed_login_attempts || 0) + 1;
 
-    // 2. Increment attempts
-    const newAttempts = (profile.failed_login_attempts || 0) + 1;
+        // 3. Get max attempts from settings
+        const { data: settingsData } = await supabaseAdmin
+            .from('system_settings')
+            .select('value')
+            .eq('key', 'security')
+            .single();
 
-    // 3. Get max attempts from settings
-    const { data: settingsData } = await supabaseAdmin
-        .from('system_settings')
-        .select('value')
-        .eq('key', 'security')
-        .single();
+        const maxAttempts = (settingsData?.value as any)?.max_login_attempts || 5;
 
-    const maxAttempts = (settingsData?.value as any)?.max_login_attempts || 5;
+        const updates: any = { failed_login_attempts: newAttempts };
 
-    const updates: any = { failed_login_attempts: newAttempts };
+        // 4. If limit reached, deactivate
+        if (newAttempts >= maxAttempts && profile.is_active) {
+            updates.is_active = false;
 
-    // 4. If limit reached, deactivate
-    if (newAttempts >= maxAttempts && profile.is_active) {
-        updates.is_active = false;
+            // Also ban in Auth officially
+            await supabaseAdmin.auth.admin.updateUserById(profile.id, {
+                ban_duration: '876600h'
+            });
 
-        // Also ban in Auth officially
-        await supabaseAdmin.auth.admin.updateUserById(profile.id, {
-            ban_duration: '876600h'
-        });
+            // Log this critical security event
+            try {
+                await logSystemEvent({
+                    event_type: 'ACCOUNT_LOCKED',
+                    severity: 'CRITICAL',
+                    message: `Hatalı giriş sınırı aşıldı. Hesap kilitlendi: ${email}`,
+                    user_id: profile.id,
+                    metadata: { attempts: newAttempts, maxAttempts }
+                });
+            } catch (e) {
+                console.error("Lock logging failed:", e);
+            }
+        }
 
-        // Log this critical security event
-        const { logSystemEvent } = await import('./logging');
-        await logSystemEvent({
-            event_type: 'ACCOUNT_LOCKED',
-            severity: 'CRITICAL',
-            message: `Hatalı giriş sınırı aşıldı. Hesap kilitlendi: ${email}`,
-            user_id: profile.id,
-            metadata: { attempts: newAttempts, maxAttempts }
-        });
+        await supabaseAdmin
+            .from('profiles')
+            .update(updates)
+            .eq('id', profile.id);
+
+        return { success: true, isLocked: updates.is_active === false };
+    } catch (err: any) {
+        console.error("Critical error in incrementFailedAttempts:", err);
+        return { success: false, error: err.message, isLocked: false };
     }
-
-    await supabaseAdmin
-        .from('profiles')
-        .update(updates)
-        .eq('id', profile.id);
-
-    return { success: true, isLocked: updates.is_active === false };
 }
 
 export async function resetFailedAttempts(userId: string) {

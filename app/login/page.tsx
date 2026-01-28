@@ -120,27 +120,13 @@ function LoginForm() {
         return;
       }
 
-      // Log success (Using API instead of Server Action to avoid Auth/Cookie conflicts)
-      const logResponse = await fetch("/api/logs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          event_type: "LOGIN_SUCCESS",
-          severity: "SUCCESS",
-          message: `Başarılı giriş: ${profile.role}`,
-          user_id: data.user.id,
-          tenant_id: profile.tenant_id,
-          metadata: { role: profile.role }
-        }),
-      });
-
-      const logResult = await logResponse.json();
-
-      if (!logResult.success) {
-        console.error("Login log failed:", logResult.error);
-        setError(`Sistem logu kaydedilemedi! İlerleyemezsiniz. Hata: ${logResult.error}`);
-        setLoading(false);
-        return;
+      // Log success (Best effort, don't block login if logging fails)
+      try {
+        logLoginSuccess(data.user.id, profile.role, profile.tenant_id).catch(e => {
+          console.error("Delayed login log failed:", e);
+        });
+      } catch (logErr: any) {
+        console.error("Login log activation failed:", logErr);
       }
 
       console.log("Log saved successfully via API, proceeding...");
