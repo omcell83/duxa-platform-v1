@@ -56,27 +56,20 @@ async function logToDb(log: SystemLogInsert): Promise<{ success: boolean; error?
 export async function logSystemEvent(
     log: Omit<SystemLogInsert, "ip_address" | "user_agent">
 ): Promise<{ success: boolean; error?: string }> {
-    let ip = "unknown";
-    let ua = "unknown";
+    // Completely bypass headers() for now to isolate crash source
+    const ip = "unknown";
+    const ua = "unknown";
 
     try {
-        const headersList = await headers();
-        if (headersList) {
-            const forwardedFor = headersList.get("x-forwarded-for");
-            const realIp = headersList.get("x-real-ip");
-            ip = forwardedFor || realIp || "unknown";
-            if (ip && ip.includes(",")) ip = ip.split(",")[0].trim();
-            ua = headersList.get("user-agent") || "unknown";
-        }
-    } catch (err) {
-        // Silently fail, we already have "unknown" defaults
+        return await logToDb({
+            ...log,
+            ip_address: ip,
+            user_agent: ua,
+        });
+    } catch (err: any) {
+        console.error("[LOGGING-EVENT] Internal crash:", err);
+        return { success: false, error: err.message };
     }
-
-    return await logToDb({
-        ...log,
-        ip_address: String(ip).substring(0, 50),
-        user_agent: String(ua).substring(0, 255),
-    });
 }
 
 /**

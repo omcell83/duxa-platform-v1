@@ -1,37 +1,58 @@
 "use server";
 
-import { logLoginSuccess } from "./logging";
-import { resetFailedAttempts } from "./user-management";
+import { createAdminClient } from "@/lib/admin";
 
 /**
- * Consolidates post-login tasks into a single server call to improve stability
- * and reduce network roundtrips.
+ * Consolidated post-login tasks in a SINGLE self-contained function
+ * to minimize dependencies and potential serialization/import errors.
  */
 export async function handlePostLoginTasks(userId: string, role: string, tenantId: number | null) {
     try {
-        console.log(`[AUTH-EVENTS] Processing post-login for user ${userId}, role ${role}`);
+        console.log(`[AUTH-EVENTS] Self-contained start for user ${userId}`);
+
+        const supabaseAdmin = createAdminClient();
 
         // 1. Reset failed attempts
-        const resetResult = await resetFailedAttempts(userId);
-        if (resetResult && 'success' in resetResult && !resetResult.success) {
-            console.warn("[AUTH-EVENTS] Failed to reset attempts, but continuing:", resetResult.error);
+        const { error: resetError } = await supabaseAdmin
+            .from('profiles')
+            .update({ failed_login_attempts: 0 })
+            .eq('id', userId);
+
+        if (resetError) {
+            console.error("[AUTH-EVENTS] Reset attempts failed:", resetError.message);
         }
 
-        // 2. Log success - THIS IS MANDATORY
-        const logResult = await logLoginSuccess(userId, role, tenantId);
+        // 2. Log success - SELF-CONTAINED INSERT
+        const cleanData = {
+            event_type: "LOGIN_SUCCESS",
+            severity: "SUCCESS",
+            message: `Başarılı giriş: ${role}`,
+            user_id: userId,
+            tenant_id: tenantId ? Number(tenantId) : null,
+            ip_address: "unknown",
+            user_agent: "unknown",
+            metadata: { role }
+        };
 
-        if (!logResult.success) {
-            console.error("[AUTH-EVENTS] CRITICAL: Log entry failed:", logResult.error);
+        const { error: logError } = await supabaseAdmin
+            .from("system_logs")
+            .insert(cleanData);
+
+        if (logError) {
+            console.error("[AUTH-EVENTS] Log insert failed:", logError.message);
             return {
                 success: false,
-                error: `Sistem günlüğü kaydedilemedi. Güvenlik gereği giriş engellendi. (${logResult.error})`
+                error: `Log hatası: ${logError.message}`
             };
         }
 
-        console.log("[AUTH-EVENTS] Post-login tasks completed successfully.");
+        console.log("[AUTH-EVENTS] All tasks done.");
         return { success: true };
     } catch (error: any) {
-        console.error("[AUTH-EVENTS] Critical error in handlePostLoginTasks:", error);
-        return { success: false, error: `Sunucu hatası: ${error.message}` };
+        console.error("[AUTH-EVENTS] Fatal crash:", error);
+        return {
+            success: false,
+            error: `Sistem hatası: ${error.message || 'Bilinmeyen'}`
+        };
     }
 }
