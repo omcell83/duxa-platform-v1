@@ -15,6 +15,32 @@ export interface Theme {
         accent: string;
         background: string;
         text: string;
+        secondary_text: string;
+        border: string;
+        card_background: string;
+        success: string;
+        warning: string;
+        error: string;
+    };
+    typography: {
+        font_family: string;
+        base_font_size: number;
+        heading_font_size: number;
+        secondary_font_size: number;
+        font_weight_bold: number;
+        font_weight_medium: number;
+    };
+    layout: {
+        border_radius: number;
+        card_padding: number;
+        container_gap: number;
+        kiosk_header_height: number;
+    };
+    components: {
+        button_style: 'flat' | 'rounded' | 'glass';
+        card_shadow: 'none' | 'sm' | 'md' | 'lg';
+        show_icons: boolean;
+        category_scroll: 'horizontal' | 'vertical';
     };
     is_system: boolean;
 }
@@ -52,12 +78,22 @@ export async function getThemeById(id: string): Promise<Theme | null> {
 
 export async function updateTheme(id: string, themeData: Partial<Theme>) {
     const supabaseAdmin = createAdminClient();
+
+    // Ensure nested objects are handled correctly for the update
+    const updatePayload: any = {
+        updated_at: new Date().toISOString()
+    };
+
+    if (themeData.name) updatePayload.name = themeData.name;
+    if (themeData.description !== undefined) updatePayload.description = themeData.description;
+    if (themeData.colors) updatePayload.colors = themeData.colors;
+    if (themeData.typography) updatePayload.typography = themeData.typography;
+    if (themeData.layout) updatePayload.layout = themeData.layout;
+    if (themeData.components) updatePayload.components = themeData.components;
+
     const { error } = await supabaseAdmin
         .from('themes')
-        .update({
-            ...themeData,
-            updated_at: new Date().toISOString()
-        })
+        .update(updatePayload)
         .eq('id', id);
 
     if (error) {
