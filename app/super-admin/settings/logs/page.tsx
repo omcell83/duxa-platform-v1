@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AlertCircle, CheckCircle, Info, AlertTriangle, Shield, User } from "lucide-react";
+import { AlertCircle, CheckCircle, Info, AlertTriangle, Shield, User, Building } from "lucide-react";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 
@@ -12,15 +12,14 @@ export const dynamic = "force-dynamic";
 export default async function SystemLogsPage() {
     const supabase = await createClient();
 
-    // Fetch logs with user info if possible (need to join or fetch separately, supabase join syntax is complex with auth schema)
-    // Since user_id references auth.users, we can't easily join in standard query unless we have a view or using rpc.
-    // However, we might have profiles table. Let's assume we fetch logs and then maybe map users or just show ID.
-    // Ideally, system_logs should have a view or we just show the raw log for now.
-    // Let's select * from system_logs.
-
+    // Fetch logs with user and tenant info using relations
     const { data: logs, error } = await supabase
         .from("system_logs")
-        .select("*")
+        .select(`
+            *,
+            profiles(full_name),
+            tenants(name)
+        `)
         .order("created_at", { ascending: false })
         .limit(100);
 
@@ -80,47 +79,71 @@ export default async function SystemLogsPage() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead className="w-[180px]">Tarih</TableHead>
-                                    <TableHead className="w-[120px]">Seviye</TableHead>
-                                    <TableHead className="w-[200px]">Olay Tipi</TableHead>
-                                    <TableHead>Mesaj</TableHead>
-                                    <TableHead className="w-[150px]">Kullanıcı / IP</TableHead>
+                                    <TableHead className="w-[100px]">Seviye</TableHead>
+                                    <TableHead className="w-[150px]">Olay Tipi</TableHead>
+                                    <TableHead className="w-[200px]">Mesaj</TableHead>
+                                    <TableHead className="w-[180px]">Kullanıcı</TableHead>
+                                    <TableHead className="w-[180px]">İşletme</TableHead>
+                                    <TableHead className="w-[120px]">IP Adresi</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {logs && logs.length > 0 ? (
-                                    logs.map((log) => (
+                                    logs.map((log: any) => (
                                         <TableRow key={log.id} className={getRowClass(log.severity)}>
-                                            <TableCell className="font-mono text-sm">
+                                            <TableCell className="font-mono text-xs">
                                                 {format(new Date(log.created_at), "dd MMM yyyy HH:mm:ss", { locale: tr })}
                                             </TableCell>
                                             <TableCell>{getSeverityBadge(log.severity)}</TableCell>
                                             <TableCell className="font-medium text-xs font-mono">{log.event_type}</TableCell>
-                                            <TableCell className="max-w-[400px] truncate" title={log.message}>
+                                            <TableCell className="max-w-[200px] truncate text-sm" title={log.message}>
                                                 {log.message}
                                                 {log.metadata?.email_attempt && (
-                                                    <div className="text-xs text-muted-foreground mt-1">
+                                                    <div className="text-[10px] text-muted-foreground mt-0.5">
                                                         Email: {log.metadata.email_attempt}
                                                     </div>
                                                 )}
                                             </TableCell>
                                             <TableCell>
-                                                <div className="flex flex-col gap-1 text-xs">
-                                                    {log.user_id && (
-                                                        <div className="flex items-center gap-1 text-primary">
-                                                            <User className="w-3 h-3" />
-                                                            <span title={log.user_id} className="truncate w-24">{log.user_id.substring(0, 8)}...</span>
+                                                <div className="flex flex-col gap-0.5">
+                                                    {log.profiles?.full_name ? (
+                                                        <div className="flex items-center gap-1.5 font-medium text-sm">
+                                                            <User className="w-3.5 h-3.5 text-primary" />
+                                                            {log.profiles.full_name}
                                                         </div>
-                                                    )}
-                                                    {log.ip_address && (
-                                                        <span className="font-mono text-muted-foreground">{log.ip_address}</span>
+                                                    ) : log.user_id ? (
+                                                        <div className="text-[10px] font-mono text-muted-foreground">
+                                                            ID: {log.user_id.substring(0, 8)}...
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-xs text-muted-foreground italic">Anonim</span>
                                                     )}
                                                 </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex flex-col gap-0.5">
+                                                    {log.tenants?.name ? (
+                                                        <div className="flex items-center gap-1.5 text-sm">
+                                                            <Building className="w-3.5 h-3.5 text-blue-500" />
+                                                            {log.tenants.name}
+                                                        </div>
+                                                    ) : log.tenant_id ? (
+                                                        <div className="text-[10px] font-mono text-muted-foreground">
+                                                            ID: {log.tenant_id}
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-xs text-muted-foreground italic">-</span>
+                                                    )}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="font-mono text-xs text-muted-foreground">
+                                                {log.ip_address || "-"}
                                             </TableCell>
                                         </TableRow>
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                                             Henüz log kaydı bulunmuyor.
                                         </TableCell>
                                     </TableRow>

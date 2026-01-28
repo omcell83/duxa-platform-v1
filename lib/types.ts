@@ -509,7 +509,7 @@ export interface SystemLog {
   message: string;
   user_id?: string | null;
   personnel_id?: string | null;
-  tenant_id?: string | null; // uuid, not bigint like other tenant references due to mixed usage (auth vs app)
+  tenant_id?: number | null;
   ip_address?: string | null;
   user_agent?: string | null;
   metadata?: Record<string, any> | null;
@@ -521,7 +521,7 @@ export interface SystemLogInsert {
   message: string;
   user_id?: string | null;
   personnel_id?: string | null;
-  tenant_id?: string | null;
+  tenant_id?: number | null;
   ip_address?: string | null;
   user_agent?: string | null;
   metadata?: Record<string, any> | null;

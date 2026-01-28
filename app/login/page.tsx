@@ -72,7 +72,7 @@ function LoginForm() {
       // Get user profile to determine role
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("role, is_active")
+        .select("role, is_active, tenant_id")
         .eq("id", data.user.id)
         .single();
 
@@ -107,6 +107,7 @@ function LoginForm() {
           severity: "SUCCESS",
           message: `Başarılı giriş: ${profile.role}`,
           user_id: data.user.id,
+          tenant_id: profile.tenant_id,
           metadata: { role: profile.role }
         }),
       });
