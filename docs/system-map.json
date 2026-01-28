@@ -254,6 +254,13 @@
       "type": "Page"
     },
     {
+      "path": "app/super-admin/settings/themes/page.tsx",
+      "description": "Tema ayarları listeleme sayfası. Kiosk ve Menü temalarının yönetildiği ana sayfa.",
+      "type": "Page"
+    },
+    {
+      "path": "app/super-admin/settings/themes/[id]/edit/page.tsx",
+      "description": "Tema düzenleme sayfası. Belirli bir temanın renk ve özelliklerinin özelleştirildiği sayfa.",
       "type": "Page"
     },
     {
@@ -339,6 +346,11 @@
     {
       "path": "app/actions/meeting-tasks.ts",
       "description": "Personel toplantısı kararları server actions. Görev CRUD işlemleri, tamamlama ve kullanıcı listesi.",
+      "type": "Server Action"
+    },
+    {
+      "path": "app/actions/themes.ts",
+      "description": "Tema yönetimi server actions. Tema listeleme, detay getirme ve güncelleme işlemleri.",
       "type": "Server Action"
     },
     {
@@ -449,6 +461,11 @@
     {
       "path": "components/super-admin/settings/security-form.tsx",
       "description": "Güvenlik ayarları formu. Zod validasyonlu güvenlik konfigürasyon formu.",
+      "type": "Component"
+    },
+    {
+      "path": "components/super-admin/settings/themes/theme-edit-form.tsx",
+      "description": "Tema düzenleme formu bileşeni. Canlı önizlemeli tema özelleştirme formu.",
       "type": "Component"
     },
     {

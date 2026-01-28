@@ -1,27 +1,11 @@
-"use client";
-
-import { ChevronLeft, Palette, CheckCircle2, Monitor, Smartphone, Tablet } from "lucide-react";
+import { ChevronLeft, Palette, Edit3, CheckCircle2, Monitor } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { THEME_REGISTRY, ThemeDefinition } from "@/lib/themes/registry";
-import { useState } from "react";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
+import { getThemes } from "@/app/actions/themes";
 
-export default function ThemeSettingsPage() {
-    const [activeThemeId, setActiveThemeId] = useState("duxa-dark");
-    const [loadingThemeId, setLoadingThemeId] = useState<string | null>(null);
-
-    const handleApplyTheme = (themeId: string) => {
-        setLoadingThemeId(themeId);
-        // Simulate theme switching delay
-        setTimeout(() => {
-            setActiveThemeId(themeId);
-            setLoadingThemeId(null);
-            toast.success("Tema başarıyla uygulandı!");
-        }, 1500);
-    };
+export default async function ThemeSettingsPage() {
+    const themes = await getThemes();
 
     return (
         <div className="space-y-6">
@@ -36,111 +20,68 @@ export default function ThemeSettingsPage() {
                     <h1 className="text-3xl font-bold text-foreground">Tema Ayarları</h1>
                 </div>
                 <p className="text-muted-foreground ml-10">
-                    Sistem genelindeki görünümü ve renk paletini yönetin. Seçilen tema tüm platformda geçerli olacaktır.
+                    Kiosk ve Dijital Menüler için görünüm seçeneklerini yönetin. Admin paneli bu ayarlardan etkilenmez.
                 </p>
             </div>
 
             {/* Themes Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-8 pt-4">
-                {THEME_REGISTRY.map((theme) => {
-                    const isActive = activeThemeId === theme.id;
-                    const isLoading = loadingThemeId === theme.id;
-
-                    return (
-                        <Card
-                            key={theme.id}
-                            className={cn(
-                                "overflow-hidden group transition-all duration-300 border-2 overflow-hidden shadow-lg",
-                                isActive ? "border-primary ring-2 ring-primary/20" : "border-border hover:border-primary/40"
-                            )}
-                        >
-                            {/* Theme Preview Image Area */}
-                            <div className="aspect-[16/9] relative overflow-hidden bg-muted group-hover:scale-[1.02] transition-transform duration-500">
-                                {/* Theme Preview Decoration */}
-                                <div
-                                    className="absolute inset-0 opacity-20"
-                                    style={{
-                                        background: `linear-gradient(135deg, ${theme.colors.primary} 0%, ${theme.colors.accent} 100%)`
-                                    }}
-                                />
-
-                                <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-                                    <Palette className="h-16 w-16 text-muted-foreground/20 mb-4 group-hover:rotate-12 transition-transform duration-500" />
-                                    <div className="bg-background/80 backdrop-blur-sm p-4 rounded-xl border border-border shadow-2xl max-w-[80%]">
-                                        <div className="flex gap-2 mb-2 justify-center">
-                                            <div className="w-8 h-8 rounded-full shadow-inner" style={{ backgroundColor: theme.colors.primary }} />
-                                            <div className="w-8 h-8 rounded-full shadow-inner" style={{ backgroundColor: theme.colors.accent }} />
-                                            <div className="w-8 h-8 rounded-full shadow-inner" style={{ backgroundColor: theme.colors.background }} />
-                                        </div>
-                                        <p className="text-xs font-medium text-foreground opacity-60">Tema Renk Paleti</p>
-                                    </div>
-                                </div>
-
-                                {/* Active Badge */}
-                                {isActive && (
-                                    <div className="absolute top-4 right-4 z-10">
-                                        <div className="bg-primary text-primary-foreground px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-xl border border-white/20 animate-in zoom-in-50 duration-300">
-                                            <CheckCircle2 className="h-4 w-4" />
-                                            VARSAYILAN TEMA
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Device Mockup Overlay */}
-                                <div className="absolute bottom-4 right-4 flex gap-2">
-                                    <div className="bg-black/40 backdrop-blur-sm p-1.5 rounded-md"><Monitor className="h-3 w-3 text-white" /></div>
-                                    <div className="bg-black/40 backdrop-blur-sm p-1.5 rounded-md"><Tablet className="h-3 w-3 text-white" /></div>
-                                    <div className="bg-black/40 backdrop-blur-sm p-1.5 rounded-md"><Smartphone className="h-3 w-3 text-white" /></div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                {themes.map((theme) => (
+                    <Card key={theme.id} className="overflow-hidden group hover:border-primary/50 transition-all shadow-sm flex flex-col">
+                        <div className="aspect-[4/3] relative overflow-hidden bg-muted border-b border-border/50">
+                            {/* Theme Colors Indicators - Mini Preview */}
+                            <div className="absolute inset-0 p-4 flex flex-col gap-2">
+                                <div className="h-2 w-full rounded-sm opacity-20" style={{ backgroundColor: theme.colors.primary }} />
+                                <div className="h-8 w-full rounded-md shadow-sm border border-black/5" style={{ backgroundColor: theme.colors.background }} />
+                                <div className="flex gap-1">
+                                    <div className="h-4 w-4 rounded-full border border-black/5" style={{ backgroundColor: theme.colors.accent }} />
+                                    <div className="h-4 w-4 rounded-full border border-black/5" style={{ backgroundColor: theme.colors.primary }} />
                                 </div>
                             </div>
 
-                            <CardHeader className="relative">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <CardTitle className="text-2xl font-bold">{theme.name}</CardTitle>
-                                        <CardDescription className="mt-2 text-base leading-relaxed">
-                                            {theme.description}
-                                        </CardDescription>
-                                    </div>
+                            {/* System Tag */}
+                            {theme.is_system && (
+                                <div className="absolute top-2 right-2 bg-primary/10 text-primary text-[8px] font-bold px-1.5 py-0.5 rounded-full border border-primary/20">
+                                    Sistem
                                 </div>
-                            </CardHeader>
+                            )}
 
-                            <CardContent className="pt-0">
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/5 backdrop-blur-[1px]">
+                                <Monitor className="h-6 w-6 text-primary" />
+                            </div>
+                        </div>
+
+                        <CardHeader className="p-3 space-y-1">
+                            <CardTitle className="text-sm font-bold truncate">{theme.name}</CardTitle>
+                            <CardDescription className="text-[10px] line-clamp-1">
+                                {theme.description}
+                            </CardDescription>
+                        </CardHeader>
+
+                        <CardContent className="p-3 pt-0 mt-auto">
+                            <Link href={`/super-admin/settings/themes/${theme.id}/edit`}>
                                 <Button
-                                    size="lg"
-                                    variant={isActive ? "secondary" : "default"}
-                                    className={cn(
-                                        "w-full font-bold",
-                                        isActive && "bg-muted cursor-not-allowed"
-                                    )}
-                                    onClick={() => handleApplyTheme(theme.id)}
-                                    disabled={isActive || isLoading}
+                                    variant="outline"
+                                    size="sm"
+                                    className="w-full text-[10px] h-8 gap-1.5"
                                 >
-                                    {isLoading ? (
-                                        <div className="flex items-center gap-2">
-                                            <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                                            Uygulanıyor...
-                                        </div>
-                                    ) : (
-                                        isActive ? "Sistem Teması Aktif" : "Bu Temayı Seç"
-                                    )}
+                                    <Edit3 className="h-3 w-3" />
+                                    Temayı Düzenle
                                 </Button>
-                            </CardContent>
-                        </Card>
-                    );
-                })}
-            </div>
+                            </Link>
+                        </CardContent>
+                    </Card>
+                ))}
 
-            {/* Footer Note */}
-            <div className="bg-muted/50 p-6 rounded-xl border border-border mt-8">
-                <h3 className="font-semibold mb-2 flex items-center gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-primary" />
-                    Tema Özelleştirme Notu
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                    Yukarıdaki temalar sistem genelindeki CSS değişkenlerini (`--primary`, `--background`, `--accent` vb.) otomatik olarak günceller.
-                    Yeni bir tema eklemek için `lib/themes/registry.ts` dosyasına yeni bir tanım ekleyebilir ve önizleme görselini `public/themes/previews/` altına yükleyebilirsiniz.
-                </p>
+                {/* Add New Theme Placeholder Card */}
+                <Card className="border-dashed flex items-center justify-center p-4 hover:bg-muted/50 transition-colors cursor-not-allowed opacity-50">
+                    <div className="flex flex-col items-center gap-2 text-center">
+                        <div className="p-2 bg-muted rounded-full">
+                            <Palette className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <span className="text-[10px] font-medium text-muted-foreground">Yeni Tema Ekle<br />(Yakında)</span>
+                    </div>
+                </Card>
             </div>
         </div>
     );

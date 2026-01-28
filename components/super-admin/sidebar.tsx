@@ -91,7 +91,14 @@ export function SuperAdminSidebar() {
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {menuItems.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+          // Exact match for the item itself, OR it's a sub-route but we exclude overlaps
+          const isExact = pathname === item.href;
+          const isSubRoute = pathname.startsWith(item.href + "/") && item.href !== "/super-admin/settings";
+
+          // Special case for settings vs settings/themes
+          const isActive = item.href === "/super-admin/settings"
+            ? (isExact || (pathname.startsWith("/super-admin/settings") && !pathname.startsWith("/super-admin/settings/themes")))
+            : (isExact || pathname.startsWith(item.href + "/"));
 
           return (
             <Link
