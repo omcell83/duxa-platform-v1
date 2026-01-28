@@ -19,11 +19,12 @@ export function createAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!supabaseUrl || !serviceRoleKey) {
-    // If we're on the server, this is a critical configuration error.
-    // We log it and return a client that will fail gracefully instead of throwing during constructor.
-    console.error('CRITICAL: Supabase Admin configuration is missing!');
-    return createClient(supabaseUrl || 'http://missing-url.com', serviceRoleKey || 'missing-key');
+  if (!supabaseUrl) {
+    throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL environment variable');
+  }
+
+  if (!serviceRoleKey) {
+    throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY environment variable');
   }
 
   return createClient(supabaseUrl, serviceRoleKey, {

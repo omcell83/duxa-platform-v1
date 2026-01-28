@@ -12,7 +12,6 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { getUserTheme } from "@/app/actions/user-settings";
 import { useTheme } from "next-themes";
 import Link from "next/link";
-import { logSystemEvent } from "@/app/actions/system-logs";
 
 function LoginForm() {
   const router = useRouter();
@@ -29,13 +28,6 @@ function LoginForm() {
     const errorParam = searchParams.get("error");
     if (errorParam === "unauthorized") {
       setError("Bu sayfaya erişim yetkiniz yok.");
-      // Log unauthorized access redirect
-      logSystemEvent({
-        event_type: 'unauthorized_access',
-        severity: 'warning',
-        message: 'Unauthorized access attempt redirect',
-        details: { redirect: searchParams.get('redirect') }
-      }).catch(e => console.error('Failed to log unauthorized access', e));
     } else if (errorParam === "account_inactive") {
       setError("Hesabınız aktif değil. Lütfen yönetici ile iletişime geçin.");
     }
@@ -54,22 +46,6 @@ function LoginForm() {
 
       if (signInError) {
         setError(signInError.message || "Giriş başarısız. Email ve şifrenizi kontrol edin.");
-
-        // Log failed login (Only email as requested)
-        console.group("DEBUG: Failed Login Log Attempt");
-        const logResult = await logSystemEvent({
-          event_type: 'login_failed',
-          severity: 'warning',
-          message: `Giriş başarısız: ${signInError.message}`,
-          details: { email } // Only email for failed attempts
-        });
-        console.log("Log Result:", logResult);
-        console.groupEnd();
-
-        if (!logResult || !logResult.success) {
-          setError(`Sistem günlüğü hatası: ${logResult?.error || 'Sunucu hatası'}`);
-        }
-
         setLoading(false);
         return;
       }
@@ -80,10 +56,10 @@ function LoginForm() {
         return;
       }
 
-      // Get user profile to determine role and tenant
+      // Get user profile to determine role
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("role, is_active, tenant_id")
+        .select("role, is_active")
         .eq("id", data.user.id)
         .single();
 
@@ -99,27 +75,9 @@ function LoginForm() {
         return;
       }
 
-      // Log successful login (MANDATORY)
-      console.group("DEBUG: Success Login Log Attempt");
-      const logResult = await logSystemEvent({
-        event_type: 'login',
-        severity: 'info',
-        message: 'Giriş başarılı',
-        user_id: data.user.id,
-        // Requirement: if tenant_id is missing, use user role
-        tenant_id: profile.tenant_id || profile.role,
-        details: { role: profile.role, email: email }
-      });
-      console.log("Log Result:", logResult);
-      console.groupEnd();
-
-      if (!logResult || !logResult.success) {
-        console.error("Login aborted due to logging failure:", logResult);
-        setError(`Sistem güvenlik günlüğü hatası: ${logResult?.error || 'Log yazılamadı'}`);
-        setLoading(false);
-        await supabase.auth.signOut();
-        return;
-      }
+      // Debug: Role değerini kontrol et
+      console.log("Login successful - User role:", profile.role);
+      console.log("Profile data:", profile);
 
       // Cookie'lerin set edilmesi için session'ı kontrol et
       const { data: sessionData } = await supabase.auth.getSession();
