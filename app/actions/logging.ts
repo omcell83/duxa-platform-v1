@@ -9,18 +9,31 @@ import { headers } from "next/headers";
  */
 async function logToDb(log: SystemLogInsert): Promise<{ success: boolean; error?: string }> {
     try {
-        console.log(`[logToDb] Attempting database insert:`, JSON.stringify(log));
+        console.log(`[logToDb] Input:`, JSON.stringify(log));
 
         const supabaseAdmin = createAdminClient();
-        const { error } = await supabaseAdmin.from("system_logs").insert(log);
+
+        // Ensure strictly serializable data for Postgres
+        const cleanData = {
+            event_type: String(log.event_type),
+            severity: log.severity,
+            message: String(log.message),
+            user_id: log.user_id || null,
+            personnel_id: log.personnel_id || null,
+            tenant_id: log.tenant_id || null,
+            ip_address: log.ip_address || "unknown",
+            user_agent: log.user_agent || "unknown",
+            metadata: log.metadata || {}
+        };
+
+        const { error } = await supabaseAdmin.from("system_logs").insert(cleanData);
 
         if (error) {
             console.error("DB Logging Error:", error.message, error.details);
             return { success: false, error: `${error.message} (${error.details || ''})` };
-        } else {
-            console.log("[logToDb] Insert successful");
-            return { success: true };
         }
+
+        return { success: true };
     } catch (err: any) {
         console.error("Critical Logging Exception:", err);
         return { success: false, error: err.message || "Bilinmeyen sunucu hatası" };
@@ -39,10 +52,10 @@ export async function logSystemEvent(
     try {
         const headersList = await headers();
         ip = headersList.get("x-forwarded-for") || headersList.get("x-real-ip") || "unknown";
-        if (ip.includes(",")) ip = ip.split(",")[0].trim();
+        if (ip && ip.includes(",")) ip = ip.split(",")[0].trim();
         ua = headersList.get("user-agent") || "unknown";
     } catch (err) {
-        console.warn("Headers access failed in logSystemEvent");
+        console.warn("Headers access failed");
     }
 
     return await logToDb({
@@ -56,29 +69,38 @@ export async function logSystemEvent(
  * Specialized login failure logger
  */
 export async function logLoginFailure(email: string) {
-    console.log(`[LOGGING-FN] logLoginFailure called for: ${email}`);
-
-    return await logSystemEvent({
-        event_type: "LOGIN_FAILED",
-        severity: "WARNING",
-        message: `Hatalı giriş denemesi: ${email}`,
-        metadata: { email_attempt: email },
-        user_id: null,
-        personnel_id: null
-    });
+    try {
+        return await logSystemEvent({
+            event_type: "LOGIN_FAILED",
+            severity: "WARNING",
+            message: `Hatalı giriş denemesi: ${email}`,
+            metadata: { email_attempt: email },
+            user_id: null,
+            personnel_id: null,
+            tenant_id: null
+        });
+    } catch (err: any) {
+        return { success: false, error: err.message };
+    }
 }
 
 /**
  * Specialized login success logger
  */
 export async function logLoginSuccess(userId: string, role: string) {
-    console.log(`[LOGGING-FN] logLoginSuccess called for user: ${userId} (${role})`);
-
-    return await logSystemEvent({
-        event_type: "LOGIN_SUCCESS",
-        severity: "SUCCESS",
-        message: `Başarılı giriş: ${role}`,
-        user_id: userId,
-        metadata: { role }
-    });
+    try {
+        console.log(`[LOGGING-FN] logLoginSuccess for ${userId}`);
+        return await logSystemEvent({
+            event_type: "LOGIN_SUCCESS",
+            severity: "SUCCESS",
+            message: `Başarılı giriş: ${role}`,
+            user_id: userId,
+            metadata: { role },
+            personnel_id: null,
+            tenant_id: null
+        });
+    } catch (err: any) {
+        console.error("[LOGGING-FN] Crash in logLoginSuccess:", err);
+        return { success: false, error: err.message };
+    }
 }
