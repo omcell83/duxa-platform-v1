@@ -106,9 +106,9 @@ function LoginForm() {
         event_type: 'login',
         severity: 'info',
         message: 'Giriş başarılı',
-        user_id: data.user.id,
-        tenant_id: (profile as any).tenant_id,
-        details: { role: profile.role, email }
+        user_id: data.user.id || null,
+        tenant_id: profile.tenant_id ? Number(profile.tenant_id) : null,
+        details: { role: profile.role, email: email }
       });
 
       if (!logResult || !logResult.success) {
