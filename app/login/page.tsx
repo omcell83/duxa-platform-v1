@@ -12,6 +12,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { getUserTheme } from "@/app/actions/user-settings";
 import { useTheme } from "next-themes";
 import Link from "next/link";
+import { logLoginFailure, logLoginSuccess } from "@/app/actions/logging";
 
 function LoginForm() {
   const router = useRouter();
@@ -38,10 +39,6 @@ function LoginForm() {
     setLoading(true);
     setError(null);
 
-    // Import logging actions dynamically to avoid bundling issues if any, 
-    // though static import is fine for server actions.
-    const { logLoginFailure, logLoginSuccess } = await import("@/app/actions/logging");
-
     try {
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
@@ -49,14 +46,16 @@ function LoginForm() {
       });
 
       if (signInError) {
-        await logLoginFailure(email);
+        // Log failure (non-blocking)
+        logLoginFailure(email).catch(err => console.error("Logging failed:", err));
+
         setError(signInError.message || "Giriş başarısız. Email ve şifrenizi kontrol edin.");
         setLoading(false);
         return;
       }
 
       if (!data.user) {
-        await logLoginFailure(email);
+        logLoginFailure(email).catch(err => console.error("Logging failed:", err));
         setError("Kullanıcı bulunamadı.");
         setLoading(false);
         return;
@@ -70,32 +69,25 @@ function LoginForm() {
         .single();
 
       if (profileError || !profile) {
-        // If user logged in but no profile, it's a critical data integrity issue or uninitialized user
-        await logLoginFailure(email);
+        logLoginFailure(email).catch(err => console.error("Logging failed:", err));
         setError("Kullanıcı profili bulunamadı.");
         setLoading(false);
         return;
       }
 
       if (!profile.is_active) {
-        // Log as failed login due to inactive account
-        await logLoginFailure(email);
+        logLoginFailure(email).catch(err => console.error("Logging failed:", err));
         setError("Hesabınız aktif değil. Lütfen yönetici ile iletişime geçin.");
         setLoading(false);
         return;
       }
 
-      // Log success
-      await logLoginSuccess(data.user.id, profile.role);
-
-      // Debug: Role değerini kontrol et
-      console.log("Login successful - User role:", profile.role);
-      console.log("Profile data:", profile);
+      // Log success (non-blocking)
+      logLoginSuccess(data.user.id, profile.role).catch(err => console.error("Logging failed:", err));
 
       // Cookie'lerin set edilmesi için session'ı kontrol et
       const { data: sessionData } = await supabase.auth.getSession();
       if (!sessionData.session) {
-        console.error("Session not found after login!");
         setError("Oturum oluşturulamadı. Lütfen tekrar deneyin.");
         setLoading(false);
         return;
@@ -112,45 +104,28 @@ function LoginForm() {
         }
       } catch (themeError) {
         console.error("Error loading user theme:", themeError);
-        // Tema yükleme hatası kritik değil, devam et
       }
 
-      // SONRA: Redirect path'i belirle
+      // Redirect path'i belirle
       const redirectPath = searchParams.get("redirect") || "";
       let targetPath = "";
 
       if (redirectPath && redirectPath.startsWith("/")) {
-        // URL parametresinden gelen redirect değerini kullan
         targetPath = redirectPath;
       } else {
-        // Role göre varsayılan dashboard'a yönlendir
-        // Role string'ini trim ve lowercase yap (güvenlik için)
         const normalizedRole = (profile.role || "").trim().toLowerCase();
-
         if (normalizedRole === "super_admin") {
           targetPath = "/super-admin/dashboard";
-        } else if (normalizedRole === "tenant_admin" || normalizedRole === "user") {
-          targetPath = "/dashboard";
         } else {
           targetPath = "/dashboard";
         }
       }
 
-      console.log("Redirecting to:", targetPath);
-
-      // window.location.replace kullan - full page reload yapar ve middleware'in cookie'leri görmesini sağlar
-      // replace kullanıyoruz ki geri tuşu ile login sayfasına dönmesin
       window.location.replace(targetPath);
     } catch (err: any) {
       console.error("Login exception:", err);
-      // Try catch logging separately to avoid recursive errors
-      try {
-        const { logLoginFailure } = await import("@/app/actions/logging");
-        await logLoginFailure(email);
-      } catch (logErr) {
-        // fail silently
-      }
-
+      // Attempt to log the crash too
+      logLoginFailure(email).catch(() => { });
       setError(err.message || "Bir hata oluştu. Lütfen tekrar deneyin.");
       setLoading(false);
     }
@@ -158,7 +133,6 @@ function LoginForm() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4 relative">
-      {/* Theme Toggle - Top Right */}
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
